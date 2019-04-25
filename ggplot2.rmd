@@ -33,7 +33,7 @@ What is **ggplot2**?
 Some interesting links: 
 
 - [R for Data Science](http://r4ds.had.co.nz/) 
-- [ggplot2: Elegant graphics for data Analysis.](http://moderngraphics11.pbworks.com/f/ggplot2-Book09hWickham.pdf)
+- [ggplot2: Elegant graphics for data Analysis](http://moderngraphics11.pbworks.com/f/ggplot2-Book09hWickham.pdf)
 - [Cookbook](http://www.cookbook-r.com/Graphs/)
 - [R Graph Gallery](https://www.r-graph-gallery.com/)
 - [DataCamp course](https://www.datacamp.com/courses/data-visualization-with-ggplot2-1)
@@ -109,29 +109,28 @@ ggplot(diamonds, aes(x = carat, y = price)) +
   geom_smooth(method = 'loess')
 ```
 
-## Aestetics
+## Aesthetics
 
-- until now we only used the x and y coordinate as aestetics
-- `?geom_point()` tells us about further aestetics that we can map data to 
-- note that each geom has its own set of aestetics
+- until now we only used the x and y coordinates as aesthetics
+- `?geom_point()` tells us about further aesthetics that we can map data to 
+- note that each geom has its own set of aesthetics
 
 ```{r, echo = TRUE, eval = FALSE}
 ggplot(diamonds, aes(x = carat, y = price, color = color, shape =  cut)) + 
   geom_point()
 ```
 
-## Aestetics
+## Aesthetics
 
 ```{r, echo = FALSE, eval = TRUE, warning=FALSE}
 ggplot(diamonds, aes(x = carat, y = price, color = color, shape =  cut)) + 
   geom_point()
 ```
 
-## Statitic Transformations and Aestetics
+## Statitic Transformations and Aesthetics
 
-- if we add a layer with a statistic transformation such as `geom_smooth()` 
-  to a plot where we mapped one ore more aesthetics to discrete variables, then
-  the transformation is performed by group 
+- if we map aesthetics to discrete variables, then ggplot will automatically group the data accordingly
+- in this case every statistic transformation is performed by group
 - you can see what this means by the following example
 
 ```{r, echo = TRUE, eval = FALSE, warning=FALSE}
@@ -140,22 +139,22 @@ ggplot(diamonds, aes(x = carat, y = price, color = color, shape =  cut)) +
   geom_smooth()
 ```
 
-## Statitic Transformations and Aestetics
+## Statitic Transformations and Aesthetics
 ```{r, echo = FALSE, eval = TRUE, warning=FALSE}
 ggplot(diamonds, aes(x = carat, y = price, color = color, shape =  cut)) + 
   geom_point() +
   geom_smooth()
 ```
 
-## Statitic Transformations and Aestetics
-- If this is not desired simply move color and shape as additional aestetics to `geom_point()`
+## Statitic Transformations and Aesthetics
+- If this is not desired simply move color and shape as additional aesthetics to `geom_point()`
 ```{r, echo = TRUE, eval = FALSE}
 ggplot(diamonds, aes(x = carat, y = price)) + 
   geom_point(aes(color = color, shape = cut)) +
   geom_smooth()
 ```
 
-- in some circumstances it might also be convinient to leave all aestetics in `ggplot()` (e.g. if there are many layers) and overwrite the created groups by a arbitrary constant value
+- in some circumstances it might also be convinient to leave all aesthetics in `ggplot()` (e.g. if there are many layers) and overwrite the created groups by a arbitrary constant value
 
 ```{r, echo = TRUE, eval = FALSE}
 ggplot(diamonds, aes(x = carat, y = price, color = color, shape = cut)) + 
@@ -164,7 +163,7 @@ ggplot(diamonds, aes(x = carat, y = price, color = color, shape = cut)) +
 ```
 
 
-## Statistic Transformations and Aestetics
+## Statistic Transformations and Aesthetics
 ```{r, echo = FALSE, eval = TRUE}
 ggplot(diamonds, aes(x = carat, y = price, color = color, shape = cut)) + 
   geom_point() +
