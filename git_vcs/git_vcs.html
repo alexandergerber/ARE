@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+  <head>
+    <title>Git and Github</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Alexander Gerber &amp; Martin Arnold" />
+    <link href="libs/remark-css/default.css" rel="stylesheet" />
+    <link href="libs/remark-css/default-fonts.css" rel="stylesheet" />
+  </head>
+  <body>
+    <textarea id="source">
+
+
+
+
+
+
+class: center, middle
+
+&lt;font size="7"&gt;Git and Github&lt;/font&gt;
+
+![](images/git_logo.svg)
+
+&lt;font size="6"&gt;Alexander Gerber &amp; Martin Arnold&lt;/font&gt;
+
+---
+class: center
+
+# What is a Version Control System (VCS)?
+
+&lt;br&gt;
+
+![](images/version_control_1.svg)
+---
+
+class: center
+&lt;br&gt;
+&lt;br&gt;
+![](images/version_control_2.png)
+
+---
+class:
+# What is a VCS?
+
+- Like a database that tracks changes of your work
+- Lets you take a snapshot of your project at any time
+- Independend of the technology / framework that you are working with
+- Works with many file formats like Latex, R, HTML and many more.
+
+---
+
+# The benefits of using a VCS?
+
+###Collaboration
+Working together in a shared folder like Goole Drive / Dropbox brings conflicts very quickly.
+
+--
+
+### Storing Versions (Properly)
+Without a VCS you would have to save the whole project every time you decide to 'save the current state'.
+
+--
+
+### Restoring Previous Versions
+The VCS is your safety net. Every time you mess up by doing something crazy (again!) you can go back and restore the previous state.
+
+---
+# The benefits of using a VCS?
+
+### Understanding what happened
+
+Everytime you commit a new Version to your repository you provide a short description. 
+
+If it's code or a text file git can additionally show you what exactly has been changed.
+
+--
+
+### Backup
+
+A very nice side effect of using a distributed VCS is that it can act as a backup.
+
+Every team member has the full version of the project (including the complete history) on its Disc.
+
+
+
+---
+class: center, middle
+
+# What is git?
+
+![](images/git_logo_2.svg)
+
+"Git is a free and open source distributed version control system designed to handle everything from small to very large projects with speed and efficiency."
+
+---
+class:
+
+# Benefits of using Git
+
+--
+
+### Popularity
+
+Git is (by far!) the most widely used modern version control system in the world
+
+Used by Google, Netflix, Facebook and the Chair of Econometrics at Uni-Due
+
+--
+
+### Security
+
+Git has been designed with the integrity of managed source code as a top priority.
+--
+
+### It is free and open source
+
+---
+class: center, middle
+
+&lt;img src="images/github-logo.svg" width="200px" /&gt;
+
+&lt;img src="images/GitHub-Logo.png" width="200px" /&gt;
+
+---
+# What is Github?
+
+- Github hosts your git repositories online
+- Having a so called 'remote repository' let's you
+    + share your work with others
+    + continiue your work on a different machine
+
+# Why Github?
+
+- Over 100 Million repositories are hosted on github
+- Github belongs to Microsoft
+    + Witht the support of Microsoft github under active developement
+- Github is very popular
+    + There are Github integrations in R-Studio, Atom, Sublime etc.
+- Github has additional features that improve your workflow
+    + Bug tracking
+    + Managing of permissions of the repositories
+
+---
+class: center, middle
+
+# Let's get started!
+
+![](images/start.png)
+
+---
+# First Steps
+
+### 1. Download and Install Git 
+
+&lt;a href="https://git-scm.com/downloads"&gt;&lt;img src="images/git_logo.png" style="width:100px" title="Git" alt="Git"&gt;&lt;/a&gt;
+
+--
+
+### 2. Make an Account at Github
+
+&lt;a href="https://github.com/join?source=header-home"&gt;&lt;img src="images/GitHub-Logo.png" style="width:100px" title="Github" alt="Github"&gt;&lt;/a&gt;
+
+--
+
+### 3. Download and Install Github-Desktop (optional)
+
+&lt;a href="https://desktop.github.com/"&gt;&lt;img src="images/desktop-icon.svg" style="width:100" title="Github" alt="Github"&gt;&lt;/a&gt;
+
+---
+# Verify your Installation:
+
+- Git is a command line tool. That is, most of the time we will work with the command line.
+- However, there is software like Github-Desktop that provides a GUI for managing your repositories.
+
+### Start your Terminal /CMD
+
+- Windows: Press "Win-R," type "cmd" and press "Enter"
+- Mac: Open the "Terminal" Application
+- Linux: you already know ;)
+
+---
+
+# Verify your Installation:
+
+By typing 'git --version' git will return the installed version to you. If everything went smoothly it should look like this:
+
+```terminal
+Jonathan@MacBookPro: ~ jonathan $ git --version
+git version 2.22.0
+```
+---
+
+class: center, middle
+
+# Create your first repository!
+
+![](images/git_init.svg)
+
+---
+
+# Create your first repository
+
+You probably want to create a new folder for your first repository and navigate into it. However, it is perfectly fine to init a repository in an existing folder.
+
+We create a folder called 'git', inside 'git' we create 'firstrepo' and initialize it with 'git init'.
+
+```terminal
+Jonathan@MacBookPro: ~ $ mkdir git
+Jonathan@MacBookPro: ~ $ cd git
+Jonathan@MacBookPro: ~/git $ mkdir firstrepo
+Jonathan@MacBookPro: ~/git $ cd firstrepo
+Jonathan@MacBookPro: ~/git/firstrepo $ git init
+Leeres Git-Repository in /Users/jonathan/git/firstrepo/.git/
+initialisiert
+```
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();</script>
+<script type="text/javascript">
+    var hljs = remark.highlighter.engine;
+</script>
+<script src="terminal.language.js" type="text/javascript"></script>
+<script type="text/javascript">
+    var slideshow = remark.create({});
+    // extract the embedded styling from ansi spans
+    var highlighted = document.querySelectorAll("code.terminal span.hljs-ansi");
+    Array.prototype.forEach.call(highlighted, function(next) {
+    next.insertAdjacentHTML("beforebegin", next.textContent);
+    next.parentNode.removeChild(next);
+    });
+</script>
+
+<style>
+   code.terminal.hljs.remark-code {
+    background: #272822; color: #ddd;
+} 
+</style>
+
+<style>
+.hljs-default .hljs-string {
+    color: #00ff00;
+}
+</style>
+
+<script>
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
