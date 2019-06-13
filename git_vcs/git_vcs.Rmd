@@ -21,7 +21,24 @@ options(htmltools.dir.version = FALSE)
 options(crayon.enabled = TRUE)
 #.remark-code, .hljs, terminal { background: #272822;}
 ```
----
+
+```{r xaringan-themer, include=FALSE}
+# solarized_dark(
+#   code_font_family = "Fira Code",
+#   code_font_url    = "https://cdn.rawgit.com/tonsky/FiraCode/1.204/distr/fira_code.css"
+# )
+library(xaringanthemer)
+
+mono_accent(
+    base_color           = "#09017F",
+    header_font_google   = google_font("Roboto", "700"),
+    text_font_google     = google_font("Roboto Condensed"),
+    code_highlight_color = "#D2B6E8",
+    code_font_family     = "Fira Code",
+    code_font_url        = "https://cdn.rawgit.com/tonsky/FiraCode/1.204/distr/fira_code.css"
+    )
+
+```
 
 class: center, middle
 
@@ -194,25 +211,35 @@ class: center, middle
 
 # Verify your Installation:
 
+By typing 'git --version' git will return the installed version to you. If everything went smoothly it should look like this:
+
 ```terminal
-<span style="color:yellow;">commit c3c9459e4649335c460ac7ccdb39d44b4d044e08</span>
-Merge: 28d3786 48d229e
-Author: Jonathan Berrisch &lt;Jonathan@Berrisch.biz&gt;
-Date:   Thu Jun 13 08:48:41 2019 +0200
-
-    Merge pull request #1 from alexandergerber/master
-    
-    added .js for terminal style code highlighting
-
-<span style="color:yellow;">commit 48d229e5053eefbec3ec45d302bf3f4ffa2dc7f7</span>
-Author: mca91 &lt;martin.emwikts@googlemail.com&gt;
-Date:   Wed Jun 12 22:52:54 2019 +0200
-
-    added .js for terminal style code highlighting
-
+Jonathan@MacBookPro: ~ jonathan $ git --version
+git version 2.22.0
 ```
+---
 
-```{r}
-rnorm(10)
+class: center, middle
+
+# Create your first repository!
+
+![](images/git_init.svg)
+
+---
+
+# Create your first repository
+
+You probably want to create a new folder for your first repository and navigate into it. However, it is perfectly fine to init a repository in an existing folder.
+
+We create a folder called 'git', inside 'git' we create 'firstrepo' and initialize it with 'git init'.
+
+```terminal
+Jonathan@MacBookPro: ~ $ mkdir git
+Jonathan@MacBookPro: ~ $ cd git
+Jonathan@MacBookPro: ~/git $ mkdir firstrepo
+Jonathan@MacBookPro: ~/git $ cd firstrepo
+Jonathan@MacBookPro: ~/git/firstrepo $ git init
+Leeres Git-Repository in /Users/jonathan/git/firstrepo/.git/
+initialisiert
 ```
 

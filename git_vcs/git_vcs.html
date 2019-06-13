@@ -12,7 +12,8 @@
 
 
 
----
+
+
 
 class: center, middle
 
@@ -181,32 +182,36 @@ class: center, middle
 
 # Verify your Installation:
 
+By typing 'git --version' git will return the installed version to you. If everything went smoothly it should look like this:
+
 ```terminal
-&lt;span style="color:yellow;"&gt;commit c3c9459e4649335c460ac7ccdb39d44b4d044e08&lt;/span&gt;
-Merge: 28d3786 48d229e
-Author: Jonathan Berrisch &amp;lt;Jonathan@Berrisch.biz&amp;gt;
-Date:   Thu Jun 13 08:48:41 2019 +0200
-
-    Merge pull request #1 from alexandergerber/master
-    
-    added .js for terminal style code highlighting
-
-&lt;span style="color:yellow;"&gt;commit 48d229e5053eefbec3ec45d302bf3f4ffa2dc7f7&lt;/span&gt;
-Author: mca91 &amp;lt;martin.emwikts@googlemail.com&amp;gt;
-Date:   Wed Jun 12 22:52:54 2019 +0200
-
-    added .js for terminal style code highlighting
-
+Jonathan@MacBookPro: ~ jonathan $ git --version
+git version 2.22.0
 ```
+---
 
+class: center, middle
 
-```r
-rnorm(10)
-```
+# Create your first repository!
 
-```
-##  [1]  0.2166632  1.8435332 -1.8566307 -0.8489852  0.4682318  0.2338406
-##  [7] -0.3791205 -2.2028045 -1.1475667 -1.6205928
+![](images/git_init.svg)
+
+---
+
+# Create your first repository
+
+You probably want to create a new folder for your first repository and navigate into it. However, it is perfectly fine to init a repository in an existing folder.
+
+We create a folder called 'git', inside 'git' we create 'firstrepo' and initialize it with 'git init'.
+
+```terminal
+Jonathan@MacBookPro: ~ $ mkdir git
+Jonathan@MacBookPro: ~ $ cd git
+Jonathan@MacBookPro: ~/git $ mkdir firstrepo
+Jonathan@MacBookPro: ~/git $ cd firstrepo
+Jonathan@MacBookPro: ~/git/firstrepo $ git init
+Leeres Git-Repository in /Users/jonathan/git/firstrepo/.git/
+initialisiert
 ```
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
@@ -273,6 +278,12 @@ if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
    code.terminal.hljs.remark-code {
     background: #272822; color: #ddd;
 } 
+</style>
+
+<style>
+.hljs-default .hljs-string {
+    color: #00ff00;
+}
 </style>
 
 <script>
