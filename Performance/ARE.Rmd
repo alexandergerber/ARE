@@ -12,6 +12,8 @@ output:
       highlightStyle: github
       highlightLines: true
       countIncrementalSlides: false
+    includes:
+      after_body: terminal_highlight.html
 #      ratio: "16:9"
 ---
 
@@ -304,11 +306,16 @@ background-size: cover
 
 
 ---
-class: center, middle
+### xaringan
 
-# xaringan
-
-### /ʃæ.'riŋ.ɡæn/
+```terminal
+josh@brick ~/repos/aha $ git log -2
+<span style="color:olive;">commit 36b0a3af174e204c8d0a7a993ad467cd7be39bca</span>
+Author: Ziz <zizsdl@googlemail.com>
+Date:   Fri Aug 3 10:29:43 2012 +0200
+    Small version changes, make clean, merging, etc.
+...
+```
 
 ---
 class: inverse, center, middle
@@ -842,3 +849,6 @@ class: center, middle
 Slides created via the R package [**xaringan**](https://github.com/yihui/xaringan).
 
 The chakra comes from [remark.js](https://remarkjs.com), [**knitr**](http://yihui.name/knitr), and [R Markdown](https://rmarkdown.rstudio.com).
+
+
+
