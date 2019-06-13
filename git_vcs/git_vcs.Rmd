@@ -12,16 +12,16 @@ output:
       highlightStyle: github
       highlightLines: true
       countIncrementalSlides: false
-      beforeInit: terminal.language.js
+    includes:
+      after_body: terminal_highlight.html
 ---
-
-
-
 
 ```{r setup, include=FALSE}
 options(htmltools.dir.version = FALSE)
 options(crayon.enabled = TRUE)
+#.remark-code, .hljs, terminal { background: #272822;}
 ```
+---
 
 class: center, middle
 
@@ -195,11 +195,24 @@ class: center, middle
 # Verify your Installation:
 
 ```terminal
-josh@brick ~/repos/aha $ git log -2
-<span style="color:olive;">commit 36b0a3af174e204c8d0a7a993ad467cd7be39bca</span>
-Author: Ziz <zizsdl@googlemail.com>
-Date:   Fri Aug 3 10:29:43 2012 +0200
-    Small version changes, make clean, merging, etc.
-...
+<span style="color:yellow;">commit c3c9459e4649335c460ac7ccdb39d44b4d044e08</span>
+Merge: 28d3786 48d229e
+Author: Jonathan Berrisch &lt;Jonathan@Berrisch.biz&gt;
+Date:   Thu Jun 13 08:48:41 2019 +0200
+
+    Merge pull request #1 from alexandergerber/master
+    
+    added .js for terminal style code highlighting
+
+<span style="color:yellow;">commit 48d229e5053eefbec3ec45d302bf3f4ffa2dc7f7</span>
+Author: mca91 &lt;martin.emwikts@googlemail.com&gt;
+Date:   Wed Jun 12 22:52:54 2019 +0200
+
+    added .js for terminal style code highlighting
+
 ```
----
+
+```{r}
+rnorm(10)
+```
+
