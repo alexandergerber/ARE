@@ -7,13 +7,13 @@ date: '`r Sys.Date()`'
 output:
   xaringan::moon_reader:
     lib_dir: libs
-    css: xaringan-themer.css
+    css: ../xaringan_files/xaringan-themer.css
     nature:
       highlightStyle: github
       highlightLines: true
       countIncrementalSlides: false
     includes:
-      after_body: terminal_highlight.html
+      after_body: ../xaringan_files/terminal_highlight.html
 #      ratio: "16:9"
 ---
 

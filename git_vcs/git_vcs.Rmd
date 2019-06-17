@@ -13,7 +13,7 @@ output:
       highlightLines: true
       countIncrementalSlides: false
     includes:
-      after_body: terminal_highlight.html
+      after_body: ../xaringan_files/terminal_highlight.html
 ---
 
 ```{r setup, include=FALSE}
