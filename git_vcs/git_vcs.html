@@ -217,8 +217,8 @@ Initialized empty Git repository in
 
 # Configure Git
 
-Sometimes git asks you to provide some information (for example a commit message) and opens an editor for that. The standard is VIM. While VIM has a lot of advantages it's quite annoying for people who don't use VIM. Thats why we want to change the default Editor to NANO.
-	
+Sometimes git asks you to provide some information (for example a commit message) and opens an editor for that. The standard is VIM. VIM can be complicated for new users. Hence we want to change the default Editor to NANO.
+
 ```terminal
 Jonathan@MacBookPro: ~ $ git config --global core.editor "nano -w"
 
@@ -241,7 +241,7 @@ class: center, middle
 
 # git status
 
-git status gives you an overview over your repository.
+git status gives you an overview of your repository.
 
 ```terminal
 Jonathan@MacBookPro: ~/git/firstrepo $ git status
@@ -258,7 +258,53 @@ nothing added to commit but untracked files present
 (use "git add" to track)
 ```
 
-As you can see, git tells us that there is one untracked file and proposes to add this file to our repository.
+Git tells us that there is one untracked file and proposes to add this file to our repository.
+
+---
+
+# The basic git workflow
+
+Developing a project usually follows the basic edit/stage/commit pattern. First, you edit your files in the working directory. When you’re ready to save a copy of the current state of the project, you stage changes with 'git add'. After you’re happy with the staged snapshot, you commit it to the project history with 'git commit'. The 'git reset' command is used to undo a commit or staged snapshot.
+
+---
+
+# git add
+
+Let's stage our changes with 'git add'. We can stage all changes that are present in our working directory by executing 'git add .' Otherwise we have to specifiy the specific file instead of using a dot.
+
+```terminal
+Jonathan@MacBookPro: ~/git/firstrepo $ git add .
+Jonathan@MacBookPro: ~/git/firstrepo $ git status
+On branch master
+
+No commits yet
+
+Changes to be committed:
+  (use &amp;quot;git rm --cached &amp;lt;file&amp;gt;...&amp;quot; to unstage)
+
+	new file:   super_important_function.r
+```
+
+---
+
+class: center, middle
+
+# git commit
+
+![](images/commit.svg)
+
+---
+
+# git commit
+
+Now we want to commit our changes to our repository. We can do this by typing 'git commit'. Afterward, git asks you to provide a commit message. The commit message is mandatory. Git will open an Editor for that and waits untill you saved closed the file. You can avoid this behaviour by providing the commit message directly as follows:
+
+```terminal
+Jonathan@MacBookPro: ~/git/firstrepo $ git commit -m "Init commit"
+[master (root-commit) 2beba8d] Init commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 super_important_function.r
+```
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
@@ -323,12 +369,9 @@ if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
 <style>
    code.terminal.hljs.remark-code {
     background: #272822; color: #ddd;
-} 
-</style>
-
-<style>
-.hljs-default .hljs-string {
-    color: #00ff00;
+}
+   .hljs-default .hljs-string {
+ color: #FFC300;
 }
 </style>
 
