@@ -280,7 +280,7 @@ On branch master
 No commits yet
 
 Changes to be committed:
-  (use &amp;quot;git rm --cached &amp;lt;file&amp;gt;...&amp;quot; to unstage)
+  (use "git rm --cached &lt;file&gt;..." to unstage)
 
 	new file:   super_important_function.r
 ```
@@ -305,6 +305,114 @@ Jonathan@MacBookPro: ~/git/firstrepo $ git commit -m "Init commit"
  1 file changed, 1 insertion(+)
  create mode 100644 super_important_function.r
 ```
+---
+
+# git commit --amend
+
+Has to be decided if we want to add a slide for that.
+
+---
+# Writing bad Commit Messages
+
+![](images/commit_messages.png)
+
+---
+
+# The Seven Rules of a Great Git Commit Message
+
+1. Separate subject from body with a blank line
+2. Limit the subject line to 50 characters
+3. Capitalize the subject line
+4. Do not end the subject line with a period
+5. Use the imperative mood in the subject line
+6. Wrap the body at 72 characters
+7. Use the body to explain what and why vs. how
+
+Every commit is only as useful as it's[commit messages](http://whatthecommit.com/). Thus it makes sense investing some time in learning [how to write good commit messages](http://example.com). You'll be treated later when things went horribly wrong and you are desperately trying to recover the last working state of your project.
+
+---
+
+# git log
+
+The git log command displays committed snapshots. It lets you list the project history, filter it, and search for specific changes. Use 'git log --oneline" for a more compact output.
+
+```terminal
+Jonathan@MacBookPro: ~/git/firstrepo $ git log
+commit 2d3a3ddae1d3aad34d0d521f040b53680409a80b
+Author: Jonathan &lt;Jonathan@berrisch.biz&gt;
+Date:   Thu Jul 11 10:11:36 2019 +0200
+
+    Add awesome feature
+
+commit 2beba8d3fc65cb18f60532c18d9f299bf5590f50
+Author: Jonathan &lt;Jonathan@berrisch.biz&gt;
+Date:   Tue Jul 9 11:49:47 2019 +0200
+
+    Init commit
+
+```
+---
+class: center, middle
+
+# Undoing Commits &amp; Changes
+
+![](images/revert.svg)
+
+---
+
+# git checkout
+
+The whole idea behind any version control system is to store “safe” copies of a project so that you never have to worry about irreparably breaking your code base.
+
+When you have found a commit reference to the point in history you want to visit, you can utilize the 'git checkout' command to visit that commit. 
+
+```terminal
+Jonathan@MacBookPro: ~/git/firstrepo $ git checkout 2beba8d
+Note: checking out '2beba8d3fc65cb18f60532c18d9f299bf5590f50'.
+
+You are in 'detached HEAD' state. You can look around, make experimental
+changes and commit them, and you can discard any commits you make in this
+state without impacting any branches by performing another checkout.
+
+If you want to create a new branch to retain commits you create, you may
+do so (now or later) by using -b with the checkout command again. Example:
+
+  git checkout -b &lt;new-branch-name&gt;
+
+HEAD is now at 2beba8d Init commit
+```
+---
+# The Detached Head State
+
+On the prevoius slide git told you about a 'detached head state' and it's consequences.
+
+During the normal course of development, the HEAD usually points to master or some other local branch, but when you check out a previous commit, HEAD no longer points to a branch—it points directly to a commit. This is called a “detached HEAD” state, and it can be visualized as the following:
+
+![](images/detached_head.svg)
+---
+
+# git revert
+
+![Revert](images/git_revert.svg)
+
+&lt;br&gt;
+
+The git revert command can be considered an 'undo' type command, however, it is not a traditional undo operation. Instead of removing the commit from the project history, it figures out how to invert the changes introduced by the commit and appends a new commit with the resulting inverse content.
+
+It's important to understand that git revert undoes a single commit it does not "revert" back to the previous state of a project by removing all subsequent commits. In Git, this is actually called a reset, not a revert.
+---
+
+# Different Scopes of Git Reset
+
+![](images/reset_scopes.svg)
+
+---
+# Advanced concepts
+
+- git stash
+- git flow
+- git tag
+- git clean
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
