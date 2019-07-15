@@ -170,16 +170,16 @@ ggplot(diamonds, aes(x = carat, y = price, color = color, shape = cut)) +
   stat_smooth(aes(group = 1))
 ```
 
-## Geometric Objects and Statistic transformations
+## Geometric Objects ans Statistic transformations
 
 - we can define a new layer in terms of a geometric object (`geom_...`) or a statistic transformation (`stat_...`)
 - each geometric object is associated with a default statistic transformation and vice verse
 - e.g. `geom_point()` has the indentity function as statistic transformation and `geom_smooth()` fits a regression model before plotting a line with a prediction interval
 - there is is an alias function `stat_smooth()` which does esentially the same, however, in the first case we could change the statistic transformation and in the second case we could change the geometric object
-- most of the time it is not a good idea to change the default behaviour (e.g. try  `geom_point(stat = "smooth", method = "lm")`) but we will see an example where it can be useful
+- most of the time it is not I good idea to change the default behaviour (e.g. try  `geom_point(stat = "smooth", method = "lm")`) but we will see an example where it can be useful
 
 ## Bar plot
-`geom_bar()` counts the number of observations in each group
+`geom_bar()` counts the number of observations with within each group
 ```{r, echo = TRUE, eval = TRUE}
 ggplot(data = diamonds) + 
   geom_bar(mapping = aes(x = cut)) # x should be discreate
