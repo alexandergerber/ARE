@@ -1,0 +1,292 @@
+---
+title: "Data Wrangling"
+author: 
+  - "Martin Arnold"
+  - "Alexander Gerber"
+date: '`r Sys.Date()`'
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    css: .\xaringan-themer.css
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+#      ratio: "16:9"
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+knitr::opts_chunk$set(message = FALSE, warning = FALSE, comment = FALSE, echo = TRUE, eval = TRUE, results='hide')
+```
+
+```{r xaringan-themer, include=FALSE}
+# solarized_dark(
+#   code_font_family = "Fira Code",
+#   code_font_url    = "https://cdn.rawgit.com/tonsky/FiraCode/1.204/distr/fira_code.css"
+# )
+library(xaringanthemer)
+
+mono_accent(
+    base_color           = "#09017F",
+    header_font_google   = google_font("Roboto", "700"),
+    text_font_google     = google_font("Roboto Condensed"),
+    code_highlight_color = "#D2B6E8",
+    code_font_family     = "Fira Code",
+    code_font_url        = "https://cdn.rawgit.com/tonsky/FiraCode/1.204/distr/fira_code.css"
+    )
+
+```
+
+```{r, include=FALSE}
+library(microbenchmark)
+```
+
+class: top, left
+
+### Data Wrangling &mdash; Overview
+
+---
+class: top, left
+### Tibble
+- Tibbles are the main data structure used in the tidyverse and can be viewed as a modern version of the `data.frame`. 
+
+- `tibble()` creates a new tibble from scatch
+
+- `as_tibble()` creates a tibble from an existing object (e.g. a `data.frame`)
+
+- Why should we use tibbles instead of `data.frame`s? See the following comparison.  
+
+---
+class: top, left
+
+### Tibble vs data.frame
+
+```{r, echo = TRUE}
+library(tidyverse)
+data(mtcars) 
+mtcars_tibble <- as_tibble(mtcars)
+```
+
+- Different print method
+    ```{r, echo = TRUE, eval = FALSE}
+print(mtcars)
+print(mtcars_tibble)
+    ```
+
+- More consistent subsetting behaviour
+    ```{r, echo = TRUE, eval = FALSE}
+mtcars[ ,1:2] # Return a data.frame
+mtcars[ ,1]   # Returns a vector 
+mtcars_tibble[ ,1:2] # Retuns a tibble
+mtcars_tibble[ ,1]   # Retuns a tibble
+    ```
+
+---
+class: top, left
+### Tibble vs data.frame
+- Lazy and sequential Evaluation 
+```{r, echo = TRUE, eval = FALSE}
+data.frame(x = 1:3, y = x^2) # not working
+tibble(x = 1:3, y = x^2)
+```
+
+- Does not change input types
+```{r, echo = TRUE, results='hold'}
+text <- letters[1:3]
+class(text)
+df   <- data.frame(text) # stringsAsFactors = TRUE is the default 
+class(df$text)
+tib  <- tibble(text)
+class(tib$text)
+```
+
+- For more see `vignette("tibble")`
+
+---
+class: top, left
+
+### dplyr
+`dplyr` is the tidyverse package for data manipulations.
+First we look at functions that work on a single table. 
+ 
+- `filter()` to select rows based on their values.
+    ```{r, echo = TRUE}
+filter(mtcars_tibble, hp >= 100 & mpg >= 20)
+    ```
+- `slice()` to select rows by position. 
+    ```{r}
+slice(mtcars_tibble, 10:15)
+    ```
+- `select()` and `rename()` to select variables based on their names.
+    ```{r, echo = TRUE}
+select(mtcars_tibble, cyl, hp)
+    ```
+- `arrange()` to reorder rows.
+    ```{r, echo = TRUE}
+arrange(mtcars_tibble, cyl)
+arrange(mtcars_tibble, desc(cyl))
+    ```
+
+---
+class: top, left
+### dplyr
+- `mutate()` and `transmute()` to add new variables that are functions of existing variables. 
+    ```{r, echo = TRUE}
+    mutate(mtcars_tibble, gpm = 1/mpg)
+    transmute(mtcars_tibble, gpm = 1/mpg) 
+    ```
+- `summarise()` to condense multiple values to a single value.
+    ```{r, echo = TRUE}
+    summarise(mtcars_tibble, mean_hp = mean(hp), max_mpg = max(mpg))
+    ```
+- `sample_n()` and `sample_frac()` to take random samples.
+    ```{r, echo = TRUE}
+    sample_n(mtcars_tibble, 10)
+    sample_frac(mtcars_tibble, 0.1)
+    ```
+
+---
+class: top, left
+### Helper functions for select
+
+```{r, echo=TRUE}
+# Select columns whose name contains a character string.
+select(iris, contains("."))
+# Select columns whose name ends with a character string.
+select(iris, ends_with("Length"))
+# every column.
+select(iris, everything())
+# Select columns whose name matches a regular expression.
+select(iris, matches(".t."))
+#Select columns named x1, x2, x3, x4, x5.
+select(iris, num_range("x", 1:5))
+#Select columns whose names are in a group of names.
+select(iris, one_of(c("Species", "Genus")))
+#Select columns whose name starts with a character string.
+select(iris, starts_with("Sepal"))
+#Select all columns between Sepal.Length and Petal.Width (inclusive).
+select(iris, Sepal.Length:Petal.Width)
+#Select all columns except Species. 
+select(iris, -Species)
+
+```
+---
+class: top, left
+### dplyr &mdash; grouping
+
+To exploit the full potential of `summarise()` we need to pair it with `group_by()`.
+
+```{r, echo = TRUE, results='markup'}
+by_cyl <- group_by(mtcars_tibble, cyl)
+print(summarise(by_cyl, mean(mpg)))
+
+```
+---
+class: top, left
+### The Pipe
+
+Usually we combine multiple operations together, e.g. first we filter, than we mutate, group and finally summarise. 
+To do this we could save an intermidiate result after each step like this:
+
+```{r, echo = TRUE}
+filtered   <- filter(mtcars_tibble, cyl <= 8)
+mutated    <- mutate(filtered, gpm = 1/mpg)
+grouped    <- group_by(mutated, gear)
+summarized <- summarise(grouped, count = n(), 
+                        mean_hp = mean(hp),
+                        mean_gpm = mean(gpm)) 
+```
+
+This code does not look nice and has the disadvantage that we need to save intermidiate results that we do not care about. 
+---
+class: top, left
+### The Pipe
+
+We could nest all those functions to get rid of the intermidiate result.
+
+```{r, echo = TRUE}
+summarise(group_by(mutate(filter(mtcars_tibble, cyl <= 8), gpm = 1/mpg)), 
+          count = n(), 
+          mean_hp = mean(hp),
+          mean_gpm = mean(gpm))
+```
+
+However, readability gets worse and debugging will become much harder. 
+---
+class: top, left
+### The Pipe
+
+That is where the pipe operator `%>%` from the `magrittr` comes in handy.
+The value on the left side of the operator becomes the input to the function on the right side. 
+
+```{r, echo = TRUE}
+mtcars_tibble %>% 
+  mutate(gpm = 1/mpg) %>%
+  group_by(gear) %>% 
+  summarise(count = n(), 
+            mean_hp = mean(hp),
+            mean_gpm = mean(gpm)) 
+  
+```
+
+The pipe operater is not limited to `dplyr` or the `tidyverse`
+
+```{r, echo = TRUE}
+1:6 %>% mean
+```
+---
+class: top, left
+### dplyr for 2 tables
+
+```{r, echo = TRUE, results='markup'}
+band_members   
+band_instruments
+```
+---
+class: top, left
+### Left Join
+
+A left join keeps all observations of the left table
+```{r, echo = TRUE, results='markup'}
+band_members %>% left_join(band_instruments, by = "name")
+```
+---
+class: top, left
+### Inner Join
+
+An inner join keeps only observations if there are matches in both tables
+```{r, echo = TRUE, results='markup'}
+band_members %>% inner_join(band_instruments, by = "name")
+```
+---
+class: top, left
+### Full Join
+
+A full (outer) join keeps all observations
+```{r, echo = TRUE, results='markup'}
+band_members %>% inner_join(band_instruments, by = "name")
+```
+---
+class: top, left
+### Semi Join
+
+A semi join keeps all observations of the left table where there are matching values in the right table.
+It keeps only tables from the left. 
+```{r, echo = TRUE, results='markup'}
+band_members %>% semi_join(band_instruments, by = "name")
+```
+---
+class: top, left
+### Anti Join
+
+```{r, echo = TRUE, results='markup'}
+band_members %>% anti_join(band_instruments, by = "name")
+```
+
+---
+class: top, left
+### Reshaping Data with tidy R
+
