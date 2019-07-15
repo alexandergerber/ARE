@@ -1,0 +1,373 @@
+---
+title: "Graphics in R"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,  warning=FALSE, message=FALSE)
+```
+
+## Data Visualization 
+
+From Wikipedia:
+
+"R is a programming language and free software environment for statistical computing and **graphics** ... ." 
+
+There are three major graphical systems: 
+
+- `R base graphics` 
+- `lattice`
+- `ggplot2`
+
+In this course we will focus on `ggplot2`. If you want to learn about the other two, 
+[R Graphics](https://www.crcpress.com/R-Graphics/Murrell/p/book/9780429196119)
+is a great source. 
+
+## ggplot2
+What is **ggplot2**?
+
+- an R package for data vizualisation 
+- implementation of the [Grammer of Graphics](https://www.springer.com/de/book/9781475731002) in R
+- part of the tidyverse
+
+Some interesting links: 
+
+- [R for Data Science](http://r4ds.had.co.nz/) 
+- [ggplot2: Elegant graphics for data Analysis](http://moderngraphics11.pbworks.com/f/ggplot2-Book09hWickham.pdf)
+- [Cookbook](http://www.cookbook-r.com/Graphs/)
+- [R Graph Gallery](https://www.r-graph-gallery.com/)
+- [DataCamp course](https://www.datacamp.com/courses/data-visualization-with-ggplot2-1)
+
+
+## The grammer of graphics
+
+- data: in ggplot2, data must be stored as a data.frame
+- aesthetics: describe visual characteristics 
+  - e.g., position (x and y), size, color, shape, fill, …
+- geoms: describe type of geometric objects
+  - e.g., points, lines, polygons, …
+- stats: describe statistical transformations that summarize the data 
+  - e.g., counts, regression lines, …
+- scales: for each aesthetic, describe how visual characteristic is converted to display values 
+  - e.g., x and y scales, color scales, size scales, shape scales, …
+- facets: describe how the data is split into subsets and displayed as multiple small graphs
+- coords: describes 2-D space that the data is projected onto 
+  - e.g., Cartesian coordinates, polar coordinates, map projections, …
+
+## A basic example
+
+```{r, echo = TRUE, eval = FALSE}
+library(ggplot2)
+data("diamonds")
+ggplot(data = diamonds) + geom_point(mapping = aes(x = carat, y = price))
+```
+
+`ggplot()`
+
+- creates a coordinate system that you can add layers to
+
+`geom_point()`
+
+- adds a layer of points
+- each geom function takes a mapping argument, which paired with `aes()`
+defines how variables in your dataset are mapped to visual properties
+
+## A basic example
+
+```{r, echo = FALSE, eval = TRUE}
+library(ggplot2)
+data("diamonds")
+diamonds <- diamonds[sample(1:nrow(diamonds), 5000), ]
+ggplot(data = diamonds) + geom_point(mapping = aes(x = carat, y = price))
+```
+
+## Adding a layers
+
+- To make the pattern in the data more visible we add a smoothing function to the plot 
+
+```{r, echo = TRUE, eval = FALSE}
+ggplot(data = diamonds) + 
+  geom_point(mapping = aes(x = carat, y = price)) +
+  geom_smooth(mapping = aes(x = carat, y = price), method = 'loess')
+```
+
+- to write more compact code we can leave out the parameter names and switch `mapping` to 
+`ggplot()`
+- the same mapping is then used for all layers (but can be overwritten if necessary)
+
+```{r, echo = TRUE, eval = FALSE}
+ggplot(diamonds, aes(carat, price)) + 
+  geom_point() +
+  geom_smooth(method = 'loess')
+```
+
+## Adding a layers
+
+```{r, echo = FALSE, eval = TRUE}
+ggplot(diamonds, aes(x = carat, y = price)) + 
+  geom_point() +
+  geom_smooth(method = 'loess')
+```
+
+## Aesthetics
+
+- until now we only used the x and y coordinates as aesthetics
+- `?geom_point()` tells us about further aesthetics that we can map data to 
+- note that each geom has its own set of aesthetics
+
+```{r, echo = TRUE, eval = FALSE}
+ggplot(diamonds, aes(x = carat, y = price, color = color, shape =  cut)) + 
+  geom_point()
+```
+
+## Aesthetics
+
+```{r, echo = FALSE, eval = TRUE, warning=FALSE}
+ggplot(diamonds, aes(x = carat, y = price, color = color, shape =  cut)) + 
+  geom_point()
+```
+
+## Statitic Transformations and Aesthetics
+
+- if we map aesthetics to discrete variables, then ggplot will automatically group the data accordingly
+- in this case every statistic transformation is performed by group
+- you can see what this means by the following example
+
+```{r, echo = TRUE, eval = FALSE, warning=FALSE}
+ggplot(diamonds, aes(x = carat, y = price, color = color, shape =  cut)) + 
+  geom_point() + 
+  geom_smooth()
+```
+
+## Statitic Transformations and Aesthetics
+```{r, echo = FALSE, eval = TRUE, warning=FALSE}
+ggplot(diamonds, aes(x = carat, y = price, color = color, shape =  cut)) + 
+  geom_point() +
+  geom_smooth()
+```
+
+## Statitic Transformations and Aesthetics
+- If this is not desired simply move color and shape as additional aesthetics to `geom_point()`
+```{r, echo = TRUE, eval = FALSE}
+ggplot(diamonds, aes(x = carat, y = price)) + 
+  geom_point(aes(color = color, shape = cut)) +
+  geom_smooth()
+```
+
+- in some circumstances it might also be convinient to leave all aesthetics in `ggplot()` (e.g. if there are many layers) and overwrite the created groups by a arbitrary constant value
+
+```{r, echo = TRUE, eval = FALSE}
+ggplot(diamonds, aes(x = carat, y = price, color = color, shape = cut)) + 
+  geom_point() +  
+  geom_smooth(aes(group = 1))
+```
+
+
+## Statistic Transformations and Aesthetics
+```{r, echo = FALSE, eval = TRUE}
+ggplot(diamonds, aes(x = carat, y = price, color = color, shape = cut)) + 
+  geom_point() +
+  stat_smooth(aes(group = 1))
+```
+
+## Geometric Objects and Statistic transformations
+
+- we can define a new layer in terms of a geometric object (`geom_...`) or a statistic transformation (`stat_...`)
+- each geometric object is associated with a default statistic transformation and vice verse
+- e.g. `geom_point()` has the indentity function as statistic transformation and `geom_smooth()` fits a regression model before plotting a line with a prediction interval
+- there is is an alias function `stat_smooth()` which does esentially the same, however, in the first case we could change the statistic transformation and in the second case we could change the geometric object
+- most of the time it is not a good idea to change the default behaviour (e.g. try  `geom_point(stat = "smooth", method = "lm")`) but we will see an example where it can be useful
+
+## Bar plot
+`geom_bar()` counts the number of observations in each group
+```{r, echo = TRUE, eval = TRUE}
+ggplot(data = diamonds) + 
+  geom_bar(mapping = aes(x = cut)) # x should be discreate
+```
+
+## Histogram 
+
+```{r, echo = TRUE, eval = TRUE}
+ggplot(diamonds, aes(x = depth, fill = cut)) + 
+  geom_histogram(binwidth = 0.1) 
+```
+
+## 1D Density 
+
+```{r, echo = TRUE, eval = FALSE}
+ggplot(diamonds, aes(x = depth, fill = cut)) + # try color instead of fill 
+  geom_density() 
+```
+
+```{r, echo = FALSE, eval = TRUE}
+ggplot(diamonds, aes(x = depth, fill = cut)) + # try color instead of fill 
+  geom_density() 
+```
+
+## 2D Density
+
+```{r, echo = TRUE, eval = FALSE}
+ggplot(data = diamonds, mapping = aes(carat, price)) + 
+  geom_point() + 
+  geom_density2d()
+```
+
+```{r, echo = FALSE, eval = TRUE}
+ggplot(data = diamonds, mapping = aes(carat, price)) + 
+  geom_point() + 
+  geom_density2d()
+```
+
+## 2D Density with geom = "polygon"
+
+```{r echo = TRUE, eval = FALSE}
+ggplot(data = diamonds, mapping = aes(carat, price)) + 
+  geom_point() + 
+  stat_density2d(aes(fill = ..level..), geom = "polygon")
+```
+
+```{r, echo = FALSE, eval = TRUE}
+ggplot(data = diamonds, mapping = aes(carat, price)) + 
+  geom_point() + 
+  stat_density2d(aes(fill = ..level..), geom = "polygon")
+
+```
+
+
+## Faceting
+- Faceting generates small multiples each showing a different subset of the data
+- helps to compare patterns in different parts of the data and see whether they are the same or different
+
+```{r, echo = TRUE, eval = FALSE}
+ggplot(data = diamonds, mapping = aes(carat, price))  + 
+  geom_point() + 
+   stat_density2d(aes(fill = ..level..), geom = "polygon") + 
+  facet_grid( ~ cut)
+```
+
+```{r, echo = TRUE, eval = FALSE}
+ggplot(data = diamonds, mapping = aes(carat, price))  + 
+  geom_point() + 
+   stat_density2d(aes(fill = ..level..), geom = "polygon") + 
+  facet_grid(color ~ cut)
+```
+
+## Faceting using one variable
+```{r, echo = FALSE, eval = TRUE}
+ggplot(data = diamonds, mapping = aes(carat, price))  + 
+  geom_point() + 
+   stat_density2d(aes(fill = ..level..), geom = "polygon") + 
+  facet_grid( ~ cut)
+```
+
+## Faceting using two variables
+```{r, echo = FALSE, eval = TRUE}
+ggplot(data = diamonds, mapping = aes(carat, price))  + 
+  geom_point() + 
+   stat_density2d(aes(fill = ..level..), geom = "polygon") + 
+  facet_grid(color  ~ cut)
+```
+
+## Position adjustments
+- each geometric object has a parmeter responsible for position adjustment
+- in the following example we devided the bar plot into groups defined by the variable clarity
+- we can stack the bars of each group on top of each other
+```{r, echo = TRUE, eval = FALSE}
+ggplot(data = diamonds) + 
+  geom_bar(mapping = aes(x = cut, fill = clarity), position = "stack") # the default
+```
+- we can put the bars for each group next to each other 
+```{r, echo = TRUE, eval = FALSE}
+  geom_bar(., position = "dodge") 
+```
+- we can compare relative proportions at each x by stacking the bars and  standardising each bar to have the same height
+
+```{r, echo = TRUE, eval = FALSE}
+geom_bar(., position = "dodge") 
+```
+
+## Stacked bar plot 
+```{r, echo = FALSE, eval = TRUE}
+ggplot(data = diamonds) + 
+  geom_bar(mapping = aes(x = cut, fill = clarity), position = "stack") # the default
+```
+
+## Dodged bar plot 
+```{r, echo = FALSE, eval = TRUE}
+ggplot(data = diamonds) + 
+  geom_bar(mapping = aes(x = cut, fill = clarity), position = "dodge") 
+```
+
+## Filled bar plot
+
+```{r, echo = FALSE, eval = TRUE}
+ggplot(data = diamonds) + 
+  geom_bar(mapping = aes(x = cut, fill = clarity), position = "fill") 
+```
+
+## Scales
+
+- scales determine how the date are mapped to the asthetics (e.g. which value takes which color)
+- scales are defined by functions of the form `scale_aestheticname_scalename()`
+
+```{r, echo = TRUE, eval = TRUE}
+ggplot(diamonds, aes(carat, price, color = cut)) + geom_point() + scale_color_grey()
+```
+
+
+## Scales
+
+- you can also use your own scales
+
+```{r, echo = TRUE, eval = TRUE}
+ggplot(diamonds, aes(carat, price, color = cut)) + 
+  geom_point() + 
+  scale_color_manual(values = c("#c9792e", "blue", "green", "gray", "thistle2"))
+```
+
+
+## Titles and labels 
+
+With the function `labs()` you can 
+- add a title and a subtible
+- add a caption
+- add a tag
+- change the axis lables
+- change the legend tilte
+
+```{r, echo = TRUE, eval = TRUE}
+ggplot(diamonds, aes(x = carat, y = price, fill = cut)) + 
+  geom_point() +
+  labs(title = "Diamanten", x = "Karat", y = "Preis", fill = "Schnitt") 
+```
+
+## Titles and labels 
+```{r, echo = FALSE, eval = TRUE}
+ggplot(diamonds, aes(x = carat, y = price, fill = cut)) + 
+  geom_point() +
+  labs(title = "Diamanten", x = "Karat", y = "Preis", fill = "Schnitt") 
+```
+
+
+## Themes
+
+Themes control the appearance of the plot 
+
+- fontype and fontsize
+- background
+- ticks marks and labels
+- grid lines
+- ...
+
+There are many predefined themes, however, if you like you can define all by yourself
+
+
+## Themes
+
+```{r}
+ggplot(diamonds, aes(carat, price, color = cut)) + 
+  geom_point() + theme_bw()
+```
+
+
+
