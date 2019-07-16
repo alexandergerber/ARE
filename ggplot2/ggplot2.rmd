@@ -72,24 +72,23 @@ Some interesting links:
 - [ggplot2: Elegant graphics for data Analysis](http://moderngraphics11.pbworks.com/f/ggplot2-Book09hWickham.pdf)
 - [Cookbook](http://www.cookbook-r.com/Graphs/)
 - [R Graph Gallery](https://www.r-graph-gallery.com/)
-- [DataCamp course](https://www.datacamp.com/courses/data-visualization-with-ggplot2-1)
+- [DataCamp](https://www.datacamp.com/courses/data-visualization-with-ggplot2-1)
 
 ---
 class: left, top
-## The grammer of graphics
+## The layered grammer of graphics
 
-- data: in ggplot2, data must be stored as a data.frame
-- aesthetics: describe visual characteristics 
-  - e.g., position (x and y), size, color, shape, fill, …
-- geoms: describe type of geometric objects
-  - e.g., points, lines, polygons, …
-- stats: describe statistical transformations that summarize the data 
-  - e.g., counts, regression lines, …
-- scales: for each aesthetic, describe how visual characteristic is converted to display values 
-  - e.g., x and y scales, color scales, size scales, shape scales, …
-- facets: describe how the data is split into subsets and displayed as multiple small graphs
-- coords: describes 2-D space that the data is projected onto 
-  - e.g., Cartesian coordinates, polar coordinates, map projections, …
+The grammer consists of 
+- data
+- aesthetic mappings (e.g. mapping of data to x and y coordinates, size, color, shape, ...)
+- geometric objects (e.g. points, lines, bars, ...)
+- scales (controls mapping from data to aestetics e.g. which colors to use )
+- facets (splitting data to create plots for subgroups)
+- statistical transformation (summarize data before plotting)
+- coordinate systems (e.g. Cartesian, semi-log, polar, ...)
+
+The data, mappings, statistical transformation and geometric objects form a layer.
+A plot can have multiple layers. 
 
 ---
 class: left, top
@@ -98,7 +97,8 @@ class: left, top
 ```{r, echo = TRUE, eval = FALSE}
 library(ggplot2)
 data("diamonds")
-ggplot(data = diamonds) + geom_point(mapping = waes(x = carat, y = price))
+ggplot(data = diamonds) + 
+  geom_point(mapping = aes(x = carat, y = price))
 ```
 
 `ggplot()`
@@ -115,7 +115,7 @@ defines how variables in your dataset are mapped to visual properties
 class: left, top
 ## A basic example
 
-```{r, echo = FALSE, eval = TRUE}
+```{r, echo = FALSE, eval = TRUE, fig.width=10}
 library(ggplot2)
 data("diamonds")
 diamonds <- diamonds[sample(1:nrow(diamonds), 5000), ]
@@ -318,13 +318,6 @@ ggplot(data = diamonds, mapping = aes(carat, price))  +
   facet_grid( ~ cut)
 ```
 
-```{r, echo = TRUE, eval = FALSE, fig.width=10}
-ggplot(data = diamonds, mapping = aes(carat, price))  + 
-  geom_point() + 
-   stat_density2d(aes(fill = ..level..), geom = "polygon") + 
-  facet_grid(color ~ cut)
-```
-
 ---
 class: left, top
 ## Faceting using one variable
@@ -396,7 +389,7 @@ class: left, top
 - scales determine how the date are mapped to the asthetics (e.g. which value takes which color)
 - scales are defined by functions of the form `scale_aestheticname_scalename()`
 
-```{r, echo = TRUE, eval = TRUE, fig.width=10}
+```{r, echo = TRUE, eval = TRUE, fig.width=10, fig.height=4}
 ggplot(diamonds, aes(carat, price, color = cut)) + geom_point() + scale_color_grey()
 ```
 
@@ -464,6 +457,12 @@ class: left, top
 ggplot(diamonds, aes(carat, price, color = cut)) + 
   geom_point() + theme_bw()
 ```
+
+---
+class: left, top
+
+1.  
+
 
 
 

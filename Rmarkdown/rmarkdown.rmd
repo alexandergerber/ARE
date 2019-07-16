@@ -1,0 +1,97 @@
+---
+title: "Literate Programming"
+author: 
+  - "Martin Arnold"
+  - "Alexander Gerber"
+date: '`r Sys.Date()`'
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    css: ../xaringan_files/xaringan-themer.css
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+    includes:
+      after_body: ../xaringan_files/terminal_highlight.html
+#      ratio: "16:9"
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning=FALSE, message=FALSE)
+options(htmltools.dir.version = FALSE)
+```
+
+class: left, top
+## R Markdown
+
+R Markdown provides a framework for combining  code, results and commentary.
+
+You can use R Markdown 
+
+- to generate high quality reports that can be shared with an audience.
+- as an environment in which to do data science, as a lab notebook where 
+  you can capture not only what you did, but also what you were thinking. 
+
+Some interesting links: 
+- [R Markdown: The Definitive Guide](https://bookdown.org/yihui/rmarkdown/xaringan-format.html) 
+- [Introduction to R Markdown](https://rmarkdown.rstudio.com/lesson-1.html)
+- [Cheatsheet](https://www.rstudio.com/wp-content/uploads/2016/03/rmarkdown-cheatsheet-2.0.pdf)
+
+---
+class: left, top
+## What’s possible with R Markdown?
+[![IMAGE ALT TEXT](https://i.vimeocdn.com/video/759260889.jpg)](https://player.vimeo.com/video/178485416 "Video Title")
+
+---
+class: left, top
+## Basic example
+```{r echo = FALSE, comment = ""}
+cat(htmltools::includeText("diamond-sizes.Rmd"))
+```
+
+---
+class: left, top
+
+## How it works 
+
+An R Markdown document is a basic text file, with the conventional extension `.Rmd`
+
+The example already contains the most important components:
+
+- An (optional) YAML header surrounded by ---.
+- Chunks of R code surrounded by ```.
+- Text mixed with simple text formatting like # heading and _italics_.
+
+When we click **knit** then 
+1. the `knitr` package executes the code chunks and creates a markdown (`.md`) document which contains the code and its output 
+2. the `.md` file gets processed by `pandoc` which creates the final file in the desired output format (eg. `html`, `pdf`, `word`, ...)
+
+![](rendering_process.PNG)
+
+---
+class: left, top
+
+## The YAML header
+
+The YAML header contains the meta data of the document.
+Here you can specify: 
+- the output format with optional output specific options 
+
+```{}
+---
+output: html_document
+---
+```
+
+## The YAML header
+```{}
+---
+output: html_document
+---
+```
+
+
+
+
+
+
