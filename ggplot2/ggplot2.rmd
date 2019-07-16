@@ -22,20 +22,20 @@ options(htmltools.dir.version = FALSE)
 ```
 
 ```{r xaringan-themer, include=FALSE}
-# solarized_dark(
-#   code_font_family = "Fira Code",
-#   code_font_url    = "https://cdn.rawgit.com/tonsky/FiraCode/1.204/distr/fira_code.css"
-# )
-library(xaringanthemer)
-
-mono_accent(
-    base_color           = "#09017F",
-    header_font_google   = google_font("Roboto", "700"),
-    text_font_google     = google_font("Roboto Condensed"),
-    code_highlight_color = "#D2B6E8",
-    code_font_family     = "Fira Code",
-    code_font_url        = "https://cdn.rawgit.com/tonsky/FiraCode/1.204/distr/fira_code.css"
-    )
+# # solarized_dark(
+# #   code_font_family = "Fira Code",
+# #   code_font_url    = "https://cdn.rawgit.com/tonsky/FiraCode/1.204/distr/fira_code.css"
+# # )
+# library(xaringanthemer)
+# 
+# mono_accent(
+#     base_color           = "#09017F",
+#     header_font_google   = google_font("Roboto", "700"),
+#     text_font_google     = google_font("Roboto Condensed"),
+#     code_highlight_color = "#D2B6E8",
+#     code_font_family     = "Fira Code",
+#     code_font_url        = "https://cdn.rawgit.com/tonsky/FiraCode/1.204/distr/fira_code.css"
+#     )
 
 ```
 
