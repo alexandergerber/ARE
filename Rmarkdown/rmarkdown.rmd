@@ -1,5 +1,5 @@
 ---
-title: "Literate Programming"
+title: "Reproducible Research with R Markdown"
 author: 
   - "Martin Arnold"
   - "Alexander Gerber"
@@ -54,15 +54,15 @@ class: left, top
 
 ## How it works 
 
-An R Markdown document is a basic text file, with the conventional extension `.Rmd`
+An R Markdown document is a basic text file, with the conventional extension `.Rmd`.
 
 The example already contains the most important components:
 
 - An (optional) YAML header surrounded by ---.
-- Chunks of R code surrounded by ```.
-- Text mixed with simple text formatting like # heading and _italics_.
+- Chunks of R code surrounded by ` ``` `.
+- Text mixed with simple text formatting like **bold** and _italics_.
 
-When we click **knit** then 
+When we click **knit** in RStudi then 
 1. the `knitr` package executes the code chunks and creates a markdown (`.md`) document which contains the code and its output 
 2. the `.md` file gets processed by `pandoc` which creates the final file in the desired output format (eg. `html`, `pdf`, `word`, ...)
 
@@ -72,23 +72,158 @@ When we click **knit** then
 class: left, top
 
 ## The YAML header
-
 The YAML header contains the meta data of the document.
-Here you can specify: 
-- the output format with optional output specific options 
+Here you can: 
+- provide information for the default title page
+- specify the output format with optional output specific options 
+- add custom stlye files
+- define parameters 
 
+Basic YAML header using mostly defaults
 ```{}
 ---
+title: Habits
+author: John Doe
+date: March 22, 2005
 output: html_document
 ---
 ```
+
+---
+class: left, top
 
 ## The YAML header
+Example of a bit more complicated YAML header.
 ```{}
 ---
-output: html_document
+title: Habits
+author: John Doe
+date: March 22, 2005
+output:
+  html_document:
+    toc: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
+    css: my_style.css
+params: 
+  pi: 3.141593
 ---
 ```
+
+---
+class: left, top
+## Code Chunks
+
+- press `Ctrl + Alt + I` to insert a new R code chunk
+- you can write arbitrary R code in a code chunk (e.g. run a regression and produce a plot of the result)  
+- in the top curly braces chunk options can be used to control how the output is handled
+
+Some useful options: 
+  - `eval`(`TRUE`; logical): whether to evaluate the code chunk  
+  - `echo` (`TRUE`; logical or numeric): whether to include R source code in the output file
+  - `cache(FALSE; logical)`: whether to cache a code chunk 
+  - `fig.height` and `fig.width`  control plot size in the final document
+  - `warning` (`TRUE`; logical): whether to preserve warnings 
+  - `message` (`TRUE`; logical): whether to preserve messages 
+  - `include` (`TRUE`; logical): whether to include the chunk output in the final output document
+  
+For a complete list we refer to the `knitr` documentation: [Chunk options](https://yihui.name/knitr/options#code-evaluation).
+
+---
+class: left, top
+## Text Formatting
+
+- R Markdown is build on Markdown, a markup language 
+- compared to markup languages such as HTML and Latex, Markdown is very simple
+
+Some examples of R Markdown:  
+
+  `#  Header 1 `    
+  `## Header 2 `  
+  `### Header 3 `
+  
+  `*italics* `  
+  `**bold** `
+  
+  `<!--Text comment--> `
+  
+  `$\frac{1}{2 \pi} e^{-\frac{1}{2} x^2}$`  
+
+  
+  `[Link to stackoverflow](https://stackoverflow.com/) `
+  
+  ` `verbatim code` `  
+
+---
+class: left, top
+## Using HTML and Latex
+
+- If only R Markdown is used the document can be compiled mostly without problems
+to all supported output formats. 
+
+- Somtimes R Markdown is to limited and one would like to use the more powerful 
+tools provided by HTML or Latex.
+
+- If the output format is HTML, you can also use HTML instead of R Markdown 
+  or mix both
+
+- If the output format is PDF, the same can be said about Latex
+
+---
+class: left, top
+## Tables 
+
+Tables can be created in the following way:
+
+`| Right | Left | Default | Center |`  
+`|------:|:-----|---------|:------:|`  
+`| 12 | 12 | 12 | 12 |`  
+`| 123 | 123 | 123 | 123 |`  
+`| 1 | 1 | 1 | 1 | ` 
+
+In general, however, tables should be produced by your code.
+The following slides show some examples. 
+
+---
+class: left, top
+## Tables using kable
+
+- `knitr::kable` is the probably the easiest to transform a matrix or a data frame into a simple Table.
+
+```{r, echo = TRUE}
+result        <- data.frame(rbind(rep(12,4), rep(123, 4), rep(1,4)))
+names(result) <- c("Right", "Left", "Default", "Center")
+
+knitr::kable(result, align = c("r", "l", "l", "c"), format = "markdown")
+```
+
+---
+class: left, top
+## Tables using xtable
+
+- `xtable` provides more functionality than kable but is in general more difficult to use
+
+```{r, echo = TRUE, results='asis'}
+library(xtable)
+
+my_xtable <- xtable(result, align = c("r", "r", "l", "l", "c"))
+print.xtable(my_xtable, type  = "html", include.rownames = FALSE)
+```
+
+---
+class: left, top
+## Tables using startgazer
+
+- `stargazer` takes model objects as input and automatically creates an output table   
+
+```{r, results='asis', echo = TRUE}
+linear_model <- lm(mpg ~ cyl + wt, data = mtcars)
+
+stargazer::stargazer(linear_model, type = "html",out.header = TRUE, omit.table.layout = "sn")
+```
+
+
 
 
 
