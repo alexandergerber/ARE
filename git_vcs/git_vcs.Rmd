@@ -438,9 +438,37 @@ It's important to understand that git revert undoes a single commit it does not 
 ![](images/reset_scopes.svg)
 
 ---
+
+class: center, middle
+
+# Collaboration
+
+![](images/collaboration.svg)
+---
+
+# Collbaboration
+
+- This is where github.com comes into play
+- You can link your offline repository to a central repository on github.com
+- Pull new commits from the 'remote' into your local repository
+- Push new commits from your local repository into the 'remote'
+
+Let's create a remote repository for our 'firstrepo':
+
+1. Go to [https://github.com/new](https://github.com/new)
+2. Name your remote repository
+3. Decide wether it should be private or public
+4. Click 'Create Repository'
+5. Copy the repository link:
+
+![](images/remote.png)
+---
+
 # Advanced concepts
 
+- git rebase
 - git stash
 - git flow
 - git tag
 - git clean
+- git commit --ammend

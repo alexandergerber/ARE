@@ -10,6 +10,9 @@
     next.insertAdjacentHTML("beforebegin", next.textContent);
     next.parentNode.removeChild(next);
     });
+    
+    $("code.nohighlights").find("*").removeClass(
+"hljs-title hljs-number hljs-type hljs-class hljs-keyword")
 </script>
 
 <style>
