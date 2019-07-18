@@ -408,7 +408,6 @@ profvis({
 
 ---
 class: inverse, left, top
-
 background-image: url(img/road.jpg)
 background-size: cover
 # Microbenchmarking
@@ -589,25 +588,14 @@ plot(results)
     x ^ (1 / 2)
     exp(log(x) / 2)
     ```
+---
+class: inverse, left, top
+background-image: url(img/road.jpg)
+background-size: cover
+### (Why) is R slow?
 
 ---
 ### (Why) is R slow?
-
-A few facts
-
-- R is not slow *per se* &mdash; but it is slow compared to other languages:
-
-    Speed isn't its strongest suit but accessability and compatibility are. R was designed to make life easier for you, not for your computer!
-
-- More technically: R is an easy-to-use high level programming language. We know that its purpose is to provide a flexible and extensible toolkits for data analysis and statistics
-
-- We are (mostly) happy to accept the slower speed for the time saved from not having to reinvent the wheel each time we want to implement a new function that, e.g., computes a test statistic.
-
-    (meanwhile there are `r nrow(available.packages(repos = "http://cran.us.r-project.org"))` packages available on [CRAN](https://cran.r-project.org/) with many useful functions waiting to be discovered by you!)
-
----
-### (Why) is R slow?
-
 
 Think of R as both the definition of a language and its implementation.
 
@@ -721,14 +709,14 @@ Even more problematic: most operations are lexically scoped function calls. This
 
 (a first example of poorly written code)
 
-```{r}
+```{r, cache=T}
 g <- function(x) x = (1/(1 + x))
 h <- function(x) x = ((1/(1 + x)))
 i <- function(x) x = (((1/(1 + x))))
 
 x <- sample(1:100, 100, replace = TRUE)
 
-microbenchmark(g(x), h(x), i(x), times = 1e5)
+bench::mark(g(x), h(x), i(x))
 ```
 
 ---
@@ -764,7 +752,7 @@ f4 <- set_env(f, random_env(environment(f3)))
 **Example: function calls in nested environments &mdash; ctd.**
 
 ```{r, warning=F, message=F, cache=T}
-microbenchmark(f(1, 2), f2(1, 2), f3(1, 2), f4(1, 2), times = 1e5)
+bench::mark(f(1, 2), f2(1, 2), f3(1, 2), f4(1, 2))
 ```
 
 Each additional environment between `f()` and the global environment where `+` and `^` are defined increases computation time.
@@ -797,45 +785,323 @@ f1(stop("My dog speaks chinese"))
 ---
 ### (Why) is R slow? &mdash; Lazy Evaluation Overhead
 
-Promises are very convnient but should be avoided if not needed.
+Promises are very convnient but should be avoided if speed is crucial.
 
 **Example: lazy evaluation**
 
 ```{r}
 f1 <- function(a) NULL
 f2 <- function(a = 1, b = 2, c = 4, d = 4, e = 5) NULL
-microbenchmark(f1(), f2(), times = 1e5)
+bench::mark(f1(), f2())
 ```
 
-Arguments trigger promises each time the function is *called*. Superflous arguments mean unecessary overhead.
+Arguments trigger promises each time the function is *called*. Superflous arguments thus lead to avoidable overhead.
 
 ---
+### (Why) is R slow? &mdash; Summary
+
+
+- R is not slow *per se* &mdash; but it is slow compared to other languages:
+
+    Speed isn't its strongest suit but accessability and compatibility are. R was designed to make life easier for you, not for your computer!
+
+    More technically: R is an easy-to-use high level programming language. It provides a flexible and extensible toolkit for data analysis and statistics.
+
+- We are (mostly) happy to accept the slower speed for the time saved from not having to reinvent the wheel each time we want to implement a new function that, e.g., computes a test statistic.
+
+    (meanwhile there are `r nrow(available.packages(repos = "http://cran.us.r-project.org"))` packages available on [CRAN](https://cran.r-project.org/) with many useful functions waiting to be discovered by you!)
+
+- We cannot overcome the circumstances described in this section. However, there are a few things to keep in mind when you want to write high performance code. We'll discuss these in the next chapter.
+
+---
+class: inverse, left, middle
+background-image: url(img/road.jpg)
+background-size: cover
 ### Improving Performance
 
-**Example: Linear Regression &mdash; computing $SE(\widehat\beta)$**
+*We should forget about small efficiencies, say about 97% of the time: premature optimization is the root of all evil. Yet we should not pass up our opportunities in that critical 3%. A good programmer will not be lulled into complacency by such reasoning, he will be wise to look carefully at the critical code; but only after that code has been identified.*
 
-```{r}
+— Donald Knuth
+
+---
+### Improving Performance &mdash; Overview
+
+Once profiling has revealed a bottleneck, we need to make it faster. In the following we will discuss some techniques that are broadly useful:
+
+1. **Look for existing solutions.**
+
+    Searching google can save you lots of time. The benefit of finding a faster (but possibly suboptimal) solution on your own may be small.
+
+2. **Do as little as possible. Be precise.**
+
+    Using optimized functions tailored for specific tasks often makes a big difference.
+
+3. **Vectorise your code.**
+
+    This often relates to avoiding `for()`-loops and the associated inefficiencies
+
+4. **Parallelize (if possible).**
+
+    Using multiple CPU cores in parallel is enormously helpful when the computation involves a large number of tasks that may be solved independently.
+
+If the above are not enough, you may rewrite (some of) the code in C++ using Rcpp (discussed in the next chapter).
+
+---
+### 1. Look for Existing Solutions
+
+There's a good chance that someone has already tackled the same problem.
+
+- Find out if there is a [Cran Task View](https://cran.rstudio.com/web/views/) related to your problem and search the packages listed there
+
+- Limit your search to packages that depend on the Rcpp package (and thus likely implement high-performant C++ code). This is easily done by checking reverse dependencies of [Rcpp](https://cran.r-project.org/web/packages/Rcpp/).
+
+- Check if a question related to your problem has been asked on [stackoverflow](https://stackoverflow.com/). Narrow the search by using suitable tags, e.g., `[r]`, `[performance]`.
+
+- Google. For R-related results, use [rseek](https://rseek.org/).
+
+**Record all solutions that you find not just those that immediately appear to be faster!**
+
+- Some solutions might be initially slower but are are easier to optimize and thus end up being faster. 
+
+- Sometimes combining the fastest parts from different approaches is helpful. 
+---
+### 2. Do as Little as Possible
+
+**Example: coercation of inputs**
+
+`apply()` allows for various inputs and outputs which requires coercation.
+
+```{r, cache = T}
+X <- matrix(1:1000, ncol = 10)
+Y <- as.data.frame(X)
+
+bench::mark(
+  apply(X, 1, sum),
+  apply(Y, 1, sum)
+)
+```
+
+---
+### 2. Do as Little as Possible
+
+A function is faster if it has less to do &mdash; obvious but often neglected!
+
+Use a function tailored to a more specific type of input or output, or a more specific problem.
+
+**Example: row sums &mdash; `rowSums()` vs. `apply()`**
+
+`apply()` has a much longer call stack than `rowSums()` which is much more specific. 
+
+```{r, cache = T}
+bench::mark(
+  rowSums(X),
+  apply(X, 1, sum)
+)
+```
+
+---
+### 2. Do as Little as Possible
+
+**Example: search vector for entry**
+
+Testing equality is *much* simpler than testing inclusion in a set.
+
+```{r, cache=T}
+x <- 1:100
+
+bench::mark(
+  any(x == 10),
+  10 %in% x
+)
+```
+
+---
+### 2. Do as Little as Possible
+
+**Example: Linear Regression &mdash; computation of $SE(\widehat\beta)$**
+
+The approach used in `a()` is what we teach undergraduates which is totally fine &mdash; except if you want (only) $SE(\widehat\beta)$ and fast.
+
+The code in function `b()` is rather focussed on the essentials.
+
+```{r, cache=T}
+set.seed(1)
+X <- matrix(rnorm(100), ncol = 1)
+Y <- X + rnorm(100)
+
 a <- function() {
-  X <- matrix(rnorm(100), ncol = 1)
-  Y <- X + rnorm(100)
-  
-  coefficients(summary(lm(Y ~ X - 1)))[1,2]  
+  coefficients(summary(lm(Y ~ X - 1)))[1, 2]  
 }
 
 b <- function() {
-  X <- matrix(rnorm(100), ncol = 1)
-  Y <- X + rnorm(100)
-  
-  fit <- lm.fit(X,Y)
-  
-  sqrt(1/(length(X)-1) * sum(fit$residuals^2) * solve(t(X) %*% X))
+  fit <- lm.fit(X, Y)
+  c(
+    sqrt(1/(length(X)-1) * sum(fit$residuals^2) * solve(t(X) %*% X))
+    )
 }
 ```
+
+---
+### 2. Do as Little as Possible
+
+**Example: Linear Regression &mdash; computation of $SE(\widehat\beta)$**
+
+Let's compare both approaches in a microbenchmark.
+
+```{r, cache = T}
+bench::mark(
+  a(),
+  b()
+)
+```
+
+The difference is indeed huge.
+
+---
+### 2. Do as Little as Possible
+
+Be as explicit as possible.
+
+**Example: method dispatch**
+
+```{r}
+x <- runif(1e2)
+
+bench::mark(
+  mean(x),
+  mean.default(x)
+)
+```
+
+---
+### 2. Do as Little as Possible
+
+Benchmark against alternatives that rely on primitive functions.
+
+**Example: primitives are faster**
+
+```{r}
+bench::mark(
+  mean.default(x),
+  sum(x)/length(x)
+)
+```
+
+---
+### 2. Do as Little as Possible &mdash; Exercises
+
+1\. Can you come up with an even faster implementation of `b()` in the linear regression example?
+
+2\. `rowSums2()` is an alternative implementation of `rowSums()`. Is it faster for the input `df`? Why?
+
+```{r, eval=F}
+rowSums2 <- function(df) {
+out <- df[[1L]]
+if (ncol(df) == 1) return(out)
+    
+  for (i in 2:ncol(df)) {
+    out <- out + df[[i]]
+  }
+  out
+}
+    
+df <- as.data.frame(
+  replicate(1e3, sample(100, 1e4, replace = TRUE))
+)
+```
+
+3\. What’s the difference between `rowSums()` and `.rowSums()`?
+
+---
+### 2. Do as Little as Possible &mdash; Exercises
+
+4\. Write a faster version of `chisq.test()` that only computes the chi-square test statistic when the input is two numeric vectors with no missing values. Start by coding from the [definition](https://en.wikipedia.org/wiki/Pearson%27s_chi-squared_test).
+
+---
+### 2. Do as Little as Possible &mdash; Case Study
+
+Imagine you want to compute the bootstrap distribution of a sample correlation using `cor_df()` and the data in the example below. Given that you want to run this many times, how can you make this code faster? 
+
+(Hint: the function has three components that you can speed up.)
+
+```{r, eval=F}
+n <- 1e6
+df <- data.frame(a = rnorm(n), b = rnorm(n))
+    
+cor_df <- function(df, n) {
+  i <- sample(seq(n), n, replace = TRUE)
+  cor(df[i, , drop = FALSE])[2, 1]
+}
+```
+
+---
+### 3. Vectorize your code
+
+**Vectorization** 
+
+- is the process of converting an algorithm from operating on a single value at a time to operating on a set of values at one time.
+
+- makes problems simpler: code that operates on vectors instead of single entries of a vector is often less complex to write.
+
+- may avoid loops in R. Loops in vectorized functions are written in C and are much faster.
+
+**Use Matrix Algebra**
+
+Loops used in most matrix operations are executed by highly optimized external libraries. See, e.g., [BLAS](https://en.wikipedia.org/wiki/Basic_Linear_Algebra_Subprograms).
+
+**Use vectorized functions in base R**
+
+- `rowSums()`, `colSums()`, `rowMeans()`, `colMeans()`, `cumsum()`, `diff()`
+
+
+---
+background-image: url(img/atomic_vectors.png)
+background-position: 50% 80%
+background-size: 300px
+### 3. Vectorize your code
+
+**What does it mean to write 'vectorized' code in R?**
+
+Remember that there are no 'real' scalars in R. Everything that looks like a scalar is actually a $1\times1$ vector.
+
+```{r}
+# otherwise this shouldn't work:
+1[1]
+```
+
+---
+background-image: url(img/rowcolumnarrays.jpg)
+background-position: 50% 80%
+background-size: 550px
+### 3. Vectorize your code
+
+**What does it mean to write 'vectorized' code in R?**
+
+R saves data in [column-major order](https://en.m.wikipedia.org/wiki/Row-_and_column-major_order). 
+
+To disregard this pattern by writing code which operates on $1\times1$ vectors thus means  'fighting the language'.
+    
+---
+### 3. Vectorize your code &mdash; Exercises
+
+1. Compare the speed of `apply(X, 1, sum)` with the vectorized `rowSums(X)` for varying sizes of the square matrix `X` using `bench::mark()`. Consider the dimensions `1`, `1e1`, `1e2`, `1e3`, `0.5e4` and `1e5`. Visualize the results using a violin plot.
+
+2. 
+
+    (a) How can you vectorize the computation of a weighted sum?
+
+    (b) How can you use `crossprod()` to compute that same sum? 
+
+    (c) How much faster are the approaches in (a) and (b) compared to the 'naive' approach `sum(x * w)`?
+
+3. 
 
 ---
 ### References
 
 Wickham, H. (2019). Advanced R. 2nd Edition. Taylor & Francis, CRC Press.
+
+Peng, Roger D. (2016), R Programming for Data Science. The bookdown Archive.
 
 ---
 class: inverse, left, top
