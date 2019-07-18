@@ -21,3 +21,5 @@ smaller %>%
   ggplot(aes(carat)) + 
   geom_freqpoly(binwidth = 0.01)
 ```
+
+If $\frac{\alpha}{\beta} = \gamma$ then $\alpha = \gamma\beta$.
