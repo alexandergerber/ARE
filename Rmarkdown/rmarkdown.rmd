@@ -12,9 +12,9 @@ output:
       highlightStyle: github
       highlightLines: true
       countIncrementalSlides: false
+     #ratio: "16:9"
     includes:
       after_body: ../xaringan_files/terminal_highlight.html
-#      ratio: "16:9"
 ---
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, warning=FALSE, message=FALSE)
@@ -69,7 +69,7 @@ The example already contains the most important components:
 - Mathematical expressions
 
 When we click **knit** in RStudio then 
-1. the `knitr` package executes the code chunks and creates a markdown (`.md`) document which contains the code and its output 
+1. the `knitr` package executes the code chunks and creates a markdown document (`.md`) which contains the code and its output 
 2. the `.md` file gets processed by `pandoc` which creates the final file in the desired output format (eg. `html`, `pdf`, `word`, ...)
 ![](rendering_process.PNG)
 
@@ -81,7 +81,7 @@ The YAML header contains settings passed to pandoc and the rendering functions.
 Here you can: 
 - provide information for the title page such as title, name and date
 - specify the output format with optional output specific options 
-- include external files (e.g. `.css`) or packages (for $\LaTeX$)
+- include external files (e.g. `.css`) or additional packages for $\LaTeX$
 - define parameters. 
 
 Basic YAML header using mostly defaults
@@ -99,7 +99,7 @@ class: left, top
 
 ## The YAML header
 Example of a bit more complicated YAML header.
-```{}
+```nohighlights
 ---
 title: Habits
 author: John Doe
@@ -130,23 +130,23 @@ Some examples:
 
 - Inline formatting  
 
-```
-  *italics* 
-  **bold**
-  This ~~is deleted text.~~
-  Some verbatim `lm(y ~ x)`.
-```
+    ```
+    *italics* 
+    **bold**
+    This ~~is deleted text.~~
+    Some verbatim `lm(y ~ x)`.
+    ```
 - Headers
 
-```
-  #   Header 1     
-  ##  Header 2   
-  ### Header 3 
-```
+    ```
+    #   Header 1     
+    ##  Header 2   
+    ### Header 3 
+    ```
 ]
 
 .pull-right[ 
-<br>
+<br><br>
     *italics*  
     **bold**  
     This ~~is deleted text.~~  
@@ -256,7 +256,7 @@ class: left, top
 ## Math Expressions
 
 When rendering to a pdf then $\LaTeX{}$ can be used throughout the document.  
-Through `MathJax` the $\LaTeX{}$ math mode can be used for HTML output as follows: 
+Through `MathJax` the $\LaTeX{}$ math mode can also be used for HTML output as follows: 
 - Inline $\LaTeX{}$ equations can be written within dollar signs.  
     ```{r, comment = ""}
 cat("This is an inline equation $f(x)=\\frac{1}{2\\pi}e^{-\\frac{1}{2}x^2}$.")
@@ -310,6 +310,50 @@ Some useful options:
   
 For a complete list we refer to the `knitr` documentation: [Chunk options](https://yihui.name/knitr/options#code-evaluation).
 
+---
+class: left, top
+## Code Chunks
+
+````markdown
+`r ''````{r, echo = TRUE, cache = TRUE}
+x <- runif(100)
+y <- 0.4 * x + rnorm(100)
+lm(y ~ x)
+```
+````
+
+If you use mainly chunk options which are not the default, then it saves you work to change the default for your document by putting 
+  a code chunk like this immediately after the YAML header
+
+````markdown
+`r ''````{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning=FALSE, message=FALSE)
+```
+````
+
+---
+class: left, top
+## Inline R Code
+
+R Code can also be evaluated within the text. When something changes (e.g. the input data) the numbers in the text adjust accordingly as well. 
+
+````markdown
+`r ''````{r, echo = TRUE}
+x <- 4
+y <- 38
+answer <- x + y
+```
+The answer is `r '\x60r answer\x60'`
+````
+
+```{r}
+x <- 4
+y <- 38
+answer <- x + y
+```
+
+
+The answer is `r answer`.
 
 
 ---
@@ -349,22 +393,39 @@ class: left, top
 
 - `knitr::kable` is the probably the easiest to transform a matrix or a data frame into a simple Table.
 
-```{r, echo = TRUE}
+````
+`r ''````{r}
 result        <- data.frame(rbind(rep(12,4), rep(123, 4), rep(1,4)))
 names(result) <- c("Right", "Left", "Default", "Center")
-
 knitr::kable(result, align = c("r", "l", "l", "c"), format = "markdown")
 ```
+````
+
+```{r}
+result        <- data.frame(rbind(rep(12,4), rep(123, 4), rep(1,4)))
+names(result) <- c("Right", "Left", "Default", "Center")
+knitr::kable(result, align = c("r", "l", "l", "c"), format = "markdown")
+```
+
 
 ---
 class: left, top
 ## Tables using xtable
 
 - `xtable` provides more functionality than kable but is a bit more difficult to use
+- if you code produces raw HTML or $\LaTeX{}$ code for e.g. a table then in the chunk option `results='asis'` must be set, otherwise it gets formatted and will not work as intended
 
-```{r, echo = TRUE, results='asis'}
+````markdown
+`r ''````{r, echo = FALSE, results='asis'}
 library(xtable)
 
+my_xtable <- xtable(result, align = c("r", "r", "l", "l", "c"))
+print.xtable(my_xtable, type  = "html", include.rownames = FALSE)
+```
+````
+
+```{r, echo = FALSE, results='asis'}
+library(xtable)
 my_xtable <- xtable(result, align = c("r", "r", "l", "l", "c"))
 print.xtable(my_xtable, type  = "html", include.rownames = FALSE)
 ```
@@ -375,19 +436,33 @@ class: left, top
 
 - `stargazer` takes model objects as input and automatically creates an output table   
 
-```{r, results='asis', echo = TRUE}
+````markdown
+`r ''````{r, results='asis', echo = TRUE}
 linear_model <- lm(mpg ~ cyl + wt, data = mtcars)
-
-stargazer::stargazer(linear_model, type = "html",out.header = TRUE, omit.table.layout = "sn")
+stargazer::stargazer(linear_model, type = "html",
+                     out.header = TRUE, omit.table.layout = "sn")
+```
+````
+```{r, results='asis'}
+linear_model <- lm(mpg ~ cyl + wt, data = mtcars)
+stargazer::stargazer(linear_model, type = "html", 
+                     out.header = TRUE, omit.table.layout = "sn")
 ```
 
 
 ---
 class: left, top
+## Plots
 
+````markdown
+`r ''````{r, fig.height = 5}
+hist(rnorm(1000))
 ```
-$\frac{\alpha}{\beta} = 2$ 
+````
+```{r, fig.height = 5}
+hist(rnorm(1000))
 ```
+
 
 ---
 class: left, top
@@ -404,4 +479,17 @@ tools provided by HTML or Latex.
 
 - If the output format is PDF, the same can be said about Latex
 
+---
+class: left, top
+## Interactive documents
+
+```{r, out.width='100%'}
+library(leaflet)
+leaflet() %>% addTiles() %>%
+  setView(7.005070, 51.463675,zoom = 17) %>%
+  addPopups(
+    7.005070, 51.463675,
+    'Here is the <b>University of Essen</b>'
+  )
+```
 
