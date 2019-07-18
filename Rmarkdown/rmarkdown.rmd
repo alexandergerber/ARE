@@ -7,7 +7,7 @@ date: '`r Sys.Date()`'
 output:
   xaringan::moon_reader:
     lib_dir: libs
-    css: ../xaringan_files/xaringan-themer.css
+    css:  ["../xaringan_files/xaringan-themer.css", "../xaringan_files/custom.css"]
     nature:
       highlightStyle: github
       highlightLines: true
@@ -19,6 +19,7 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, warning=FALSE, message=FALSE)
 options(htmltools.dir.version = FALSE)
+def.chunk.hook  <- knitr::knit_hooks$get("chunk")
 ```
 
 class: left, top
@@ -37,6 +38,7 @@ Some interesting links:
 - [Introduction to R Markdown](https://rmarkdown.rstudio.com/lesson-1.html)
 - [Cheatsheet](https://www.rstudio.com/wp-content/uploads/2016/03/rmarkdown-cheatsheet-2.0.pdf)
 
+
 ---
 class: left, top
 ## What’s possible with R Markdown?
@@ -45,10 +47,13 @@ class: left, top
 ---
 class: left, top
 ## Basic example
-```{r echo = FALSE, comment = ""}
+.small[
+
+```{r echo = FALSE, comment = "", size="tiny"}
 cat(htmltools::includeText("diamond-sizes.Rmd"))
 ```
 
+]
 ---
 class: left, top
 
@@ -58,26 +63,26 @@ An R Markdown document is a basic text file, with the conventional extension `.R
 
 The example already contains the most important components:
 
-- An (optional) YAML header surrounded by ---.
-- Chunks of R code surrounded by ` ``` `.
-- Text mixed with simple text formatting like **bold** and _italics_.
+- An (optional) YAML header surrounded by ---
+- Chunks of R code surrounded by ` ``` `
+- Text mixed with simple text formatting like **bold** and _italics_
+- Mathematical expressions
 
-When we click **knit** in RStudi then 
+When we click **knit** in RStudio then 
 1. the `knitr` package executes the code chunks and creates a markdown (`.md`) document which contains the code and its output 
 2. the `.md` file gets processed by `pandoc` which creates the final file in the desired output format (eg. `html`, `pdf`, `word`, ...)
-
 ![](rendering_process.PNG)
 
 ---
 class: left, top
 
 ## The YAML header
-The YAML header contains the meta data of the document.
+The YAML header contains settings passed to pandoc and the rendering functions.
 Here you can: 
-- provide information for the default title page
+- provide information for the title page such as title, name and date
 - specify the output format with optional output specific options 
-- add custom stlye files
-- define parameters 
+- include external files (e.g. `.css`) or packages (for $\LaTeX$)
+- define parameters. 
 
 Basic YAML header using mostly defaults
 ```{}
@@ -111,6 +116,181 @@ params:
 ---
 ```
 
+
+---
+class: left, top
+## Text Formatting
+
+- R Markdown is build on [Pandoc Markdown](https://rmarkdown.rstudio.com/authoring_pandoc_markdown.html%23raw-tex#pandoc_markdown), which in turn is a flavour of Markdown a markup language 
+- compared to markup languages such as HTML and Latex, Markdown is very simple
+
+Some examples:  
+
+.pull-left[
+
+- Inline formatting  
+
+```
+  *italics* 
+  **bold**
+  This ~~is deleted text.~~
+  Some verbatim `lm(y ~ x)`.
+```
+- Headers
+
+```
+  #   Header 1     
+  ##  Header 2   
+  ### Header 3 
+```
+]
+
+.pull-right[ 
+<br>
+    *italics*  
+    **bold**  
+    This ~~is deleted text.~~  
+    Some verbatim `lm(y ~ x)`. 
+
+.scaled[
+#   Header 1 
+##  Header 2
+### Header 3
+]
+
+]
+
+---
+class: left, top
+## Text Formatting
+
+
+
+.pull-left[
+
+- Unordered Lists
+
+```
+  * Item
+    - Item belonging to item
+    - Another item belonging to item
+  * Item
+  * Item
+```
+
+- Ordered Lists
+
+```
+  1. First item
+    - First subitem
+    - Second subitem 
+  2. Second item
+  3. Third item
+  4. Fourth item
+```
+]
+
+.pull-right[ 
+<br>
+* Item
+  - Item belonging to item
+  - Another item belonging to item
+* Item
+* Item  
+<br>
+
+1. First item  
+    - First subitem
+    - Second subitem
+2. Second item
+3. Third item
+4. Fourth item
+
+]
+
+Note that Markdown does not support nested ordered list with numbering 1.1, 1.2.1 and so on. For this you would have to fall back to HTML or $\LaTeX$. 
+
+---
+class: left, top
+## Text Formatting
+
+.pull-left[ 
+- Paragraphs
+```
+  First paragraph
+
+  Second paragraph
+```
+
+A new paragraph is startet by a blank line.
+
+
+- linebreaks
+```
+  First line  
+  Second line
+```
+]
+
+.pull-right[ 
+<br>
+
+  First paragraph
+
+  Second paragraph
+
+  <br>
+  <br>
+  <br>
+  First line  
+  Second line
+]
+
+A new line is startet by two whitespaces at the end of the previous line (which you cannot see here)
+
+
+
+
+---
+class: left, top
+## Math Expressions
+
+When rendering to a pdf then $\LaTeX{}$ can be used throughout the document.  
+Through `MathJax` the $\LaTeX{}$ math mode can be used for HTML output as follows: 
+- Inline $\LaTeX{}$ equations can be written within dollar signs.  
+    ```{r, comment = ""}
+cat("This is an inline equation $f(x)=\\frac{1}{2\\pi}e^{-\\frac{1}{2}x^2}$.")
+    ```
+  
+  This is an inline equation $f(x)=\frac{1}{2\pi}e^{-\frac{1}{2}x^2}$.
+  
+- Display style $\LaTeX{}$ equations can be written within double dollar signs.  
+    ```{r, comment = ""}
+cat("This is display style $$f(x)=\\frac{1}{2\\pi}e^{-\\frac{1}{2}x^2}$$.")
+    ```
+This is display style $$f(x)=\frac{1}{2\pi}e^{-\frac{1}{2}x^2}.$$
+
+---
+class: left, top
+## Math Expressions
+- Even more complex math enviornments such as `align` can be used 
+    ```{r echo = FALSE, comment = ""}
+cat("
+\\begin{align}
+(a+b)^{3} &=(a+b)(a+b)^{2} \\\\
+          &=(a+b)\\left(a^{2}+2 a b+b^{2}\\right) \\\\
+          &=a^{3}+3 a^{2} b+3 a b^{2}+b^{3} 
+\\end{align}
+")
+    ```
+
+
+\\begin{align}
+(a+b)^{3} &=(a+b)(a+b)^{2} \\\\
+          &=(a+b)\\left(a^{2}+2 a b+b^{2}\\right) \\\\
+          &=a^{3}+3 a^{2} b+3 a b^{2}+b^{3} 
+\\end{align}
+
 ---
 class: left, top
 ## Code Chunks
@@ -130,60 +310,38 @@ Some useful options:
   
 For a complete list we refer to the `knitr` documentation: [Chunk options](https://yihui.name/knitr/options#code-evaluation).
 
----
-class: left, top
-## Text Formatting
 
-- R Markdown is build on Markdown, a markup language 
-- compared to markup languages such as HTML and Latex, Markdown is very simple
-
-Some examples of R Markdown:  
-
-  `#  Header 1 `    
-  `## Header 2 `  
-  `### Header 3 `
-  
-  `*italics* `  
-  `**bold** `
-  
-  `<!--Text comment--> `
-  
-  `$\frac{1}{2 \pi} e^{-\frac{1}{2} x^2}$`  
-
-  
-  `[Link to stackoverflow](https://stackoverflow.com/) `
-  
-  ` `verbatim code` `  
-
----
-class: left, top
-## Using HTML and Latex
-
-- If only R Markdown is used the document can be compiled mostly without problems
-to all supported output formats. 
-
-- Somtimes R Markdown is to limited and one would like to use the more powerful 
-tools provided by HTML or Latex.
-
-- If the output format is HTML, you can also use HTML instead of R Markdown 
-  or mix both
-
-- If the output format is PDF, the same can be said about Latex
 
 ---
 class: left, top
 ## Tables 
 
 Tables can be created in the following way:
+<br> <br>
+.pull-left[ 
+```
+| Right | Left | Default | Center |
+|------:|:-----|---------|:------:|
+|   12  |   12 |   12    |   12   | 
+|  123  |  123 |  123    |  123   | 
+|    1  |    1 |    1    |    1   | 
+```
+]
 
-`| Right | Left | Default | Center |`  
-`|------:|:-----|---------|:------:|`  
-`| 12 | 12 | 12 | 12 |`  
-`| 123 | 123 | 123 | 123 |`  
-`| 1 | 1 | 1 | 1 | ` 
+.pull-right[ 
 
+| Right | Left | Default | Center |
+|------:|:-----|---------|:------:|
+|   12  |   12 |   12    |   12   | 
+|  123  |  123 |  123    |  123   | 
+|   1   |   1  |   1     |   1    | 
+
+]
+<br> <br>
 In general, however, tables should be produced by your code.
 The following slides show some examples. 
+
+
 
 ---
 class: left, top
@@ -202,7 +360,7 @@ knitr::kable(result, align = c("r", "l", "l", "c"), format = "markdown")
 class: left, top
 ## Tables using xtable
 
-- `xtable` provides more functionality than kable but is in general more difficult to use
+- `xtable` provides more functionality than kable but is a bit more difficult to use
 
 ```{r, echo = TRUE, results='asis'}
 library(xtable)
@@ -213,7 +371,7 @@ print.xtable(my_xtable, type  = "html", include.rownames = FALSE)
 
 ---
 class: left, top
-## Tables using startgazer
+## Tables using stargazer
 
 - `stargazer` takes model objects as input and automatically creates an output table   
 
@@ -224,9 +382,26 @@ stargazer::stargazer(linear_model, type = "html",out.header = TRUE, omit.table.l
 ```
 
 
+---
+class: left, top
 
+```
+$\frac{\alpha}{\beta} = 2$ 
+```
 
+---
+class: left, top
+## Using HTML and Latex
 
+- If only R Markdown is used the document can be compiled mostly without problems
+to all supported output formats. 
 
+- Somtimes R Markdown is to limited and one would like to use the more powerful 
+tools provided by HTML or Latex.
+
+- If the output format is HTML, you can also use HTML instead of R Markdown 
+  or mix both
+
+- If the output format is PDF, the same can be said about Latex
 
 
