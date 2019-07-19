@@ -13,8 +13,8 @@ output:
       highlightLines: true
       countIncrementalSlides: false
      #ratio: "16:9"
-    includes:
-      after_body: ../xaringan_files/terminal_highlight.html
+    #includes:
+     # after_body: ../xaringan_files/terminal_highlight.html
 ---
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, warning=FALSE, message=FALSE)
@@ -85,7 +85,7 @@ Here you can:
 - define parameters. 
 
 Basic YAML header using mostly defaults
-```{}
+```yaml
 ---
 title: Habits
 author: John Doe
@@ -130,18 +130,18 @@ Some examples:
 
 - Inline formatting  
 
-    ```
-    *italics* 
-    **bold**
-    This ~~is deleted text.~~
-    Some verbatim `lm(y ~ x)`.
+    ```markdown
+     *italics* 
+     **bold**
+     This ~~is deleted text.~~
+     Some verbatim `lm(y ~ x)`.
     ```
 - Headers
 
-    ```
-    #   Header 1     
-    ##  Header 2   
-    ### Header 3 
+    ```markdown
+     #   Header 1     
+     ##  Header 2   
+     ### Header 3 
     ```
 ]
 
@@ -164,13 +164,11 @@ Some examples:
 class: left, top
 ## Text Formatting
 
-
-
 .pull-left[
 
 - Unordered Lists
 
-```
+```markdown
   * Item
     - Item belonging to item
     - Another item belonging to item
@@ -180,7 +178,7 @@ class: left, top
 
 - Ordered Lists
 
-```
+```markdown
   1. First item
     - First subitem
     - Second subitem 
@@ -216,7 +214,7 @@ class: left, top
 
 .pull-left[ 
 - Paragraphs
-```
+```markdown
   First paragraph
 
   Second paragraph
@@ -226,7 +224,7 @@ A new paragraph is startet by a blank line.
 
 
 - linebreaks
-```
+```markdown
   First line  
   Second line
 ```
@@ -242,6 +240,7 @@ A new paragraph is startet by a blank line.
   <br>
   <br>
   <br>
+  <br> 
   First line  
   Second line
 ]
@@ -338,7 +337,7 @@ class: left, top
 R Code can also be evaluated within the text. When something changes (e.g. the input data) the numbers in the text adjust accordingly as well. 
 
 ````markdown
-`r ''````{r, echo = TRUE}
+`r ''````{r, echo = FALSE}
 x <- 4
 y <- 38
 answer <- x + y
@@ -355,7 +354,6 @@ answer <- x + y
 
 The answer is `r answer`.
 
-
 ---
 class: left, top
 ## Tables 
@@ -363,7 +361,7 @@ class: left, top
 Tables can be created in the following way:
 <br> <br>
 .pull-left[ 
-```
+```markdown
 | Right | Left | Default | Center |
 |------:|:-----|---------|:------:|
 |   12  |   12 |   12    |   12   | 
@@ -393,7 +391,7 @@ class: left, top
 
 - `knitr::kable` is the probably the easiest to transform a matrix or a data frame into a simple Table.
 
-````
+````markdown
 `r ''````{r}
 result        <- data.frame(rbind(rep(12,4), rep(123, 4), rep(1,4)))
 names(result) <- c("Right", "Left", "Default", "Center")
@@ -443,6 +441,7 @@ stargazer::stargazer(linear_model, type = "html",
                      out.header = TRUE, omit.table.layout = "sn")
 ```
 ````
+
 ```{r, results='asis'}
 linear_model <- lm(mpg ~ cyl + wt, data = mtcars)
 stargazer::stargazer(linear_model, type = "html", 
@@ -459,6 +458,7 @@ class: left, top
 hist(rnorm(1000))
 ```
 ````
+
 ```{r, fig.height = 5}
 hist(rnorm(1000))
 ```
@@ -479,6 +479,62 @@ tools provided by HTML or Latex.
 
 - If the output format is PDF, the same can be said about Latex
 
+
+---
+class: left, top
+## Interactive documents
+
+- If the output is HTML, interactive elements (usually some JavaScript) can be included. 
+- There are R packages producing interactive output e.g. `Plotly` for interactive plots or
+`leaflet` for interactive maps. 
+
+
+````markdown
+`r ''````{r}
+library(plotly)
+mtcars$am[which(mtcars$am == 0)] <- 'Automatic'
+mtcars$am[which(mtcars$am == 1)] <- 'Manual'
+mtcars$am <- as.factor(mtcars$am)
+plot_ly(mtcars, x = ~wt, y = ~hp, z = ~qsec, color = ~am, colors = c('#BF382A', '#0C4B8E')) %>%
+  add_markers() %>%
+  layout(scene = list(xaxis = list(title = 'Weight'),
+                     yaxis = list(title = 'Gross horsepower'),
+                     zaxis = list(title = '1/4 mile time')))
+
+```
+````
+
+---
+class: left, top
+## Interactive documents
+```{r, out.width='90%', out.height='70%'}
+library(plotly)
+plot_ly(mtcars, x = ~wt, y = ~hp, z = ~qsec, color = ~am, colors = c('#BF382A', '#0C4B8E')) %>%
+  add_markers() %>%
+  layout(scene = list(xaxis = list(title = 'Weight'),
+                     yaxis = list(title = 'Gross horsepower'),
+                     zaxis = list(title = '1/4 mile time')))
+```
+
+- For many more examples see [plot.ly](https://plot.ly/r/)
+
+---
+class: left, top
+## Interactive documents
+
+- An interactive map with focus on the university of Essen 
+
+````markdown
+`r ''````{r, out.width='100%'}
+library(leaflet)
+leaflet() %>% addTiles() %>%
+  setView(7.005070, 51.463675,zoom = 17) %>%
+  addMarkers(
+    7.005070, 51.463675
+  )
+```
+````
+- If you want to learn more about it go to [Leaflet for R](https://rstudio.github.io/leaflet)
 ---
 class: left, top
 ## Interactive documents
@@ -487,9 +543,69 @@ class: left, top
 library(leaflet)
 leaflet() %>% addTiles() %>%
   setView(7.005070, 51.463675,zoom = 17) %>%
-  addPopups(
-    7.005070, 51.463675,
-    'Here is the <b>University of Essen</b>'
+  addMarkers(
+    7.005070, 51.463675 # Uni Essen 
   )
 ```
+
+
+---
+class: left, top
+## Interactive documents
+````markdown
+`r ''````{r}
+DT::datatable(
+  head(iris, 10),
+  fillContainer = FALSE, options = list(pageLength = 8)
+)
+```
+````
+```{r}
+DT::datatable(
+  head(iris, 10),
+  fillContainer = TRUE, options = list(pageLength = 5)
+)
+```
+
+---
+class: left, top
+## Problems
+
+1. Create an Rmarkdown document that is compiled to an HTML document. 
+   The document should consist of 2 sections 
+    - Getting Data
+    - Explorative Data Analysis
+   where you can later add subsections if necessary.
+
+2. Use the first section to read in the data available under 
+   [Boston crime](https://data.boston.gov/dataset/6220d948-eae2-4e4b-8723-2dc8e67722a3/resource/12cb3883-56f5-47de-afa5-3b1cf61b257b/download/tmppj4rb047.csv) in R.
+   Try to avoid saving the data on your hard drive first. Also add some information about the source of the data. Also provide a brief overview of the data. 
+
+3. Use the second section to summarize the data. You are free to do whatever you like but produce at least one table and one plot. 
+
+4. Optimize your code chunks so that the document doesn't everytime you compile downloads the data. Also let us see what you did by making the code visible. 
+
+5. Put your results also in an HTML presentation and a PDF. 
+
+
+
+```{r, echo = FALSE, eval = FALSE}
+library(data.table)
+library(leaflet)
+crime <- fread("https://data.boston.gov/dataset/6220d948-eae2-4e4b-8723-2dc8e67722a3/resource/12cb3883-56f5-47de-afa5-3b1cf61b257b/download/tmppj4rb047.csv")
+
+id <- sample(1:nrow(crime), 100)
+
+leaflet() %>% addTiles() %>%
+  setView( -71.05874, 42.35699,zoom = 14) %>%
+  addMarkers(
+    crime$Long[id], crime$Lat[id], # Uni Essen 
+  )
+
+```
+
+
+
+
+
 
