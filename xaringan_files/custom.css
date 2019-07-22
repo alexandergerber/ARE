@@ -1,3 +1,8 @@
 .small {
   font-size: 65%
 }
+
+.center_img {
+  display: block;
+  margin: auto;
+}
