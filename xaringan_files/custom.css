@@ -2,7 +2,12 @@
   font-size: 65%
 }
 
+.smaller {
+  font-size: 90%
+}
+
 .center_img {
   display: block;
   margin: auto;
 }
+
