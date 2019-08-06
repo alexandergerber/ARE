@@ -559,15 +559,122 @@ Switched to branch 'feature/awesomefeature'
 
 # 'git merge'
 
-Merging brings branches together. Say you have finished your feature on the feature/awesomefeature branch and you are excited to merge this into your master code. You can do this as follows:
+Merging brings branches together. Say you have finished your feature on the feature/awesomefeature branch and you are excited to merge this into your master branch. You can do this as follows:
 
 1. Checkout the branch which is receiving the merge
 2. Make shure the branch is up-to-date using 'git pull'
 3. Perform the merge: git merge $\lt$ branch name $\gt$ where <branch name> is the name of the branch that will be merged into the receiving branch.
 
 Git is pretty good in merging branches automatically. 
-However, sometime you and a team mate might have worked on the exact same line of code. 
+However, sometime you and a team mate might have worked on the exact same line of code.
 
+---
+
+# Merge Conflicts
+
+Merge conflicts appear when git can not figure out how to merge automatically.
+Let's create such a situation. 
+
+```terminal
+Jonathan@MacBookPro: ~/git/firstrepo $ git checkout master 
+Switched to branch 'master'
+Your branch is up to date with 'origin/master'.
+Jonathan@MacBookPro: ~/git/firstrepo $ echo "this is some content to mess with" > merge.txt
+Jonathan@MacBookPro: ~/git/firstrepo $ git add merge.txt
+Jonathan@MacBookPro: ~/git/firstrepo $ git commit -m "init commit merge.txt"
+[master ebc00d9] init commit merge.txt
+ 1 file changed, 1 insertion(+)
+ create mode 100644 merge.txt
+```
+
+Now branch 'master' is ahead 1 commit of branch 'feature/awesomefeature'.
+
+---
+
+# Merge Conflicts
+
+Now, we will create new commits on 'feature/awesomefeature' and on 'master'.
+
+```terminal
+Jonathan@MacBookPro: ~/git/firstrepo $ git checkout -b new_branch_to_merge_later
+Switched to a new branch 'new_branch_to_merge_later'
+Jonathan@MacBookPro: ~/git/firstrepo $ echo "totally different content to merge later" > merge.txt
+Jonathan@MacBookPro: ~/git/firstrepo $ git add merge.txt
+Jonathan@MacBookPro: ~/git/firstrepo $ git commit -m "edited the content of merge.txt"
+[new_branch_to_merge_later fdfc33b] edited the content of merge.txt
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+Jonathan@MacBookPro: ~/git/firstrepo $ git checkout master
+Switched to branch 'master'
+Your branch is ahead of 'origin/master' by 1 commit.
+  (use "git push" to publish your local commits)
+Jonathan@MacBookPro: ~/git/firstrepo $ echo "content to append" >> merge.txt
+Jonathan@MacBookPro: ~/git/firstrepo $ git add merge.txt
+Jonathan@MacBookPro: ~/git/firstrepo $ git commit -m "appended content to merge.txt"
+[master 1dec3e8] appended content to merge.txt
+ 1 file changed, 1 insertion(+)
+```
+
+---
+
+# Merge Conflicts
+
+Now we perform a merge. Merging feature/awesomefeature into master.
+
+```terminal
+Jonathan@MacBookPro: ~/git/firstrepo $ git merge new_branch_to_merge_later
+Auto-merging merge.txt
+CONFLICT (content): Merge conflict in merge.txt
+Automatic merge failed; fix conflicts and then commit the result.
+```
+
+A merge conflict appeared. 	☠ But no worries, lets have a look at merge.txt.
+	
+---
+# Merge Conflicts
+
+Lets have a look at merge.txt:
+
+```terminal
+$ cat merge.txt
+<<<<<<< HEAD
+this is some content to mess with
+content to append
+=======
+totally different content to merge later
+>>>>>>> new_branch_to_merge_later
+```
+Git has created some boundaries for us:
+
+======= Devides the merge conflict:
+- Above: everything from 'us' (current branch)
+- Below: everything from 'them' (branch that should be merged)
+
+The conflict area is opened by <<<<<<< and closed by >>>>>>>. It is totally possible that one document contains multiple conflict areas.
+
+---
+
+# Resolving the merge conflict
+
+The most simple way to resolve a conflict is to edit the merge.txt directly. For example we could decide to use our changes and omit the others:
+
+```terminal
+$ cat merge.txt
+this is some content to mess with
+content to append
+```
+After editing, no conflict dividers should be present anymore.
+
+Now we can add, commit and push:
+
+```terminal
+Jonathan@MacBookPro: ~/git/firstrepo $ git add merge.txt
+Jonathan@MacBookPro: ~/git/firstrepo $ git commit -m "merged and resolved the conflict in merge.txt"
+[master ceed749] merged and resolved the conflict in merge.txt
+Jonathan@MacBookPro: ~/git/firstrepo $ git push                                                     
+[...]
+To github.com:BerriJ/firstrepo.git
+   2d3a3dd..ceed749  master -> master
+```
 ---
 
 # Advanced concepts
