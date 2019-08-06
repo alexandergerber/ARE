@@ -13,7 +13,6 @@ output:
       highlightStyle: github
       highlightLines: true
       countIncrementalSlides: false
-      
     includes:
       after_body: ../xaringan_files/terminal_highlight.html
 ---
@@ -119,6 +118,15 @@ class: center, middle
 
 "Git is a free and open source distributed version control system designed to handle everything from small to very large projects with speed and efficiency."
 
+---
+
+class: center, middle
+
+# Naming
+
+git [British English] [Slang] = An unpleasant or contemptible person.
+
+Quoting Linus: "I'm an egotistical bastard, and I name all my projects after myself. First 'Linux', now 'Git'".
 ---
 class:
 
@@ -363,6 +371,12 @@ Every commit is only as useful as it's[commit messages](http://whatthecommit.com
 
 ---
 
+class: center, middle
+
+# git log
+
+![](images/git_log.svg)
+---
 # git log
 
 The git log command displays committed snapshots. It lets you list the project history, filter it, and search for specific changes. Use 'git log --oneline" for a more compact output.
@@ -382,6 +396,17 @@ Date:   Tue Jul 9 11:49:47 2019 +0200
     Init commit
 
 ```
+---
+
+class: center, middle
+
+# Git status vs. git log
+
+<br>
+
+![](images/status_log.svg)
+
+
 ---
 class: center, middle
 
@@ -677,6 +702,30 @@ To github.com:BerriJ/firstrepo.git
 ```
 ---
 
+class: center, middle
+
+# Forking
+
+<br>
+
+![](images/fork.svg)
+
+<br>
+
+Forking is the process of cloning a remote repository into your account. Most hosting services have an option to fork repositories.
+---
+
+# Pull Requests
+![](images/pull_rq.svg)
+
+<br> 
+
+Pull requests, like forking, are server side operations. You can open a pull request to apply changes from a different branch or even from a different fork to your repository.
+
+Pull requests are always made at the receiving repository and have to be accepted by the owner of that repository in order to be applied.
+
+---
+
 # Advanced concepts
 
 - git rebase
@@ -685,3 +734,4 @@ To github.com:BerriJ/firstrepo.git
 - git tag
 - git clean
 - git commit --ammend
+- git LFS
