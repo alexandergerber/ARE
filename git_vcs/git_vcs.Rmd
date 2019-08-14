@@ -52,6 +52,15 @@ class: center, middle
 ---
 class: center
 
+# Version Control
+
+<br>
+
+![](images/vc-xkcd.jpg)
+
+---
+class: center
+
 # What is a Version Control System (VCS)?
 
 <br>
@@ -367,7 +376,7 @@ Has to be decided if we want to add a slide for that.
 6. Wrap the body at 72 characters
 7. Use the body to explain what and why vs. how
 
-Every commit is only as useful as it's[commit messages](http://whatthecommit.com/). Thus it makes sense investing some time in learning [how to write good commit messages](http://example.com). You'll be treated later when things went horribly wrong and you are desperately trying to recover the last working state of your project.
+Every commit is only as useful as it's [commit messages](http://whatthecommit.com/). Thus it makes sense investing some time in learning [how to write good commit messages](http://example.com). You'll be treated later when things went horribly wrong and you are desperately trying to recover the last working state of your project.
 
 ---
 
@@ -537,6 +546,18 @@ The git pull command is used to fetch and download content from a remote reposit
 # Git push
 
 - Whenever you want to push your current state to the remote you can use 'git push'
+
+```terminal
+Jonathan@MacBookPro: ~/git/firstrepo $ git push
+Enumerating objects: 6, done.
+Counting objects: 100% (6/6), done.
+Delta compression using up to 4 threads
+Compressing objects: 100% (4/4), done.
+Writing objects: 100% (6/6), 528 bytes | 528.00 KiB/s, done.
+Total 6 (delta 0), reused 0 (delta 0)
+To github.com:BerriJ/firstrepo.git
+   2d3a3dd..ceed749  master -> master
+```
 
 ---
 
@@ -726,12 +747,20 @@ Pull requests are always made at the receiving repository and have to be accepte
 
 ---
 
-# Advanced concepts
+# Advanced Git
 
-- git rebase
-- git stash
-- git flow
-- git tag
-- git clean
-- git commit --ammend
-- git LFS
+- [git rebase](https://git-scm.com/book/en/v2/Git-Branching-Rebasing)
+  - Sometimes master progresses and you want to incorporate this progress into your branch. Rebase makes it possible to keep the history linear and does not create an extra commit like git merge would do.
+  - Never rebase on public branches!
+- [git add -p](https://git-scm.com/docs/git-add)
+  - This command lets you choose which changes you want to add to the staging area instead of adding the changes of a whole file.
+- [git stash](https://git-scm.com/docs/git-stash)
+  - Save all current changes and apply them later again.
+- [git clean](https://git-scm.com/docs/git-clean)
+  - Remove untracked files from your repository
+- [git commit --ammend](https://git-scm.com/docs/git-commit)
+  - Add your staged changes onto your last commit. Don't do this if you pushed already!
+- [git LFS](https://git-lfs.github.com/)
+  - This is a solution to store and version large files.
+
+Still hunrgy? Look [here](https://www.heise.de/developer/artikel/Die-vielfaeltigen-Faehigkeiten-von-Git-Teil-1-4456122.html?seite=all) and [here](https://www.heise.de/developer/artikel/Die-vielfaeltigen-Faehigkeiten-von-Git-Teil-2-4476370.html?seite=all).
