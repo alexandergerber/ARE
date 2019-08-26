@@ -158,8 +158,6 @@ Some examples:
 ### Header 3
 ]
 
-]
-
 ---
 class: left, top
 ## Text Formatting
