@@ -44,3 +44,5 @@ rsconnect/
 *.html
 
 */libs/
+.Rproj.user
+*.R
