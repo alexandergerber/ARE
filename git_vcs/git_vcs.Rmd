@@ -13,7 +13,6 @@ output:
       highlightStyle: github
       highlightLines: true
       countIncrementalSlides: false
-      
     includes:
       after_body: ../xaringan_files/terminal_highlight.html
 ---
@@ -49,6 +48,15 @@ class: center, middle
 ![](images/git_logo.svg)
 
 <font size="6">Alexander Gerber & Martin Arnold</font>
+
+---
+class: center
+
+# Version Control
+
+<br>
+
+![](images/vc-xkcd.jpg)
 
 ---
 class: center
@@ -119,6 +127,15 @@ class: center, middle
 
 "Git is a free and open source distributed version control system designed to handle everything from small to very large projects with speed and efficiency."
 
+---
+
+class: center, middle
+
+# Naming
+
+git [British English] [Slang] = An unpleasant or contemptible person.
+
+Quoting Linus: "I'm an egotistical bastard, and I name all my projects after myself. First 'Linux', now 'Git'".
 ---
 class:
 
@@ -359,10 +376,16 @@ Has to be decided if we want to add a slide for that.
 6. Wrap the body at 72 characters
 7. Use the body to explain what and why vs. how
 
-Every commit is only as useful as it's[commit messages](http://whatthecommit.com/). Thus it makes sense investing some time in learning [how to write good commit messages](http://example.com). You'll be treated later when things went horribly wrong and you are desperately trying to recover the last working state of your project.
+Every commit is only as useful as it's [commit messages](http://whatthecommit.com/). Thus it makes sense investing some time in learning [how to write good commit messages](http://example.com). You'll be treated later when things went horribly wrong and you are desperately trying to recover the last working state of your project.
 
 ---
 
+class: center, middle
+
+# git log
+
+![](images/git_log.svg)
+---
 # git log
 
 The git log command displays committed snapshots. It lets you list the project history, filter it, and search for specific changes. Use 'git log --oneline" for a more compact output.
@@ -382,6 +405,17 @@ Date:   Tue Jul 9 11:49:47 2019 +0200
     Init commit
 
 ```
+---
+
+class: center, middle
+
+# Git status vs. git log
+
+<br>
+
+![](images/status_log.svg)
+
+
 ---
 class: center, middle
 
@@ -462,13 +496,271 @@ Let's create a remote repository for our 'firstrepo':
 5. Copy the repository link:
 
 ![](images/remote.png)
+
 ---
 
-# Advanced concepts
+# Connecting your local Repository
 
-- git rebase
-- git stash
-- git flow
-- git tag
-- git clean
-- git commit --ammend
+- Now that we have the "remote" we want to link it to our local repo
+- We can do this with 'git remote add' followed by the copied URL
+- We can upload whole repository with 'git push -u origin master'
+
+```terminal
+Jonathan@MacBookPro: ~/git/firstrepo $ git remote add origin git@github.com:BerriJ/firstrepo.git
+git push -u origin master
+Enumerating objects: 6, done.
+Counting objects: 100% (6/6), done.
+Delta compression using up to 4 threads
+Compressing objects: 100% (4/4), done.
+Writing objects: 100% (6/6), 528 bytes | 528.00 KiB/s, done.
+Total 6 (delta 0), reused 0 (delta 0)
+To github.com:BerriJ/firstrepo.git
+ * [new branch]      master -> master
+Branch 'master' set up to track remote branch 'master' from 'origin'.
+```
+---
+# Synchronizing
+
+### 'git fetch'
+
+Git fetch is the safe way. It downloads commits, files, and refs from a remote repository into your local repo. Fetching is what you do when you want to see what everybody else has been working on. Git isolates fetched content as a from existing local content, it has absolutely no effect on your local development work. To merge the fetched content into your local master branch use 'git merge origin/master'
+
+### 'git pull'
+
+The git pull command is used to fetch and download content from a remote repository and immediately update the local repository to match that content. Merging remote upstream changes into your local repository is a common task in Git-based collaboration work flows. The git pull command is actually a combination of two other commands, git fetch followed by git merge. 
+
+---
+
+# Synchronizing
+
+### 'git fetch'
+
+Git fetch is the safe way. It downloads commits, files, and refs from a remote repository into your local repo. Fetching is what you do when you want to see what everybody else has been working on. Git isolates fetched content as a from existing local content, it has absolutely no effect on your local development work. To merge the fetched content into your local master branch use 'git merge origin/master'
+
+### 'git pull'
+
+The git pull command is used to fetch and download content from a remote repository and immediately update the local repository to match that content. Merging remote upstream changes into your local repository is a common task in Git-based collaboration work flows. The git pull command is actually a combination of two other commands, git fetch followed by git merge. 
+
+---
+
+# Git push
+
+- Whenever you want to push your current state to the remote you can use 'git push'
+
+```terminal
+Jonathan@MacBookPro: ~/git/firstrepo $ git push
+Enumerating objects: 6, done.
+Counting objects: 100% (6/6), done.
+Delta compression using up to 4 threads
+Compressing objects: 100% (4/4), done.
+Writing objects: 100% (6/6), 528 bytes | 528.00 KiB/s, done.
+Total 6 (delta 0), reused 0 (delta 0)
+To github.com:BerriJ/firstrepo.git
+   2d3a3dd..ceed749  master -> master
+```
+
+---
+
+# Branching
+
+![](images/branch.svg)
+---
+# 'git branch'
+
+Branches are esentially copies of your master branch. They are useful for developing new features or working on fixing bugs without affecting the master branch. Every branch has their own stagin area, commit history etc.
+
+Once finished with your work you can merge your feature or bugfix branch back into master.
+
+- Branching enshures that you master is always in a productive state.
+
+Let's create a new branch called feature/awesomefeature
+
+```terminal
+Jonathan@MacBookPro: ~/git/firstrepo $ git branch feature/awesomefeature
+```
+
+To get a list of all available branches simply execute 'git branch'.
+
+You can switch to your new branch by checking it out:
+
+```terminal
+Jonathan@MacBookPro: ~/git/firstrepo $ git checkout feature/awesomefeature
+Switched to branch 'feature/awesomefeature'
+```
+---
+
+# Exercise:
+
+1. Create some changes
+2. Stage and Commit them
+3. Push them
+
+---
+
+# Merging
+
+![](images/merge.png)
+
+---
+
+# 'git merge'
+
+Merging brings branches together. Say you have finished your feature on the feature/awesomefeature branch and you are excited to merge this into your master branch. You can do this as follows:
+
+1. Checkout the branch which is receiving the merge
+2. Make shure the branch is up-to-date using 'git pull'
+3. Perform the merge: git merge $\lt$ branch name $\gt$ where <branch name> is the name of the branch that will be merged into the receiving branch.
+
+Git is pretty good in merging branches automatically. 
+However, sometime you and a team mate might have worked on the exact same line of code.
+
+---
+
+# Merge Conflicts
+
+Merge conflicts appear when git can not figure out how to merge automatically.
+Let's create such a situation. 
+
+```terminal
+Jonathan@MacBookPro: ~/git/firstrepo $ git checkout master 
+Switched to branch 'master'
+Your branch is up to date with 'origin/master'.
+Jonathan@MacBookPro: ~/git/firstrepo $ echo "this is some content to mess with" > merge.txt
+Jonathan@MacBookPro: ~/git/firstrepo $ git add merge.txt
+Jonathan@MacBookPro: ~/git/firstrepo $ git commit -m "init commit merge.txt"
+[master ebc00d9] init commit merge.txt
+ 1 file changed, 1 insertion(+)
+ create mode 100644 merge.txt
+```
+
+Now branch 'master' is ahead 1 commit of branch 'feature/awesomefeature'.
+
+---
+
+# Merge Conflicts
+
+Now, we will create new commits on 'feature/awesomefeature' and on 'master'.
+
+```terminal
+Jonathan@MacBookPro: ~/git/firstrepo $ git checkout -b new_branch_to_merge_later
+Switched to a new branch 'new_branch_to_merge_later'
+Jonathan@MacBookPro: ~/git/firstrepo $ echo "totally different content to merge later" > merge.txt
+Jonathan@MacBookPro: ~/git/firstrepo $ git add merge.txt
+Jonathan@MacBookPro: ~/git/firstrepo $ git commit -m "edited the content of merge.txt"
+[new_branch_to_merge_later fdfc33b] edited the content of merge.txt
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+Jonathan@MacBookPro: ~/git/firstrepo $ git checkout master
+Switched to branch 'master'
+Your branch is ahead of 'origin/master' by 1 commit.
+  (use "git push" to publish your local commits)
+Jonathan@MacBookPro: ~/git/firstrepo $ echo "content to append" >> merge.txt
+Jonathan@MacBookPro: ~/git/firstrepo $ git add merge.txt
+Jonathan@MacBookPro: ~/git/firstrepo $ git commit -m "appended content to merge.txt"
+[master 1dec3e8] appended content to merge.txt
+ 1 file changed, 1 insertion(+)
+```
+
+---
+
+# Merge Conflicts
+
+Now we perform a merge. Merging feature/awesomefeature into master.
+
+```terminal
+Jonathan@MacBookPro: ~/git/firstrepo $ git merge new_branch_to_merge_later
+Auto-merging merge.txt
+CONFLICT (content): Merge conflict in merge.txt
+Automatic merge failed; fix conflicts and then commit the result.
+```
+
+A merge conflict appeared. 	☠ But no worries, lets have a look at merge.txt.
+	
+---
+# Merge Conflicts
+
+Lets have a look at merge.txt:
+
+```terminal
+$ cat merge.txt
+<<<<<<< HEAD
+this is some content to mess with
+content to append
+=======
+totally different content to merge later
+>>>>>>> new_branch_to_merge_later
+```
+Git has created some boundaries for us:
+
+======= Devides the merge conflict:
+- Above: everything from 'us' (current branch)
+- Below: everything from 'them' (branch that should be merged)
+
+The conflict area is opened by <<<<<<< and closed by >>>>>>>. It is totally possible that one document contains multiple conflict areas.
+
+---
+
+# Resolving the merge conflict
+
+The most simple way to resolve a conflict is to edit the merge.txt directly. For example we could decide to use our changes and omit the others:
+
+```terminal
+$ cat merge.txt
+this is some content to mess with
+content to append
+```
+After editing, no conflict dividers should be present anymore.
+
+Now we can add, commit and push:
+
+```terminal
+Jonathan@MacBookPro: ~/git/firstrepo $ git add merge.txt
+Jonathan@MacBookPro: ~/git/firstrepo $ git commit -m "merged and resolved the conflict in merge.txt"
+[master ceed749] merged and resolved the conflict in merge.txt
+Jonathan@MacBookPro: ~/git/firstrepo $ git push                                                     
+[...]
+To github.com:BerriJ/firstrepo.git
+   2d3a3dd..ceed749  master -> master
+```
+---
+
+class: center, middle
+
+# Forking
+
+<br>
+
+![](images/fork.svg)
+
+<br>
+
+Forking is the process of cloning a remote repository into your account. Most hosting services have an option to fork repositories.
+---
+
+# Pull Requests
+![](images/pull_rq.svg)
+
+<br> 
+
+Pull requests, like forking, are server side operations. You can open a pull request to apply changes from a different branch or even from a different fork to your repository.
+
+Pull requests are always made at the receiving repository and have to be accepted by the owner of that repository in order to be applied.
+
+---
+
+# Advanced Git
+
+- [git rebase](https://git-scm.com/book/en/v2/Git-Branching-Rebasing)
+  - Sometimes master progresses and you want to incorporate this progress into your branch. Rebase makes it possible to keep the history linear and does not create an extra commit like git merge would do.
+  - Never rebase on public branches!
+- [git add -p](https://git-scm.com/docs/git-add)
+  - This command lets you choose which changes you want to add to the staging area instead of adding the changes of a whole file.
+- [git stash](https://git-scm.com/docs/git-stash)
+  - Save all current changes and apply them later again.
+- [git clean](https://git-scm.com/docs/git-clean)
+  - Remove untracked files from your repository
+- [git commit --ammend](https://git-scm.com/docs/git-commit)
+  - Add your staged changes onto your last commit. Don't do this if you pushed already!
+- [git LFS](https://git-lfs.github.com/)
+  - This is a solution to store and version large files.
+
+Still hunrgy? Look [here](https://www.heise.de/developer/artikel/Die-vielfaeltigen-Faehigkeiten-von-Git-Teil-1-4456122.html?seite=all) and [here](https://www.heise.de/developer/artikel/Die-vielfaeltigen-Faehigkeiten-von-Git-Teil-2-4476370.html?seite=all).

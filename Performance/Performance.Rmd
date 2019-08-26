@@ -10,6 +10,7 @@ output:
     lib_dir: libs
     css: ["../xaringan_files/xaringan-themer.css", "../xaringan_files/custom.css"]
     nature:
+      beforeInit: ../xaringan_files/macros.js
       highlightStyle: github
       highlightLines: true
       countIncrementalSlides: false
@@ -338,30 +339,28 @@ When you see the garbage collector taking up a lot of time, you can often come u
 
 Sometimes code statements seem fairly innocent but are very inefficient both when it comes to memory and speed.
 
-**Example: coercation to another type**
+**Example: coercion to another type**
 
-```{r, eval=F}
+```{r, eval=F, }
 profvis({
-  
   x <- matrix(nrow = 1e4, ncol = 1e4)
   x[1, 1] <- 0
   x[1:3, 1:3] 
-  
 })
 ```
 
 ---
-background-image: url(img/profiling_coercation.png)
+background-image: url(img/profiling_coercion.png)
 background-position: 50% 90%
 background-size: 650px
 ### Memory Profiling
-**Example: coercation to another type**
+**Example: coercion to another type**
 
 Can you explain why execution of the third line needs 762.9MB memory?
 
 ---
 ### Memory Profiling
-**Example: coercation to another type**
+**Example: coercion to another type**
 ```{r, cache=T}
 p <- profmem::profmem({
   x <- matrix(nrow = 1e4, ncol = 1e4)
@@ -375,7 +374,7 @@ print(p, expr = F)
 ---
 ### Memory Profiling
 
-**Example: coercation to another type**
+**Example: coercion to another type**
 
 What is going on?
 
@@ -385,7 +384,7 @@ The code seems fairly innocent, but it turns out that it is very inefficient - b
 
 - `x[1, 1] <- 0` internally coerces `x` to a `numeric` matrix before assigning `0` to the (1,1) element which is quite costly: initializing `x` was more than twice as fast!
 
-Especially if a large number of computations need to be performed, coercation should be avoided wherever possible!
+Especially if a large number of computations need to be performed, coercion should be avoided wherever possible!
 
 ---
 ### Profiling &mdash; some notes and hints
@@ -625,7 +624,7 @@ for (i in 1:1e6) {
 }
 ```
 
-In the above example, the interpreter cannot predict that the loop always adds `1` to an integer `x`. `R` needs to look for the right `+` method (the method for adding two integers) in *every* iteration of the loop!
+In the above example, the interpreter cannot predict that the loop always adds `1` to an integer `x`. `R` needs to look for the right `+` method (the method for adding two doubles) in *every* iteration of the loop!
 
 ---
 ### (Why) is R slow?
@@ -838,13 +837,11 @@ Once profiling has revealed a bottleneck, we need to make it faster. In the foll
 
 3. **Vectorise your code.**
 
-    This often relates to avoiding `for()`-loops and the associated inefficiencies
+    This often relates to avoiding `for()`-loops and the associated inefficiencies.
 
 4. **Parallelize (if possible).**
 
     Using multiple CPU cores in parallel is enormously helpful when the computation involves a large number of tasks that may be solved independently.
-
-If the above are not enough, you may rewrite (some of) the code in C++ using Rcpp (discussed in the next chapter).
 
 ---
 ### 1. Look for Existing Solutions
@@ -864,12 +861,30 @@ There's a good chance that someone has already tackled the same problem.
 - Some solutions might be initially slower but are are easier to optimize and thus end up being faster. 
 
 - Sometimes combining the fastest parts from different approaches is helpful. 
+
+---
+### Improving Performance &mdash; Golden Rule
+
+Before we continue, we introduce a rule we have already been implicitly following &mdash; the **golden rule of R programming**:
+
+  ***Access the underlying C/Fortran routines as quickly as possible; the fewer functions calls required to achieve this, the better.***
+
+  ***(Lovelace and Gillespie, 2016)***
+
+![:image 40%](img/goldenR.png)
+
+The techniques discussed next follow this paradigm. 
+
+If this is not enough, we still may rewrite (some of) the code in C++ using the Rcpp package (discussed in the next chapter).
+
 ---
 ### 2. Do as Little as Possible
 
-**Example: coercation of inputs**
+If you cannot find existing solutions, start by reducing your code to the bare essentails.
 
-`apply()` allows for various inputs and outputs which requires coercation.
+**Example: coercion of inputs / robustness checks**
+
+`apply()` accepts various inputs and outputs which requires coercion (which is slow).
 
 ```{r, cache = T}
 X <- matrix(1:1000, ncol = 10)
@@ -904,7 +919,7 @@ bench::mark(
 
 **Example: search vector for entry**
 
-Testing equality is *much* simpler than testing inclusion in a set.
+Testing equality is faster than testing inclusion in a set.
 
 ```{r, cache=T}
 x <- 1:100
@@ -920,9 +935,9 @@ bench::mark(
 
 **Example: Linear Regression &mdash; computation of $SE(\widehat\beta)$**
 
-The approach used in `a()` is what we teach undergraduates which is totally fine &mdash; except if you want (only) $SE(\widehat\beta)$ and fast.
+`a()` is what we teach undergraduates which is totally fine &mdash; except if you want (only) $SE(\widehat\beta)$ and fast.
 
-The code in function `b()` is rather focussed on the essentials.
+`b()` is rather focussed on the essentials.
 
 ```{r, cache=T}
 set.seed(1)
@@ -1037,49 +1052,258 @@ cor_df <- function(df, n) {
 ---
 ### 3. Vectorize your code
 
-**Vectorization** 
+**What is vectorization?** 
 
-- is the process of converting an algorithm from operating on a single value at a time to operating on a set of values at one time.
+- Vectorization is the process of converting an algorithm from operating on a single value at a time to operating on a **set of values** (like a vector) at one time.
 
-- makes problems simpler: code that operates on vectors instead of single entries of a vector is often less complex to write.
+- It makes problems simpler: code that operates on vectors instead of single entries of an array is often less complex to write.
 
-- may avoid loops in R. Loops in vectorized functions are written in C and are much faster.
+**Why is it efficient?** 
 
-**Use Matrix Algebra**
+(on the lowest level where functions map closely to processor instructions)
 
-Loops used in most matrix operations are executed by highly optimized external libraries. See, e.g., [BLAS](https://en.wikipedia.org/wiki/Basic_Linear_Algebra_Subprograms).
+- Your computer is designed to run vectorized operations: a vectorized function may run multiple operations from a single instruction which is faster than sending individual instructions for each operation.  
 
-**Use vectorized functions in base R**
+---
+### 3. Vectorize your code
 
-- `rowSums()`, `colSums()`, `rowMeans()`, `colMeans()`, `cumsum()`, `diff()`
+**Why is vectorization efficient? &mdash; ctd.** 
+
+Many languages (including R) work on arrays that are stored in [column-major order](https://en.m.wikipedia.org/wiki/Row-_and_column-major_order) in the memory.
+
+![:image 60%](img/rowcolumnarrays.jpg)
+
+Disregarding these patterns by writing code which operates on $1\times1$ vectors thus means 'fighting the language'.
+
+---
+### 3. Vectorize your code
+
+**Why is vectorization more efficient? &mdash; ctd. **
+
+(again less related to R itself but to what your CPU does)
+
+**Example: vector addition**
+
+$$\begin{pmatrix} 1 \\ 2\\ 3 \end{pmatrix}+\begin{pmatrix} 4 \\ 5\\ 6 \end{pmatrix} = \begin{pmatrix} 5 \\ 7\\ 9 \end{pmatrix}$$
+
+- **Slow:** three instructions, three operations
+
+    - *add $\ 1$ and $\ 4$*
+    - *add $\ 2$ and $\ 5$*
+    - *add $\ 3$ and $\ 6$*
+
+- **Fast:** one instruction, one vectorized operation:
+
+    *add $\begin{pmatrix} 1 \ 2 \  3 \end{pmatrix}'$ and $\begin{pmatrix} 4 \ 5 \  6 \end{pmatrix}'$*
+
+    The three additions are effectively done *in parallel*.
 
 
 ---
-background-image: url(img/atomic_vectors.png)
-background-position: 50% 80%
-background-size: 300px
 ### 3. Vectorize your code
 
 **What does it mean to write 'vectorized' code in R?**
 
 Remember that there are no 'real' scalars in R. Everything that looks like a scalar is actually a $1\times1$ vector.
 
+![:image 30%](img/atomic_vectors.png)
+
 ```{r}
 # otherwise this shouldn't work:
 1[1]
 ```
 
+Scalar operations thus operate on vector *elements* which (often) is needlessly cumbersome. 
+
 ---
-background-image: url(img/rowcolumnarrays.jpg)
-background-position: 50% 80%
-background-size: 550px
 ### 3. Vectorize your code
 
 **What does it mean to write 'vectorized' code in R?**
 
-R saves data in [column-major order](https://en.m.wikipedia.org/wiki/Row-_and_column-major_order). 
+By 'vectorized' we mean that the function works on vectors, i.e., performs vector arithmetic and calls functions which work on vectors.
 
-To disregard this pattern by writing code which operates on $1\times1$ vectors thus means  'fighting the language'.
+**Example: scalar vs. vectorized computation of euclidean norm** 
+
+.pull-left[
+```{r}
+L2_scalar <- function(x) {
+  out <- numeric(1)
+  for(i in 1:length(x)) {
+    out <- x[i]^2 + out 
+  }
+  return(sqrt(out))
+}
+```
+]
+
+.pull-right[
+```{r}
+L2_vec <- function(x) {
+ return(
+   sqrt(
+     sum(x^2)
+     )
+   )
+}
+```
+]
+
+---
+### 3. Vectorize your code
+
+**What does it mean to write 'vectorized' code in R?**
+
+**Example: scalar vs. vectorized computation of euclidean norm** 
+
+```{r, cache=T}
+bench::mark(
+  L2_scalar(1:1e4),
+  L2_vec(1:1e4)
+)
+```
+
+---
+### 3. Vectorize your code
+
+**What does it mean to write 'vectorized' code in R?**
+
+- **Do not torture the interpreter**
+
+    Vectorization reduces the amount of intepreting R has to do: Validating that `x <- 1L` and `y <- 1:100L` are of type `integer` is equally expensive. Checking that each element of `y` is an integer is not!   
+
+- **Use functions from base R that work on vectors**
+
+    Vectorization may avoid loops in R. Loops in many 'vectorized' R functions are carried out in C and thus are much faster. 
+
+    The following functions are prominent examples:
+
+    `rowSums()`, `colSums()`, `rowMeans()`, `colMeans()`, `cumsum()`, `diff()`
+
+- **Use matrix algebra**
+
+    Most matrix operations that involve loops are executed by highly optimized external Fortran and C libraries. See, e.g., [BLAS](https://en.wikipedia.org/wiki/Basic_Linear_Algebra_Subprograms).
+
+---
+### 3. Vectorize your code
+
+**Are `for()`-loops slower than `apply()`?**
+
+`for()`-loops have the reputation of being slow(er than `apply()`). This is widespread wisdom and not always true:
+
+- `for()` is *not* slow if we iterate over data and apply a (non-vectorized) function. Execution time is comparable to `apply()`.
+
+- Loops are often used in an *inefficient* manner: 
+
+    growing an object without proper initialization. &#8594; overhead due to **growing and copying** in every iteration (which is indeed slow).
+
+**Idiomatic use of `for()`**
+
+*Allocate required storage before the loop and fill the allocated object.*
+
+(This is what `apply()` does under the hood.)
+
+---
+### 3. Vectorize your code
+
+**Are `for()`-loops slow(er than `apply()`)?**
+
+**Example: good and bad `for()`-loops**
+
+.pull-left[.smaller[
+```{r}
+# bad: using c()/cbind()/rbind()
+rw_bad <- function(N) {
+  set.seed(1)
+  out <- rnorm(1)
+  for(i in 2:N) {
+   out <- c(out, 
+            out[i-1] + rnorm(1))
+  }
+  return(out)
+}
+```
+]]
+
+.pull-right[
+![:image 48%](img/bad.png)
+]
+---
+### 3. Vectorize your code
+
+**Are `for()`-loops slow(er than `apply()`)?**
+
+**Example: good and bad `for()`-loops**
+
+.pull-left[.smaller[
+```{r}
+# proper initialization / iteration
+rw_good <- function(N) {
+  set.seed(1)
+  out <- vector("double", N)
+  out[1] <- rnorm(1)
+  for(i in 2:N) {
+   out[i] <- rnorm(1) + out[i-1]
+  }
+  return(out)
+}
+```
+]]
+
+.pull-right[
+![:image 48%](img/good.png)
+]
+
+---
+### 3. Vectorize your code
+
+**Are `for()`-loops slow(er than `apply()`)?**
+
+**Example: good and bad `for()`-loops**
+
+```{r, cache = T}
+bench::mark(rw_good(10000), 
+            rw_bad(10000))
+```
+
+---
+### 3. Vectorize your code
+
+**Are `for()`-loops slower than the `apply()` functions?**
+
+**Example: `for()` vs. `apply()`**
+
+```{r}
+X <- matrix(rnorm(1000), 
+            ncol = 100)
+
+colmax <- function(x) {
+  out <- numeric(ncol(x))
+  for(j in 1:ncol(x)) {
+    out[j] <- max(x[,j])
+  }
+  return(out)
+}
+```
+
+---
+### 3. Vectorize your code
+
+**Are `for()`-loops slower than the `apply()` functions?**
+
+**Example: `for()` vs. `apply()`**
+
+```{r}
+bench::mark(
+  colmax(X),
+  apply(X, 2, max),
+  check = F
+)
+```
+
+---
+### 3. Vectorize your code
+  
+- Avoid `ifelse()` &mdash; despite being a vectorized version of the standard control flow `'if(condition) if_yes else if_no'` it is slower
     
 ---
 ### 3. Vectorize your code &mdash; Exercises
@@ -1094,14 +1318,81 @@ To disregard this pattern by writing code which operates on $1\times1$ vectors t
 
     (c) How much faster are the approaches in (a) and (b) compared to the 'naive' approach `sum(x * w)`?
 
-3. 
+3.  Find an approach to compute column maxima of a numeric matrix `X` using a `*apply()`-function which outperforms `apply(X, 2, max)`.
+
+```{r, include=F}
+X <- matrix(rnorm(1000), 
+            ncol = 100)
+
+X_list <- split(X, col(X))
+
+sapply(X_list, max)
+```
+
+---
+### 3. Vectorize your code &mdash; Case Study
+
+**Case Study: Efficient Monte Carlo Integration**
+
+Suppose you are interested in computing $$A = \int_0^1 x^2 \mathrm{d}x$$ using Monte Carlo (MC) integration. Consider the following algorithm which operates on $1\times 1$ vectors in a `for()`-loop:
+
+1. *initialize `counts`*
+
+2. **for i in 1:N**
+
+    *Generate $\ U_i \sim i.i.d. \mathcal{U}(0,1);\ i=1,2$.*
+    
+    *If $\ U_2 < U_1^2$, then `counts = counts + 1`*
+
+3. **end for**
+
+4. *Estimate $A$ by `counts/N`*
+
+---
+### 3. Vectorize your code &mdash; Case Study
+
+**Case Study: Efficient Monte Carlo Integration**
+
+1. 
+    
+    (a) Implement the algorithm in a function `A_loop(N)` which returns the MC estimate of A with `N` the number of MC iterations.
+    
+    (b) Estimate $A$ using `A_loop(N)` with 500000 MC iterations.
+
+2. 
+
+    (a) Define a function `A_vec(N)` which implements the MC algorithm in a vectorized fashion.
+    
+    (b) Compare `A_vec(N)` and `A_loop(N)` in a microbenchmark for `N=500000` iterations.
+    
+    (c) How does the difference in performance relate to `N`?
+
+---
+### 4. Parallelization
+
+**What is parallelization?**
+
+In the simplest sense, parallelization means the simultaneous use of multiple hardware resources for solving a computational problem.
+
+---
+### 4. Parallelization
+
+**What is parallelization?**
+
+<br>
+
+![:image 100%](img/parallelization.png)
+
+(source: [R-Bloggers](http://www.parallelr.com/r-with-parallel-computing/))
 
 ---
 ### References
 
-Wickham, H. (2019). Advanced R. 2nd Edition. Taylor & Francis, CRC Press.
+Gillespie, C. and Lovelace, *R. Efficient R Programming*. O'Reilly Media.
 
-Peng, Roger D. (2016), R Programming for Data Science. The bookdown Archive.
+Peng, Roger D. (2016). *R Programming for Data Science*. The bookdown Archive.
+
+Wickham, H. (2019). *Advanced R*. 2nd Edition. Taylor & Francis, CRC Press.
 
 ---
 class: inverse, left, top
@@ -1112,13 +1403,9 @@ background-size: cover
 # Speeding things up using Rcpp
 
 ---
-class: inverse, left, top
+class: center, middle
 
-background-image: url(img/road.jpg)
-background-size: cover
-
-# Microbenchmarking
-
+![:image 100%](img/armadillo.png)
 
 
 ---
