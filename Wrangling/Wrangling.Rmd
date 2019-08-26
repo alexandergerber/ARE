@@ -7,37 +7,19 @@ date: '`r Sys.Date()`'
 output:
   xaringan::moon_reader:
     lib_dir: libs
-    css: .\xaringan-themer.css
+    css:  ["../xaringan_files/xaringan-themer.css", "../xaringan_files/custom.css"]
     nature:
       highlightStyle: github
       highlightLines: true
       countIncrementalSlides: false
-#      ratio: "16:9"
-editor_options: 
-  chunk_output_type: console
+     #ratio: "16:9"
+    #includes:
+     # after_body: ../xaringan_files/terminal_highlight.html
 ---
 
 ```{r setup, include=FALSE}
 options(htmltools.dir.version = FALSE)
-knitr::opts_chunk$set(message = FALSE, warning = FALSE, comment = FALSE, echo = TRUE, eval = TRUE, results='hide')
-```
-
-```{r xaringan-themer, include=FALSE}
-# solarized_dark(
-#   code_font_family = "Fira Code",
-#   code_font_url    = "https://cdn.rawgit.com/tonsky/FiraCode/1.204/distr/fira_code.css"
-# )
-library(xaringanthemer)
-
-mono_accent(
-    base_color           = "#09017F",
-    header_font_google   = google_font("Roboto", "700"),
-    text_font_google     = google_font("Roboto Condensed"),
-    code_highlight_color = "#D2B6E8",
-    code_font_family     = "Fira Code",
-    code_font_url        = "https://cdn.rawgit.com/tonsky/FiraCode/1.204/distr/fira_code.css"
-    )
-
+knitr::opts_chunk$set(echo = FALSE, warning=FALSE, message=FALSE)
 ```
 
 ```{r, include=FALSE}
@@ -62,7 +44,7 @@ class: top, left
 ---
 class: top, left
 
-### Tibble vs data.frame
+### Tibble vs. data.frame
 
 ```{r, echo = TRUE}
 library(tidyverse)
@@ -72,22 +54,21 @@ mtcars_tibble <- as_tibble(mtcars)
 
 - Different print method
     ```{r, echo = TRUE, eval = FALSE}
-print(mtcars)
-print(mtcars_tibble)
+    print(mtcars)
+    print(mtcars_tibble)
     ```
 
 - More consistent subsetting behaviour
     ```{r, echo = TRUE, eval = FALSE}
 mtcars[ ,1:2] # Return a data.frame
 mtcars[ ,1]   # Returns a vector 
-mtcars_tibble[ ,1:2] # Retuns a tibble
-mtcars_tibble[ ,1]   # Retuns a tibble
+mtcars_tibble[ ,1:2] # Returns a tibble
+mtcars_tibble[ ,1]   # Returns a tibble
     ```
 
 ---
-class: top, left
-### Tibble vs data.frame
-- Lazy and sequential Evaluation 
+### Tibble vs. data.frame
+- Lazy and sequential evaluation 
 ```{r, echo = TRUE, eval = FALSE}
 data.frame(x = 1:3, y = x^2) # not working
 tibble(x = 1:3, y = x^2)
@@ -103,7 +84,7 @@ tib  <- tibble(text)
 class(tib$text)
 ```
 
-- For more see `vignette("tibble")`
+- For more see `vignette("tibble")`.
 
 ---
 class: top, left
@@ -113,37 +94,44 @@ class: top, left
 First we look at functions that work on a single table. 
  
 - `filter()` to select rows based on their values.
-    ```{r, echo = TRUE}
+    ```{r, echo = TRUE, eval = FALSE}
 filter(mtcars_tibble, hp >= 100 & mpg >= 20)
     ```
+
 - `slice()` to select rows by position. 
-    ```{r}
+    ```{r, eval = FALSE, echo = TRUE}
 slice(mtcars_tibble, 10:15)
     ```
 - `select()` and `rename()` to select variables based on their names.
-    ```{r, echo = TRUE}
+    ```{r, echo = TRUE, eval = FALSE}
 select(mtcars_tibble, cyl, hp)
-    ```
-- `arrange()` to reorder rows.
-    ```{r, echo = TRUE}
-arrange(mtcars_tibble, cyl)
-arrange(mtcars_tibble, desc(cyl))
     ```
 
 ---
 class: top, left
 ### dplyr
+
+- `arrange()` to reorder rows.
+    ```{r, echo = TRUE, eval = FALSE}
+arrange(mtcars_tibble, cyl)
+arrange(mtcars_tibble, desc(cyl))
+    ```
+
 - `mutate()` and `transmute()` to add new variables that are functions of existing variables. 
-    ```{r, echo = TRUE}
+    ```{r, echo = TRUE, eval = FALSE}
     mutate(mtcars_tibble, gpm = 1/mpg)
     transmute(mtcars_tibble, gpm = 1/mpg) 
     ```
 - `summarise()` to condense multiple values to a single value.
-    ```{r, echo = TRUE}
+    ```{r, echo = TRUE, eval = FALSE}
     summarise(mtcars_tibble, mean_hp = mean(hp), max_mpg = max(mpg))
     ```
+
+---
+class: top, left
+### dplyr
 - `sample_n()` and `sample_frac()` to take random samples.
-    ```{r, echo = TRUE}
+    ```{r, echo = TRUE, eval = FALSE}
     sample_n(mtcars_tibble, 10)
     sample_frac(mtcars_tibble, 0.1)
     ```
@@ -151,28 +139,57 @@ class: top, left
 ---
 class: top, left
 ### Helper functions for select
-
-```{r, echo=TRUE}
-# Select columns whose name contains a character string.
+- Select columns whose name contains a character string.
+```{r, echo=TRUE, eval = FALSE}
 select(iris, contains("."))
-# Select columns whose name ends with a character string.
-select(iris, ends_with("Length"))
-# every column.
-select(iris, everything())
-# Select columns whose name matches a regular expression.
-select(iris, matches(".t."))
-#Select columns named x1, x2, x3, x4, x5.
-select(iris, num_range("x", 1:5))
-#Select columns whose names are in a group of names.
-select(iris, one_of(c("Species", "Genus")))
-#Select columns whose name starts with a character string.
-select(iris, starts_with("Sepal"))
-#Select all columns between Sepal.Length and Petal.Width (inclusive).
-select(iris, Sepal.Length:Petal.Width)
-#Select all columns except Species. 
-select(iris, -Species)
-
 ```
+
+- Select columns whose name ends with a character string.
+```{r, echo=TRUE, eval = FALSE}
+select(iris, ends_with("Length"))
+```
+
+- Select every column.
+```{r, echo=TRUE, eval = FALSE}
+select(iris, everything())
+```
+
+- Select columns whose name matches a regular expression.
+```{r, echo=TRUE, eval = FALSE}
+select(iris, matches(".t."))
+```
+
+- Select columns named x1, x2, x3, x4, x5.
+```{r, echo=TRUE, eval = FALSE}
+select(iris, num_range("x", 1:5))
+```
+
+---
+class: top, left
+### Helper functions for select
+- Select columns whose names are in a group of names.
+```{r, echo=TRUE, eval = FALSE}
+select(iris, one_of(c("Species", "Genus")))
+```
+
+- Select columns whose name starts with a character string.
+```{r, echo=TRUE, eval = FALSE}
+select(iris, starts_with("Sepal"))
+```
+
+- Select all columns between Sepal.Length and Petal.Width (inclusive).
+
+```{r, echo=TRUE, eval = FALSE}
+select(iris, Sepal.Length:Petal.Width)
+```
+
+
+- Select all columns except Species. 
+```{r, echo=TRUE, eval = FALSE}
+select(iris, -Species)
+```
+
+
 ---
 class: top, left
 ### dplyr &mdash; grouping
@@ -182,7 +199,6 @@ To exploit the full potential of `summarise()` we need to pair it with `group_by
 ```{r, echo = TRUE, results='markup'}
 by_cyl <- group_by(mtcars_tibble, cyl)
 print(summarise(by_cyl, mean(mpg)))
-
 ```
 ---
 class: top, left
@@ -200,7 +216,7 @@ summarized <- summarise(grouped, count = n(),
                         mean_gpm = mean(gpm)) 
 ```
 
-This code does not look nice and has the disadvantage that we need to save intermidiate results that we do not care about. 
+This code has the disadvantage that we need to save intermidiate results that we do not care about. 
 ---
 class: top, left
 ### The Pipe
@@ -234,9 +250,44 @@ mtcars_tibble %>%
 
 The pipe operater is not limited to `dplyr` or the `tidyverse`
 
-```{r, echo = TRUE}
+```{r, echo = TRUE, eval = FALSE}
 1:6 %>% mean
 ```
+
+---
+class: top, left
+
+## Problems
+
+Use dplyr on the Boston crime data to:
+
+1. Find out in which district the most incident where reported. 
+2. Create an ordered list of the top ten districts according to the number of drug violations. Start with the district with most drug violations. 
+3. What is the most dangerous hour of the week?
+4. Calculate for each district the proportion of motor vehicle accidents on all reported incidents. 
+5. Sort the data set chronological by year and month. Then take the first 10.000 observations and compute the proportion of incidents where a 
+   shooting was involved for each district. Do the same for a random sample of size 10.000. 
+
+```{r, eval = TRUE, cache=TRUE}
+library(data.table)
+library(tidyverse)
+crime <- fread("https://data.boston.gov/dataset/6220d948-eae2-4e4b-8723-2dc8e67722a3/resource/12cb3883-56f5-47de-afa5-3b1cf61b257b/download/tmppj4rb047.csv")
+crime %>% group_by(DISTRICT) %>% summarise(N = n()) %>% arrange(desc(N)) 
+crime %>% filter( OFFENSE_CODE_GROUP == "Drug Violation") %>% group_by(OFFENSE_CODE_GROUP, DISTRICT) %>% summarise(N = n()) %>% arrange(desc(N)) 
+
+
+d1  <- crime %>% arrange(YEAR) %>% slice(1:10000) %>% group_by(DISTRICT, SHOOTING) %>% summarise(N = n()) 
+d2  <- crime %>% arrange(YEAR) %>% sample_n(10000) %>% group_by(DISTRICT) %>% summarise(N = n()) 
+plot(x = factor(d1$DISTRICT), d1$N)
+points(x = factor(d2$DISTRICT), d2$N)
+```
+
+```{r}
+plot(table(crime$DISTRICT[1:10000])/sum(table(crime$DISTRICT[1:10000])))
+points(table(crime$DISTRICT)/sum(table(crime$DISTRICT)), col = alpha("red", 0.4), lty = 3, lwd = 5)
+```
+
+
 ---
 class: top, left
 ### dplyr for 2 tables
