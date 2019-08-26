@@ -1,3 +1,17 @@
 .small {
   font-size: 65%
 }
+
+.smaller {
+  font-size: 90%
+}
+
+.center_img {
+  display: block;
+  margin: auto;
+}
+
+.scaled {
+  LINE-HEIGHT:20px;
+  transform: scale(0.7); 
+}
