@@ -3,6 +3,12 @@
 .Rapp.history
 .Ruserdata
 
+# R-profile
+.Rprofile
+
+# data files
+*.Rds
+
 # Session Data files
 .RData
 

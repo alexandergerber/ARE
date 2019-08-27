@@ -17,3 +17,23 @@ bench::mark(
   apply(X, 2, max),
   check = F
 )
+
+
+X <- matrix(rnorm(1e7), ncol = 1e4)
+
+system.time(
+  parallel::mclapply(
+    1:1e3,
+    function(a) sum(X),
+    mc.cores = 8
+  )  
+)
+
+system.time(
+  lapply(1:1e3, function(a) sum(X)),
+)
+  
+
+
+
+
