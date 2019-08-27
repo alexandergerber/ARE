@@ -1879,7 +1879,9 @@ A foreword by the package author...
 ---
 ### The `future.apply` Package
 
-The `future.apply` package provides a *futurized* version of the `*apply()` function family.
+The `future.apply` package provides a *futurized* version of the base R `*apply()` function family.
+
+<br>
 
 Function             | Description
 -------------------- | -------------
