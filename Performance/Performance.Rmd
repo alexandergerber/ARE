@@ -1859,11 +1859,36 @@ MakeTable(r, rows = "Time", "rho")
 
 **Why are they useful?**
 
-- Futures can by evaluated asynchronously in a seperate process, i.e. they do not block the 'main' process which is available for further processing so that other computations can be run in the meantime
+- Futures can by evaluated asynchronously in a seperate process, i.e. they do not block the 'main' process which is available for further processing so that other computations can run in the meantime
 
 - Futures thus allow faster and more efficient code. They are a simple yet powerful construct for parallel computing and distributed processing.
 
+**Is it difficult to work with futures**
 
+It depends. We will reistrict ourselves to functions which have been *futurized*, i.e. (re)implemented using functions from the `future` package.
+
+---
+### The `future.apply()` Package
+
+A foreword by the package author...
+
+<br>
+
+![:image 85%](img/future_apply.png)
+
+---
+### The `future.apply` Package
+
+The `future.apply` package provides a *futurized* version of the `*apply()` function family.
+
+Function             | Description
+-------------------- | -------------
+`future_apply()`     | apply function over array margin
+`future_lapply()`    | apply function over list or vector
+`future_sapply()`    | apply function over list or vector
+`future_replicate()` | apply function over list or vector
+`future_mapply()`    | apply function to multiple list or vector arguments
+`future_Map()`       | apply function to multiple list or vector arguments
 
 ---
 ### References
@@ -3486,9 +3511,9 @@ Let
 \end{align}
 where $z$ is an unobserved binary random variable stating whether $x$ is generated from $\mathcal{N}(x\vert\mu_1, \sigma_1)$ or $\mathcal{N}(x\vert\mu_2, \sigma_2)$, thus $$f(z) = \pi^{z}\cdot(1-\pi)^{1-z}.$$
 
-The unknown parameters $\pi, \mu_1,\mu_2,\sigma_1,\sigma_2$ are estimated by maximum likelihood methods. 
+The unknown parameters $\pi, \mu_1,\mu_2,\sigma_1,\sigma_2$ are estimated by maxizing the log-likelihood function 
 
-$$\log f(x\vert\pi,\boldsymbol{\mu},\boldsymbol{\sigma}) = $$
+$$\log f(x\vert\pi,\mu_1,\mu_2,\sigma_1,\sigma_2) = $$
 
 In the above latent-variable representation, the *Expectation-Maximization* (EM) algorithm is a popular choice. 
 
@@ -3499,7 +3524,8 @@ In the above latent-variable representation, the *Expectation-Maximization* (EM)
 
 .smaller[
 
-**Gaussian mixture distribution**
+**First Order Conditions**
+
 
 
 
