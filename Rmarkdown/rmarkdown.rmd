@@ -7,7 +7,7 @@ date: '`r Sys.Date()`'
 output:
   xaringan::moon_reader:
     lib_dir: libs
-    css: ["../xaringan_files/xaringan-themer.css", "../xaringan_files/custom.css"]
+    css: ["../xaringan_files/xaringan-themer.css", "../xaringan_files/custom.css",  "../xaringan_files/less_white_space.css"]
     nature:
       highlightStyle: github
       highlightLines: true
@@ -29,7 +29,7 @@ R Markdown provides a framework for combining  code, results and commentary.
 
 You can use R Markdown 
 
-- to generate high quality reports that can be shared with an audience.
+- to generate reports.
 - as an environment in which to do data science, as a lab notebook where 
   you can capture not only what you did, but also what you were thinking. 
 
@@ -64,12 +64,13 @@ An R Markdown document is a basic text file, with the conventional extension `.R
 The example already contains the most important components:
 
 - An (optional) YAML header surrounded by ---
-- Chunks of R code surrounded by ` ``` `
+- Chunks of R code surrounded by ` ```{r, ...} ` and ` ``` `
+- Inline R code surrounded by ` `r ` and ` ` `
 - Text mixed with simple text formatting like **bold** and _italics_
 - Mathematical expressions
 
 When we click **knit** in RStudio then 
-1. the `knitr` package executes the code chunks and creates a markdown document (`.md`) which contains the code and its output 
+1. the `knitr` package executes the code chunks and creates a markdown document (`.md`) which contains the text we have written and optionally the code and its output 
 2. the `.md` file gets processed by `pandoc` which creates the final file in the desired output format (eg. `html`, `pdf`, `word`, ...)
 ![](rendering_process.PNG)
 
@@ -121,8 +122,8 @@ params:
 class: left, top
 ## Text Formatting
 
-- R Markdown is build on [Pandoc Markdown](https://rmarkdown.rstudio.com/authoring_pandoc_markdown.html%23raw-tex#pandoc_markdown), which in turn is a flavour of Markdown a markup language 
-- compared to markup languages such as HTML and Latex, Markdown is very simple
+- R Markdown is build on [Pandoc Markdown](https://rmarkdown.rstudio.com/authoring_pandoc_markdown.html%23raw-tex#pandoc_markdown), which in turn is a flavour of the markup language Markdown.  
+- The advantage of Markdown compared to other markup languages such as HTML and Latex is its simplicity .
 
 Some examples:  
 
@@ -146,7 +147,8 @@ Some examples:
 ]
 
 .pull-right[ 
-<br><br>
+
+<br style="line-height:62px">
     *italics*  
     **bold**  
     This ~~is deleted text.~~  
@@ -156,6 +158,7 @@ Some examples:
 #   Header 1 
 ##  Header 2
 ### Header 3
+ ]
 ]
 
 ---
@@ -193,7 +196,8 @@ class: left, top
   - Another item belonging to item
 * Item
 * Item  
-<br>
+
+<br style="line-height:50px">
 
 1. First item  
     - First subitem
@@ -229,21 +233,16 @@ A new paragraph is startet by a blank line.
 ]
 
 .pull-right[ 
-<br>
-
+<br style="line-height:54px">
   First paragraph
 
   Second paragraph
-
-  <br>
-  <br>
-  <br>
-  <br> 
+<br style="line-height:140px">
   First line  
   Second line
 ]
 
-A new line is startet by two whitespaces at the end of the previous line (which you cannot see here)
+A new line is started by two whitespaces at the end of the previous line (which you cannot see here).
 
 
 
@@ -281,6 +280,7 @@ cat("
 ")
     ```
 
+<br>   
 
 \\begin{align}
 (a+b)^{3} &=(a+b)(a+b)^{2} \\\\
@@ -292,14 +292,14 @@ cat("
 class: left, top
 ## Code Chunks
 
-- press `Ctrl + Alt + I` to insert a new R code chunk
-- you can write arbitrary R code in a code chunk (e.g. run a regression and produce a plot of the result)  
-- in the top curly braces chunk options can be used to control how the output is handled
+- Press `Ctrl + Alt + I` to insert a new R code chunk.
+- You can write arbitrary R code in a code chunk (e.g. run a regression and produce a plot of the result).  
+- In the top curly braces, chunk options can be set to control how the output is handled.
 
 Some useful options: 
   - `eval`(`TRUE`; logical): whether to evaluate the code chunk  
   - `echo` (`TRUE`; logical or numeric): whether to include R source code in the output file
-  - `cache(FALSE; logical)`: whether to cache a code chunk 
+  - `cache`(`FALSE`; logical): whether to cache a code chunk 
   - `fig.height` and `fig.width`  control plot size in the final document
   - `warning` (`TRUE`; logical): whether to preserve warnings 
   - `message` (`TRUE`; logical): whether to preserve messages 
@@ -319,8 +319,7 @@ lm(y ~ x)
 ```
 ````
 
-If you use mainly chunk options which are not the default, then it saves you work to change the default for your document by putting 
-  a code chunk like this immediately after the YAML header
+If you use mainly chunk options which are not the default, then it saves you work to change the default for your document with ``knitr::opts_chunk$set()`.  
 
 ````markdown
 `r ''````{r setup, include=FALSE}
@@ -332,7 +331,7 @@ knitr::opts_chunk$set(echo = FALSE, warning=FALSE, message=FALSE)
 class: left, top
 ## Inline R Code
 
-R Code can also be evaluated within the text. When something changes (e.g. the input data) the numbers in the text adjust accordingly as well. 
+You can also use R in your running text. When something changes (e.g. the input data) the numbers in the text adjust accordingly as well. 
 
 ````markdown
 `r ''````{r, echo = FALSE}
@@ -369,6 +368,7 @@ Tables can be created in the following way:
 ]
 
 .pull-right[ 
+<br>
 
 | Right | Left | Default | Center |
 |------:|:-----|---------|:------:|
@@ -409,7 +409,7 @@ class: left, top
 ## Tables using xtable
 
 - `xtable` provides more functionality than kable but is a bit more difficult to use
-- if you code produces raw HTML or $\LaTeX{}$ code for e.g. a table then in the chunk option `results='asis'` must be set, otherwise it gets formatted and will not work as intended
+- If your code produces raw HTML or $\LaTeX{}$ for e.g. a table then you usually have to set in the  chunk options `results='asis'`, otherwise it gets formatted and will not work as intended
 
 ````markdown
 `r ''````{r, echo = FALSE, results='asis'}
@@ -466,16 +466,16 @@ hist(rnorm(1000))
 class: left, top
 ## Using HTML and Latex
 
-- If only R Markdown is used the document can be compiled mostly without problems
+- If only R Markdown is used the document can be compiled without problems
 to all supported output formats. 
 
 - Somtimes R Markdown is to limited and one would like to use the more powerful 
-tools provided by HTML or Latex.
+tools provided by HTML or Latex. 
 
 - If the output format is HTML, you can also use HTML instead of R Markdown 
-  or mix both
+  or mix both.
 
-- If the output format is PDF, the same can be said about Latex
+- If the output format is PDF, the same can be said about Latex.
 
 
 ---
@@ -571,9 +571,9 @@ class: left, top
 
 1. Create an Rmarkdown document that is compiled to an HTML document. 
    The document should consist of 2 sections 
+   
     - Getting Data
     - Explorative Data Analysis
-   where you can later add subsections if necessary.
 
 2. Use the first section to read in the data available under 
    [Boston crime](https://data.boston.gov/dataset/6220d948-eae2-4e4b-8723-2dc8e67722a3/resource/12cb3883-56f5-47de-afa5-3b1cf61b257b/download/tmppj4rb047.csv) in R.
@@ -581,9 +581,11 @@ class: left, top
 
 3. Use the second section to summarize the data. You are free to do whatever you like but produce at least one table and one plot. 
 
-4. Optimize your code chunks so that the document doesn't everytime you compile downloads the data. Also let us see what you did by making the code visible. 
+4. Optimize your code chunks so that the document doesn't everytime you compile loads the data. Also let us see what you did by making the code visible. 
 
-5. Put your results also in an HTML presentation and a PDF. 
+5. Create a PDF document.
+
+6. Build some slides using the code you have written. 
 
 
 
@@ -597,7 +599,7 @@ id <- sample(1:nrow(crime), 100)
 leaflet() %>% addTiles() %>%
   setView( -71.05874, 42.35699,zoom = 14) %>%
   addMarkers(
-    crime$Long[id], crime$Lat[id], # Uni Essen 
+    crime$Long[id], crime$Lat[id], 
   )
 
 ```

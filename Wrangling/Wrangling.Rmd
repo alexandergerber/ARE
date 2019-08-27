@@ -1,5 +1,5 @@
 ---
-title: "Data Wrangling"
+title: "Data Wrangling ddd hhh"
 author: 
   - "Martin Arnold"
   - "Alexander Gerber"
@@ -25,10 +25,6 @@ knitr::opts_chunk$set(echo = FALSE, warning=FALSE, message=FALSE)
 ```{r, include=FALSE}
 library(microbenchmark)
 ```
-
-class: top, left
-
-### Data Wrangling &mdash; Overview
 
 ---
 class: top, left
@@ -140,29 +136,29 @@ class: top, left
 class: top, left
 ### Helper functions for select
 - Select columns whose name contains a character string.
-```{r, echo=TRUE, eval = FALSE}
+  ```{r, echo=TRUE, eval = FALSE}
 select(iris, contains("."))
-```
+  ```
 
 - Select columns whose name ends with a character string.
-```{r, echo=TRUE, eval = FALSE}
+  ```{r, echo=TRUE, eval = FALSE}
 select(iris, ends_with("Length"))
-```
+  ```
 
 - Select every column.
-```{r, echo=TRUE, eval = FALSE}
+  ```{r, echo=TRUE, eval = FALSE}
 select(iris, everything())
-```
+  ```
 
 - Select columns whose name matches a regular expression.
-```{r, echo=TRUE, eval = FALSE}
+  ```{r, echo=TRUE, eval = FALSE}
 select(iris, matches(".t."))
-```
+  ```
 
 - Select columns named x1, x2, x3, x4, x5.
-```{r, echo=TRUE, eval = FALSE}
+  ```{r, echo=TRUE, eval = FALSE}
 select(iris, num_range("x", 1:5))
-```
+  ```
 
 ---
 class: top, left
@@ -200,6 +196,34 @@ To exploit the full potential of `summarise()` we need to pair it with `group_by
 by_cyl <- group_by(mtcars_tibble, cyl)
 print(summarise(by_cyl, mean(mpg)))
 ```
+
+---
+class: top, left
+### dplyr &mdash; Useful summary functions
+
+`summary()` can be used with 
+
+- base R functions such as `mean()`, `sd()`, `max()`
+- dplyr specific functions for
+  - position `first()`, `nth()`, `last()`
+  - counts `n()`, `n_disticnt()`
+
+
+---
+class: top, left
+### dplyr &mdash; Advanced subjects 
+
+
+
+```{r}
+
+mtcars %>%
+  group_by(cyl) %>% 
+  group_map(~ lm(mpg  ~ hp, data = . ), keep = TRUE)
+  
+```
+
+
 ---
 class: top, left
 ### The Pipe
@@ -266,9 +290,9 @@ Use dplyr on the Boston crime data to:
 3. What is the most dangerous hour of the week?
 4. Calculate for each district the proportion of motor vehicle accidents on all reported incidents. 
 5. Sort the data set chronological by year and month. Then take the first 10.000 observations and compute the proportion of incidents where a 
-   shooting was involved for each district. Do the same for a random sample of size 10.000. 
+shooting was involved for each district. Now take a random sample of size 10.000. Is there a noteworthy difference?
 
-```{r, eval = TRUE, cache=TRUE}
+```{r, eval = FALSE, cache=TRUE}
 library(data.table)
 library(tidyverse)
 crime <- fread("https://data.boston.gov/dataset/6220d948-eae2-4e4b-8723-2dc8e67722a3/resource/12cb3883-56f5-47de-afa5-3b1cf61b257b/download/tmppj4rb047.csv")
@@ -282,11 +306,10 @@ plot(x = factor(d1$DISTRICT), d1$N)
 points(x = factor(d2$DISTRICT), d2$N)
 ```
 
-```{r}
+```{r, eval = FALSE}
 plot(table(crime$DISTRICT[1:10000])/sum(table(crime$DISTRICT[1:10000])))
 points(table(crime$DISTRICT)/sum(table(crime$DISTRICT)), col = alpha("red", 0.4), lty = 3, lwd = 5)
 ```
-
 
 ---
 class: top, left
