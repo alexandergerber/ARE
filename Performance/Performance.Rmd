@@ -11,7 +11,7 @@ output:
     css: ["../xaringan_files/xaringan-themer.css", "../xaringan_files/custom.css"]
     nature:
       beforeInit: ../xaringan_files/macros.js
-      highlightStyle: github
+      highlightStyle: solarized-dark
       highlightLines: true
       countIncrementalSlides: false
     includes:
@@ -41,7 +41,12 @@ knitr::opts_chunk$set(warning = F, message = F)
 ```
 
 ```{r, include=FALSE}
+# packages needed
 library(microbenchmark)
+library(parallel)
+library(tictoc)
+library(dplyr)
+library(tidyr)
 ```
 
 class: top, left
@@ -54,9 +59,7 @@ class: top, left
 
 - Improving Performance
 
-- Speeding things up using Rcpp
-
-- Parallelization
+- Speeding Things Up Using <coce>Rcpp</code>
 
 ---
 class: inverse, middle, left
@@ -1003,6 +1006,71 @@ bench::mark(
 ```
 
 ---
+### 2. Do as Little as Possible &mdash; Byte Compiler
+
+As discussed before, R's interpreter performs a number of costly operations, e.g. variable and method lookup. The `compiler` package reduces the resulting slowdown by providing a translator which generates a byte compiled version of an R function.
+
+```{r, message=F, warning=F}
+library(compiler)
+```
+
+The `compiler` package comes with the base distribution of R (base R functions are byte compiled).
+
+```{r}
+mean
+```
+
+Recent R versions perform just-in-time (JIT) compilation by default so there is no reason to compile explitly. The following example demonstrates the usefulnes of this approach.
+
+---
+### 2. Do as Little as Possible &mdash; Byte Compiler
+
+**Example: compiled correlation matrix**
+
+Interpreting the code is relativly more demanding than the actual 'computation'.
+
+```{r}
+corr <- my.correlation <- function(X) {
+  Y <- as.matrix(X); TY <- t(Y)
+  n <- nrow(X)
+  p <- ncol(X)
+  M <- matrix(0, p, p)
+  for (i in 1:p) {
+    for (j in 1:p) {
+      for (k in 1:n) {
+        M[i,j] <- M[i, j] + TY[i, k] * Y[k, j]
+      }
+    }
+  }
+  M <- M/n
+  return(M)
+}
+```
+
+---
+### 2. Do as Little as Possible &mdash; Byte Compiler
+
+**Example: compiled correlation matrix**
+
+Let's generate a compiled version of `corr()`.
+
+```{r}
+corr_cmp <- cmpfun(corr)  # compiled version of corr()
+enableJIT(0)              # disable JIT compilation
+
+x <- matrix(rnorm(1e4), nrow = 100)
+
+bench::mark(
+  corr(x),
+  corr_cmp(x),
+  relative = T)[, 1:4]
+```
+
+```{r, echo=F, results='hide'}
+enableJIT(3)
+```
+
+---
 ### 2. Do as Little as Possible &mdash; Exercises
 
 1\. Can you come up with an even faster implementation of `b()` in the linear regression example?
@@ -1338,57 +1406,469 @@ Suppose you are interested in computing $$A = \int_0^1 x^2 \mathrm{d}x$$ using M
 
 1. *initialize `counts`*
 
-2. **for i in 1:N**
+2. `for i in 1:N`
 
     *Generate $\ U_i \sim i.i.d. \mathcal{U}(0,1);\ i=1,2$.*
     
-    *If $\ U_2 < U_1^2$, then `counts = counts + 1`*
+    *If $\ U_2 < U_1^2$, then* `counts = counts + 1`
 
-3. **end for**
+3. *end* `for`
 
 4. *Estimate $A$ by `counts/N`*
 
 ---
 ### 3. Vectorize your code &mdash; Case Study
 
-**Case Study: Efficient Monte Carlo Integration**
+**Case Study: Monte Carlo Integration**
 
 1. 
     
     (a) Implement the algorithm in a function `A_loop(N)` which returns the MC estimate of A with `N` the number of MC iterations.
     
-    (b) Estimate $A$ using `A_loop(N)` with 500000 MC iterations.
+    (b) Estimate $A$ using `A_loop(N)` with 5e5 MC iterations.
 
 2. 
 
     (a) Define a function `A_vec(N)` which implements the MC algorithm in a vectorized fashion.
     
-    (b) Compare `A_vec(N)` and `A_loop(N)` in a microbenchmark for `N=500000` iterations.
+    (b) Compare `A_vec(N)` and `A_loop(N)` in a microbenchmark for `N=5e5` iterations.
     
     (c) How does the difference in performance relate to `N`?
 
 ---
-### 4. Parallelization
+### 4. Parallelization &mdash; FAQs
 
 **What is parallelization?**
 
-In the simplest sense, parallelization means the simultaneous use of multiple hardware resources for solving a computational problem.
+- In the simplest sense, parallelization means the simultaneous use of multiple hardware resources for solving a computational problem.
 
+- In the following we refer to parallelization as the distribution of computing tasks over several CPUs in a shared memory system (a system where multiple CPUs access the same memory).
+
+**Does R perform parallelization by default?**
+
+No. The 'stock' R version on CRAN is a single-threaded program, i.e., R does not benefit from modern multi-threaded CPUs, multiple cores let alone multiple CPUs.
+
+---
+### 4. Parallelization &mdash; FAQs
+
+**Is it complicated to parallelize code?**
+
+- In general, yes. Fortuneatly, there are R packages for the most common platforms that do the work for us. These packages facilitate the process *substantially*. 
+
+- In most cases, we don't even have to adjust our code in order for it to be executable in parallel.
+
+**Which tasks can be done in parallel?**
+
+- In principle, all operations that can be executed independently. 
+
+- Parallel computing is often used in MC simulations which require computation of a large number of homogenous and independent tasks.
+
+**Is parallelization always faster than serial compuation?**
+
+No. The costs of managing the computations (the *overhead*) may offset or even surpass time savings gained by parallel computation. This occurs, e.g., when a small numer of simple taks is solved in parallel. We will discuss an example on that.
+
+---
+### 4. Parallelization &mdash; the `parallel` package
+
+The `parallel` package (comes with base R) is a good starting point for parallel computing.
+
+```{r, cache=T}
+# detect numer of cores (including logical cores)
+library(parallel)
+detectCores()
+```
+
+The notebook used to run this script has a 2,3 GHz Intel Core i5 processor with 4 physical CPUs and supports hyperthreading, i.e., each CPU as 2 logical cores.
+
+```{r}
+# detect numer of physical cores
+detectCores(logical = F)
+```
+
+Note that the behaviour of `detectCores()` is platform specific and not always reliable, see `?detectCores()`.
+
+---
+### 4. Parallelization - `parallel::mclapply()`
+
+**Example: send them cores to sleep**
+
+```{r, eval=F}
+r <- mclapply(1:8, 
+              function(i) {
+                Sys.sleep(20)  # do nothing for 20 seconds
+              }, 
+              mc.cores = 8)    # split job across 8 cores
+```
+
+![:image 65%](img/cpumonitor.png)
+
+---
+### 4. Parallelization - `parallel::mclapply()`
+
+**Example: send them cores to sleep**
+
+What happend?
+
+- The R session (the main Process) opened 8 sub-processes, so-called *forks* (labeled `rsession` in the acticity monitor)
+
+- The forks operate independently from the main process (but they 'know' about each other). Each fork operates on a separate core.
+
+- `mclapply()` passes a call of `function(i) Sys.sleep(20)` to each fork. Comnputation (or rather doing nothing for 20 seconds) now proceeds in parallel.
+
+- After 20 seconds the results are gathered in `r` and all forks are killed. Note that `r` is just a list with `NULL` entries.
+              
 ---
 ### 4. Parallelization
 
-**What is parallelization?**
+**"Embarassingly parallel operations"**
 
-<br>
 
 ![:image 100%](img/parallelization.png)
 
 (source: [R-Bloggers](http://www.parallelr.com/r-with-parallel-computing/))
 
 ---
+### 4. Parallelization
+
+**Example: parallelized bootstrapping**
+
+Remember the function `cor_df()` from the case study in *2. Do as Little as Possible*. A faster approach, `cor_df2`, is given  below.
+
+```{r, cache=T}
+n <- 1e4
+df <- data.frame(a = rnorm(n), b = rnorm(n))
+
+cor_df2 <- function(x) {
+  i <- sample(seq(n), n, replace = T)
+  m <- cbind(df$a[i], df$b[i])
+  cor(m)[2, 1]
+}
+```
+
+---
+### 4. Parallelization
+
+**Example: parallelized bootstrapping**
+
+Calling `cor_df2()` a large number of times is time consuming. 
+
+```{r, eval=F}
+# serial computation
+s_ser <- system.time(
+  r_ser <- lapply(1:1e5, cor_df2)
+)
+s_ser
+```
+
+```{r, echo=F}
+cat('    
+  user  system  elapsed 
+64.202  12.516   77.047 
+')
+```
+
+---
+### 4. Parallelization
+
+**Example: parallelized bootstrapping**
+
+Luckily, it is straightforward to bootstrap in parallel using `mclapply()`.
+
+```{r, eval=F}
+# parallel computation
+s_par <- system.time(
+  r_par <- mclapply(1:1e5, cor_df2, mc.cores = 8)
+)
+s_par
+```
+
+```{r, echo=F}
+cat('    
+  user  system  elapsed 
+38.343   7.995   16.343 
+')
+```
+
+Note that using 8 cores is (only) ~5 times faster than the serial approach due to overhead. 
+
+---
+### 4. Parallelization
+
+**Example: too much overhead**
+
+Parallelization is inefficient if the overhead exceeds the time savings. 
+
+```{r, eval=F}
+system.time(mclapply(1:1e5, sqrt, mc.cores = 8))
+```
+
+```{r, echo=F}
+cat('
+##   user  system elapsed 
+##  0.107   0.110   0.062 
+    ')
+```
+
+```{r, eval=F}
+system.time(lapply(1:1e5, sqrt))
+```
+
+```{r, echo=F}
+cat('
+##   user  system elapsed 
+##  0.034   0.001   0.035 
+    ')
+```
+
+This is because the cost of the individual computations is low, and additional work is needed to send the computation to the different cores and to collect the results.
+
+---
+### 4. The `MonteCarlo` Package
+
+- Running Monte Carlo simulations is an everyday task in econometrics. They are routinely used for approximating quantities which cannot be derived analytically, e.g. finite sample properties of a test statistic.
+
+- Monte Carlo simulation is also an essential tool in statistical programming because we often write functions that expect random input and/or produce random output. 
+
+    Testing whether the impementation is correct amounts to check if the statistical properties of the output are as expected, using a large number of samples.
+
+- Often, the effort to write the simulation exceeds the effort to implement the function by a multiple. 
+
+---
+### 4. The `MonteCarlo` Package
+
+The `MonteCarlo` package by Christian Leschinksi streamlines the process of writing Monte Carlo simulations. Useful features are:
+
+- Simulation over a user-defined parameter grid
+
+- Automatic parallelization using the `snow` package
+
+- Compilation of results in arrays. Generation of customizable LaTeX tables is possible.
+
+The package is available on `CRAN`. 
+
+Development version @ https://github.com/FunWithR/MonteCarlo
+
+---
+### 4. The `MonteCarlo` Package
+
+**Example: Unit Root test**
+
+Consider the DGP $$y_t = \rho y_{t-1} + \epsilon_t, \ \ \epsilon_t\sim N(0,1)$$ with $y_0 = 0$ and $\rho = 1.$ It is a well known result that the limit of the $t$-ratio $$t = \frac{\hat\rho-1}{s.e.(\hat\rho)}$$ can be written as a functional of Wiener processes,
+
+$$ t \Rightarrow \frac{[W(1)]^2 -1}{2\sqrt{\int_0^1[W(r)]^2 dr}}.$$
+
+The asymptotic distribution of $t$ is nonnormal and its quantiles cannot be derived analytically.
+
+---
+### 4. The `MonteCarlo` Package
+
+**Example: Unit Root test &mdash; ctd.**
+
+We now use the `MonteCarlo` package to simulate the limit distribution of $t$.
+
+```{r, message=F}
+library(MonteCarlo)
+```
+
+```{r}
+sim <- function(rho, Time) {
+  Y <- matrix(NA_real_, ncol = 1, nrow = Time); Y[1,1] <- rnorm(1)
+  
+  for(t in 2:Time) { Y[t, 1] <- rho * Y[t-1, 1] + rnorm(1) }
+
+  y <- Y[-1, , drop = FALSE]
+  ylag <- Y[-Time, , drop = FALSE]
+  
+  fit <- lm.fit(ylag, y)
+  rho <- fit$coefficients
+  res <- fit$residuals
+  sigma <- sqrt(1/(Time-2) * t(res) %*% res * 1/ (t(ylag) %*% ylag))
+
+  return( list("t" = (rho[[1]] - 1)/sigma) )
+
+}
+```
+
+
+---
+### 4. The `MonteCarlo` Package
+
+**Example: Unit Root test &mdash; ctd.**
+
+```{r, cache=T, message=F, results='hide'}
+# setup list of parameters
+params <- list("rho" = 1, 
+               "Time" = 1000)
+
+# run parallelized MC simulation over parameter grid
+r <- MonteCarlo(
+  sim,
+  nrep = 50000,
+  param_list = params, 
+  ncpus = parallel::detectCores()
+)
+```
+
+We transform the simulated test statistics to a vector.
+
+```{r}
+t_sim <- apply(r$result$t, 3, c)
+```
+
+---
+### 4. The `MonteCarlo` Package
+
+**Example: Unit Root test &mdash; ctd.**
+
+Estimates of the finite sample quantiles are close to the quantiles of the corresponding asymptotic Dickey-Fuller distribution
+
+```{r}
+quantile(t_sim, c(0.05, 0.1, 0.5, 0.9, 0.95))
+
+fUnitRoots::qunitroot(c(0.05, 0.1, 0.5, 0.9, 0.95), trend = "nc")
+```
+
+We compare with the gaussian distribution.
+
+```{r, eval=F}
+# plot kernel density estimate of resampled t-statistics
+plot(density(t_sim), main = "Dickey-Fuller Distribution")
+
+# add gaussian density
+curve(dnorm(x), from = -4, to = 4, add = T, lty = 2, col = "red")
+```
+
+---
+### 4. The `MonteCarlo` Package
+
+**Example: Unit Root test &mdash; ctd.**
+
+```{r, fig.retina=T, echo=F, fig.align='center', fig.height=6, fig.}
+# plot kernel density estimate of resampled t-statistics
+plot(density(t_sim), main = "Dickey-Fuller Distribution")
+
+# add gaussian density
+curve(dnorm(x), from = -4, to = 4, add = T, lty = 2, col = "red")
+```
+
+---
+### 4. The `MonteCarlo` Package
+
+It is a great benefit to work with the package if you want to run the simulation for several parameter combinations. 
+
+**Example: Power of DF-Test**
+
+We write a simple wrapper for `sim()` which returns a logical value for rejection at 5% using the asymptotic critical value.
+
+```{r}
+# asymptotic 5% critical value of the corresponding DF-distribution
+crit <- fUnitRoots::qunitroot(0.05, trend = "nc")
+
+# rejection?
+sim_pow <- function(rho, Time) {
+  return(
+   list("t" = sim(rho, Time)[[1]] < crit)   
+  )
+}
+```
+
+---
+### 4. The `MonteCarlo` Package
+
+**Example: Power of DF-Test**
+
+We consider all combination for a sequence of alternatives and three different sample sizes.
+
+```{r, message=F, results='hide', cache=T}
+# setup list of parameters (yielding 33 parameter constellations)
+params <- list("rho" = seq(0.75, 1, 0.025), 
+               "Time" = c(50, 100, 200))
+
+# run parallelized MC simulation over parameter grid
+r <- MonteCarlo(
+  sim_pow,
+  nrep = 5000,
+  param_list = params, 
+  ncpus = parallel::detectCores())
+```
+
+---
+### 4. The `MonteCarlo` Package
+
+**Example: Power of DF-Test**
+
+Results in a `MonteCarlo` object are easily transformed and visualized using `tidyverse` functions.
+
+```{r, eval = F}
+library(dplyr)
+library(ggplot2)
+
+tbl <- r %>% MakeFrame() %>% tbl_df() %>% 
+  group_by(rho, Time) %>% summarise(power = mean(t))
+
+ggplot(tbl) + 
+  geom_line(aes(x = rho, y = power, col = factor(Time)))
+```
+
+---
+### 4. The `MonteCarlo` Package
+
+**Example: Power of DF-Test**
+
+Conversion of the results into a LaTeX table is particularly useful.
+
+```{r, echo=F, fig.height=6, fig.align='center'}
+library(dplyr)
+library(ggplot2)
+
+tbl <- r %>% MakeFrame() %>% tbl_df() %>% 
+  group_by(rho, Time) %>% summarise(power = mean(t))
+
+ggplot(tbl) + 
+  geom_line(aes(x = rho, y = power, col = factor(Time)))
+```
+
+---
+### 4. The `MonteCarlo` Package
+
+**Example: Power of DF-Test**
+
+```{r, eval=F}
+# generate LaTeX table from simulation results
+MakeTable(r, rows = "Time", "rho")
+```
+
+![:image 100%](img/latex_MakeTable.png)
+
+---
+### 4. Parallelization &mdash; Case Study
+
+---
+### Digression: Asynchronous Programming
+
+![:image 85%](img/futures.jpg)
+
+---
+### Futures
+
+**What are futures?**
+
+- A *future* or *promise* is a construct which discribes an object that acts as a proxy for some value which will be available at some point in the future.
+
+- A Future allows execution of code until the point where its value is actually needed. 
+
+**Why are they useful?**
+
+- Futures can by evaluated asynchronously in a seperate process, i.e. they do not block the 'main' process which is available for further processing so that other computations can be run in the meantime
+
+- Futures thus allow faster and more efficient code. They are a simple yet powerful construct for parallel computing and distributed processing.
+
+
+
+---
 ### References
 
-Gillespie, C. and Lovelace, *R. Efficient R Programming*. O'Reilly Media.
+Gillespie, C. and Lovelace (2016), *R. Efficient R Programming*. O'Reilly Media.
 
 Peng, Roger D. (2016). *R Programming for Data Science*. The bookdown Archive.
 
@@ -1403,555 +1883,1628 @@ background-size: cover
 # Speeding things up using Rcpp
 
 ---
+### `Rcpp` &mdash; FAQs
+
+**What is `Rcpp`?**
+
+The `Rcpp` package easily enables us to implement C++ functions in R by providing a clean and approachable API.
+
+**Who should use it?**
+
+Anyone who is interested in eliminating bottlenecks which cannot be sped-up in a vanilla R. 
+
+**Is `Rcpp` a self-contained language?**
+
+No. To write code using `Rcpp` basically means to write C++ code using special C++ classes that allow interfacing with R.
+
+The official [quick reference](https://cran.r-project.org/web/packages/Rcpp/vignettes/Rcpp-quickref.pdf) has some code snippets which facilitate the start.
+
+
+---
+### `Rcpp` &mdash; FAQs
+
+**Do I need to be fluent in C++? &mdash; ctd.**
+
+- No. `Rcpp` is easy to use even without deep knowledge of C++. A basic knowledge of C++ syntax and data types is sufficient for a start. 
+
+- The package allows to write C++ code in a style similar to R &mdash; syntactic *sugar*: 
+
+    `Rcpp` comes with well tested functions which look and behave very similar to their R equivalent. Sugar versions of arithmetic and logical operators, vector views and many base R functions facilitate the first steps in programming with `Rcpp` tremendously.
+
+- In what follows we won’t spend much time on advanced stuff like OO programming or templates but focus on writing small, self-contained functions.
+
+    [learnCpp](https://www.learncpp.com/) is a good source for more detailed content. 
+
+---
+### `Rcpp` &mdash; FAQs
+
+**When is rewriting code using C++ an attractive alternative?**
+
+Typical bottlenecks in R that be addressed using C++ are:
+
+- Loops that can’t be easily vectorised because subsequent iterations depend on previous ones.
+
+- Recursive functions / problems which involve calling functions a large number of times. The overhead of calling functions in C++ is *much* lower than that in R.
+
+---
+### 4. `Rcpp` &mdash; FAQs
+
+**Where to learn details and where to find good examples?**
+
+- The `Rcpp` [package vignette](https://cran.r-project.org/web/packages/Rcpp/vignettes/Rcpp-FAQ.pdf) is a good start 
+
+- The [Rcpp Gallery](https://gallery.rcpp.org/) provides many comprehensive examples and also applications to statistics and econometrics
+
+- [stackoverflow](https://stackoverflow.com/search?q=rcpp+r) has answers to numerous questions that arise in the beginning (more than 2000 question tagged <tt>[rcpp]</tt> answered). The package authors (especially Dirk Eddelbuettel) often contribute to the discussion.
+
+- Technical details are well explained in *Seamless R and C++ integration with Rcpp* (Eddelbuettel, 2013)
+
+    (PDF freely available via [Springer Link](https://link.springer.com/book/10.1007/978-1-4614-6868-4))
+
+---
+### `Rcpp` &mdash; Popularity
+
+**`Rcpp` is popular**
+
+`Rcpp` is a dependency to ~1500 CRAN packages and an unknown large number of packages on GitHub.
+
+```{r, cache=T, message=F, warning=F}
+library(pagerank) 
+CRAN <- "http://cloud.r-project.org"
+p_rank <- compute_pagerank(CRAN)
+round(100 * p_rank[1:5], 3)
+```
+
+This puts responsibility on the development team to keep Rcpp performant and reliable.
+
+---
+### `Rcpp` &mdash; Popularity
+
+```{r, cache=T, fig.align='center', echo=F, fig.width=6}
+d <- data.frame("PageRank" = sort(p_rank[1:30]*100, decreasing = T)) %>% tibble::rownames_to_column()
+
+library(cowplot)
+ggplot(d, aes(y = PageRank, x = factor(rowname, levels = d$rowname[order(d$PageRank)]))) + 
+    geom_bar(stat = "identity", fill = "steelblue") +
+    coord_flip() + 
+    xlab("Package") +
+    ylab("Page Rank") + ggtitle("Popular Packages on CRAN as of August 7, 2019")
+
+```
+
+---
+### `Rcpp` &mdash; Prerequisites
+
+We need `Rcpp` from CRAN as well as a working C++ compiler. Regarding the latter, installation is OS-dependend.
+
+```{r, eval=3, message=F, warning=F}
+# get the Rcpp package from CRAN
+install.packages("Rcpp")
+library(Rcpp)
+```
+
+**Installing a C++ compiler**
+
+- Windows: install [Rtools](http://cran.r-project.org/bin/windows/Rtools/)
+
+- Mac: install [Xcode](https://apps.apple.com/de/app/xcode/id497799835?mt=12)
+
+- Linux: install gcc/g++ via <tt>sudo apt-get install r-base-dev</tt> or similar.
+
+---
+### `Rcpp` &mdash; Prerequisites
+
+**How does it work?**
+
+(strongly simplified)
+
+We are essentially interested in using C++ functions which *generate* and *modify* SEXP objects faster than R is able too. 
+
+`Rcpp` allows a seamless transfer between C++ and an SEXP objects with low cost by passing pointers (pass by reference) to C++ functions using special classes which enclose SEXPs (we will introduce them in a bit).
+
+
+**Some vocabulary**
+
+- A **Poiner** contains the physical address of an data in the memory
+
+- At the C level, R objects are stored in the **SEXP** (S expression) datatype. An SEXP is essentially a pointer.  
+
+
+---
+### `Rcpp` &mdash; Syntax Basics
+
+**Example: C++ Syntax 1**
+
+```{c++, eval = F}
+int one() {
+  return 1;
+}
+```
+
+Note that:
+
+- We do not use assignment to create functions in C++
+
+- One needs to declare the type returned by the function
+
+- Scalars and vectors are different objects. There are differences regarding scalar types: 
+
+    `numeric`, `integer`, `character` and `logical` (R)
+    
+    <tt>double</tt>, <tt>int</tt>, <tt>string</tt>, <tt>bool</tt> (C++)
+
+- The <tt>return</tt> statement *must* be used to return a value
+
+- Every statement *must* be followed by a <tt>;</tt>
+
+---
+### `Rcpp` &mdash; Syntax Basics
+
+**Example: C++ Syntax 2**
+
+.pull-left[
+```{r}
+# R function
+isOdd_r <- function(num = 10L) {
+  result = (num %% 2L == 1L)
+  return(result)
+}
+isOdd_r(42L)
+```
+]
+
+.pull-right[
+```{r, eval=F}
+# C++ equivalent 
+# (not yet executable)
+bool isOdd_cpp(int num = 10) {
+  bool result = (num % 2 == 1);
+  return result;
+}
+```
+]
+
+- Assignment is done using the <tt>=</tt> operator
+
+- *Binary* arithmetic and logical operators work as in R. More on this later.
+
+- Default values for arguments may be specified. 
+
+    **Attention**: Default arguments are assigned from right to left. Using a default value requires *all* subsequent arguments to have default values, too.
+
+---
+### `Rcpp` &mdash; Inline Compiliation
+
+**Example: cppFunction() **
+
+Small and self-contained functions are easily compiled and linked using `cppFunction()`.
+
+```{r}
+cppFunction('
+bool isOdd_cpp(int num = 10) {
+  bool result = (num % 2 == 1);
+  return result;
+}')
+```
+
+`ìsOdd_cpp()` now works like a regular R function.
+
+```{r}
+isOdd_cpp(42L)
+```
+
+---
+### `Rcpp` &mdash; Inline Compiliation
+
+**Example: cppFunction() **
+
+What happend?
+
+- Our function `isOdd_cpp()` is sourced by `Rcpp`.
+
+- `Rcpp` generates a wrapper function. It then compiles and links the C++ function to the wrapper. The function now is available in R under its C++ name.
+
+```{r}
+isOdd_cpp
+```
+
+We see that `isOdd_cpp()` uses `.call()` to invoke the C++ version of the function which is stored in the specified pointer.
+
+---
+### `Rcpp` &mdash; Sourcing a .cpp-file via RStudio
+
+![:image 70%](img/create_cpp_file.png)
+
+---
+### `Rcpp` &mdash; Sourcing a .cpp-File via RStudio
+
+You will be prompted with the following file:
+
+.smaller[
+```nohighlights
+#include <Rcpp.h>
+using namespace Rcpp;
+
+// This is a simple example of exporting a C++ function to R. You can
+// source this function into an R session using the Rcpp::sourceCpp 
+// function (or via the Source button on the editor toolbar). 
+
+// [[Rcpp::export]]
+NumericVector timesTwo(NumericVector x) {
+  return x * 2;
+}
+
+// You can include R code blocks in C++ files processed with sourceCpp
+// (useful for testing and development). The R code will be automatically 
+// run after the compilation.
+//
+
+/*** R
+timesTwo(42)
+*/
+```
+]
+
+---
+### `Rcpp` &mdash; Loops
+
+**Example: Summation **
+
+.pull-left[
+```{r}
+sum_R <- function(x) {
+  total <- 0
+  
+  for (i in seq_along(x)) {
+    total <- total + x[i]
+  }
+  total
+}
+```
+]
+
+.pull-right[
+```{r, message=F, eval=F}
+double sum_C(NumericVector x) {
+  int n = x.size();
+  double total = 0;
+  for(int i = 0; i < n; ++i) {
+    total += x[i];
+  }
+  return total;
+}
+```
+]
+
+```{r, message=F, echo=F}
+cppFunction('
+double sum_C(NumericVector x) {
+  int n = x.size();
+  double total = 0;
+  for(int i = 0; i < n; ++i) {
+    total += x[i];
+  }
+  return total;
+}
+')
+```
+
+- <b>Indicies start at 0!</b>
+
+- C++ methods are called with a full stop, e.g. `.size()`
+
+- Syntax in `for()`: `for(initialize; check; increment)`  
+
+- In-place modification: `total += x[i]` is equivalent to 
+`total = total[i-1] + x[i]`
+
+---
+### `Rcpp` &mdash; Loops
+
+**Example: Summation &mdash; ctd.**
+
+```{r, cache=T}
+x <- runif(1e3)
+bench::mark(
+  sum(x),
+  sum_C(x),
+  sum_R(x)
+)
+```
+
+`sum_C()` is competitive with the highly optimised primitive `sum()`. `sum_R()` is considerably slower.
+
+---
+### `Rcpp` &mdash; Vectors and Matrices
+
+**Return type of functions**
+
+- `Rcpp` automatically wraps C++ base types (like double, int, string, bool) using classes which can be handled by R
+
+- This is different for more complex structures like vector and matrix. `Rcpp` provides special classes for each base type which have to be stated explicitly:
+
+    - <tt>NumericVector</tt>, <tt>IntegerVector</tt>, <tt>CharacterVector</tt> and <tt>LogicalVector</tt>
+    
+    - <tt>NumericMatrix</tt>, <tt>IntegerMatrix</tt>, <tt>CharacterMatrix</tt> and <tt>LogicalMatrix</tt>
+
+- Using classes from the Standard Template Library (STL) will not pose a problem, but requires a *deep copy* (pass-by-value) whereas using the appropriate `Rcpp` class results in a modification of the object (pass-by-reference)
+
+---
+### `Rcpp` &mdash; Vectors and Matrices
+
+**Example: STL type mapping**
+
+The following code is 'pure' C++ and can be handled by R: `Rcpp` maps `std::vector<type>` to `NumericVector`. 
+
+(Note that we use `::` to access objects from the `std` namespace)
+
+```nohighlights
+std::vector<int> zeros_STL(int N) {
+  std::vector<int> X(N);
+  return X;
+}
+```
+The above requires a copy of `X` which is avoided if we use <tt>IntegerVector</tt> or <tt>NumericVector</tt> instead.
+
+```nohighlights
+NumericVector zeros_Rcpp(int N) {
+  NumericVector X(N);
+  return X;
+}
+```
+
+---
+### `Rcpp` &mdash; Vectors and Matrices
+
+**Example: STL type mapping &mdash; ctd.**
+
+We compare both functions after sourcing using `cppFunction()`.
+
+```{r, eval=F}
+x <- 1e6L
+bench::mark(
+  zeros_Rcpp(x),
+  zeros_STL(x)
+)
+```
+
+```{r, echo=F}
+cat('
+# A tibble: 2 x 13
+  expression         min   median `itr/sec` mem_alloc `gc/sec`    
+  <bch:expr>    <bch:tm> <bch:tm>     <dbl> <bch:byt>    <dbl>    
+1 zeros_Rcpp(x)  729.5µs   1.02ms      307.    7.63MB     5.44
+2 zeros_STL(x)    1.85ms   3.31ms      225.    3.82MB     2.64 
+')
+```
+
+---
+### `Rcpp` &mdash; Vectors and Matrices
+
+It sometimes will be convenient to generate objects using the STL and wrap them before return.
+
+**Example: `wrap()`**
+
+```nohighlights
+// using STL constructor function
+NumericVector iota(int N) {
+  std::vector<int> X(N, 1);
+  return wrap(X);
+}
+```
+<it>vs.</it>
+
+```nohighlights
+// using Rcpp constructor
+NumericVector iota(int N) {
+  NumericVector X(N);
+  std::fill(X.begin(), X.end(), 1)
+  return X;
+}
+```
+
+---
+### `Rcpp` &mdash; Vectors and Matrices
+
+Even simple C++ implementations which heavily rely on loops can often compete with R primitives in terms of speed (check this!).
+
+**Example: `rowSumsC()` **
+
+```nohighlights
+NumericVector rowSumsC(NumericMatrix x) {
+  int nrow = x.nrow(), ncol = x.ncol();
+  NumericVector out(nrow);
+
+  for (int i = 0; i < nrow; i++) {
+    double total = 0;
+    for (int j = 0; j < ncol; j++) {
+      total += x(i, j);
+    }
+    out[i] = total;
+  }
+  return out;
+}
+```
+
+- Note the short-hand definition of variables of the same type.
+
+- We subset matrices with <tt>()</tt> instead of <tt>[]</tt>.
+
+---
+### `Rcpp` &mdash; Dataframes and Lists
+
+*Rcpp* has classes `List` and `DataFrame` which are most interesting for input and ouput of functions.
+
+**Example: extract data from `lm` object**
+
+The function below extracts the residuals from a linear model of class `lm`.
+
+```nohighlights
+NumericVector residuals(List mod) {
+  NumericVector resids = as<NumericVector>(mod["residuals"]);
+  return resids;
+}
+```
+
+Remember that in R, a `data.frame` is an object of type `list` so the above function would also work on a `data.frame` with named column `residuals`.
+
+Note that manual conversion to `NumericVector` using `as()` is not necessary here because `residuals` are always of the same type.
+
+---
+### `Rcpp` &mdash; Dataframes and Lists
+
+**Example: extract data from `lm` object**
+
+We now show how to return selected entries of an `lm` object in a list 
+
+(note that the class is `List` with capital l)
+
+```nohighlights
+List components(List mod) {
+  
+  NumericVector resids = as<NumericVector>(mod["residuals"]);
+  NumericVector coefs = as<NumericVector>(mod["coefficients"]);
+  NumericVector fitted = as<NumericVector>(mod["fitted.values"]);
+  
+  List out = List::create(
+   Named("Residuals") = resids,
+   Named("Coeficients") = coefs,
+   Named("Fitted Values") = fitted
+  );
+  
+  return out;
+}
+```
+
+---
+### `Rcpp` &mdash; Two Paradigms
+
+<br>
+
+![:image 85%](img/pbr_paradigm.gif)
+
+
+---
+### `Rcpp` &mdash; Two Paradigms
+
+**Digression: pass by reference vs. pass by copy in C++**
+
+In C++ a *pass by value* happens by default. The functions below use return type `void`, i.e., they do not return a value.
+
+```nohighlights
+void test(int A) {   //A is passed by value
+  int B = A;         //B is a copy of A
+  A = 2 * A;         //A is altered inside the function
+}
+```
+*Pass by reference* is invoked using the *address-of operator* `&`.
+
+```nohighlights
+void test(int &A) {  //A is passed by reference, no copy is created
+  int B = A;         //B is a copy of A
+  A = 2 * A;         //A is altered inside AND outside the function
+}
+```
+
+---
+### `Rcpp` &mdash; Two Paradigms
+
+**Digression: pass by reference vs. pass by copy in C++**
+
+We may protect inputs from being altered inside or outside the function.
+
+```nohighlights
+void test(const int A) { //A is passed by copy
+  int B = 2 * A;         //and cannot be altered
+}
+```
+```nohighlights
+void test(const int &A) { //A is passed by reference
+  int B = 2 * A;          //and cannot be altered
+}
+```
+
+Note that in C++ the address-of operator `&` can also be used in variable assignment.
+
+```nohighlights
+int& B = A;       //B is a reference to A
+```
+
+---
+### `Rcpp` &mdash; Two Paradigms
+
+**Digression: pass by reference vs. pass by copy in `Rcpp`**
+
+The behaviour is different in `Rcpp`.
+
+```nohighlights
+#include<Rcpp.h>
+
+// [[Rcpp::export]]
+void test_reference(NumericVector A) {
+  
+  NumericVector B = A;
+  
+  Rcout << "Before: " << std::endl << 
+  "A: " << A << std::endl << 
+  "B: " << B << std::endl; 
+  
+  A[1] = 0.5;
+  
+  Rcout << "After: " << std::endl <<
+  "A: " << A << std::endl <<
+  "B: " << B << std::endl; 
+}
+```
+
+---
+### `Rcpp` &mdash; Two Paradigms
+
+**Digression: pass by reference vs. pass by copy in `Rcpp`**
+
+<b>Rcpp does not copy an object when passed as an argument to a function or on assignment!</b>
+
+```{r, echo=F, cache=F}
+cppFunction('
+void test_reference(NumericVector A) {
+  NumericVector B = A;
+  Rcout << "Before: " << std::endl << 
+  "A: " << A << std::endl << 
+  "B: " << B << std::endl; 
+  A[1] = 0.5;
+  Rcout << "After: " << std::endl <<
+  "A: " << A << std::endl <<
+  "B: " << B << std::endl; 
+}')
+```
+
+```{r}
+x <- 1:3/10
+test_reference(x)
+```
+
+The function altered the values of `A` and `B` as expected. But what happend to `x`?
+
+---
+### `Rcpp` &mdash; Two Paradigms
+
+**Digression: pass by reference vs. pass by copy in `Rcpp`**
+
+We find that `x` was modified *outside* the function.
+
+```{r}
+print(x) # check that x was modified
+```
+
+What happened?
+
+- The value passed to `A` in `test_reference()` is essentially the address pointing to `x` in the memory. The function works on `x` *by reference*.
+
+- Also the line `NumericVector B = A;` does *not* create a copy of `A` but an object pointing to data at the same memory location. Altering the value of `A` thus alters the value of `B`, too!
+
+---
+### `Rcpp` &mdash; Two Paradigms
+
+**Digression: pass by reference vs. pass by copy in `Rcpp`**
+
+Using `clone()` we may bypass the reference on assignment an work on `B`.
+
+```{r, echo=F, cache=F}
+cppFunction('
+void test_clone(NumericVector A) {
+  NumericVector B = clone(A);
+  Rcout << "Before: " << std::endl << 
+  "A: " << A << std::endl << 
+  "B: " << B << std::endl; 
+  B[1] = 0.5;
+  Rcout << "After: " << std::endl <<
+  "A: " << A << std::endl <<
+  "B: " << B << std::endl; 
+}')
+```
+
+```nohighlights
+#include<Rcpp.h>
+
+// [[Rcpp::export]]
+void test_clone(NumericVector A) {
+  NumericVector B = clone(A);
+  
+  Rcout << "Before: " << std::endl << 
+  "A: " << A << std::endl << 
+  "B: " << B << std::endl; 
+  B[1] = 0.5;
+  Rcout << "After: " << std::endl <<
+  "A: " << A << std::endl <<
+  "B: " << B << std::endl; 
+}
+```
+
+---
+### `Rcpp` &mdash; Two Paradigms
+
+**Digression: pass by reference vs. pass by copy in `Rcpp`**
+
+```{r}
+x <- 1:3/10
+test_clone(x)
+print(x) # check that x was not modified
+```
+
+---
+### `Rcpp` &mdash; Exercises Part 1
+
+- Set `x <- 1:3` and inspect `x` after running `test_reference(x)`. Explain the result and write an alternate version of `test_reference()` which behaves as as desired, i.e., passes `x` by reference.
+
+- Change the input type of the parameter `A` to `test_reference()` as follows:
+
+    (a) `const NumericVector A`
+    
+    (b) `const NumericVector& A`
+    
+    How does the function work on `x <- 1:3/10` in each case?
+
+- Find out why the following code gives a compile error:
+
+    ```nohighlights
+    #include<Rcpp.h>
+    // [[Rcpp::plugins("cpp11")]]
+    
+    NumericVector x{1, 2, 3, 4, 5};
+    IntegerVector id{1};
+    
+    double y = x[id]; // produces compile error
+    ```
+
+---
+### `Rcpp` &mdash; Exercises Part 1
+  
+- Benchmark the functions below against each other for `x<-rnorm(1e2)`, `x<-rnorm(1e4)` and `x<-rnorm(1e6)`. Comment on the results.
+
+      ```nohighlights
+      NumericVector test_clone_return(NumericVector A) {
+        NumericVector B = clone(A);
+        B[1] = 0.5;
+        return B;
+      }
+      ```
+      ```nohighlights
+      NumericVector test_reference_return(NumericVector A) {
+        A[1] = 0.5;
+        return A;
+      }
+      ```
+
+---
+### `Rcpp` &mdash; Syntactic Sugar
+
+Another benefit of using *Rcpp* classes is the ability to use *Rcpp sugar* &mdash; more efficient high-level syntax more similar to R. We give simple examples for the most important features.
+
+See the (inofficial) [list of sugar functions](https://thecoatlessprofessor.com/programming/unofficial-rcpp-api-documentation/) for more examples.
+
+**Binary arithmetic, logical and unary operators**
+
+```nohighlights
+NumericVector x, y;
+
+//arithmetic
+NumericVector res = x / y;
+NumericVector res = 2.0 - x;
+NumericVector res = x / ( y * y );
+
+//comparison
+LogicalVector res = x <= y;
+LogicalVector res = x < 2;
+LogicalVector res = ( x + y ) < ( x*x );
+
+//negation
+NumericVector res = -x;
+LogicalVector res = ! ( y < z );
+```
+
+---
+### `Rcpp` &mdash; Syntactic Sugar
+
+Note that there is no recycling: vectors need to have equal lengths, otherwise the compiler will return an error.
+
+**Logical summary functions**
+
+```nohighlights
+// at least one element
+is_true( any(x <= y) );
+is_false( any(x <= y) );
+
+// all elements
+is_true( all(x <= y) );
+is_false( all(x <= y) );
+
+// all the above return bool
+bool res = is_false( all(x <= y) );
+```
+
+Note that the conversion to <tt>bool</tt> using <tt>is_true()</tt> or <tt>is_false()</tt> is *mandatory*. Omission will result in a compiler error.
+
+---
+### `Rcpp` &mdash; Syntactic Sugar
+
+**Vector Views**
+
+*Rcpp* provides functions which give vector 'views'  more efficiently than their R equivalents as they use pointers instead of copies.
+
+```nohighlights
+head(x)
+tail(x)
+rep_each(x, 10)
+rep_len(x, 3)
+rev(x)
+seq_along(x)
+seq_len(10)
+```
+
+---
+### `Rcpp` &mdash; Syntactic Sugar
+
+**Mathematics and statistics**
+
+Most functions for mathmatical operations, scalar and vector summaries and search algorithms have performant sugar equivalents.
+
+```nohighlights
+// some examples of mathematical sugar implementations
+abs(), ceil(), ceiling(), choose(), exp(), factorial(), floor(), 
+log(), sin(), sinh(), sqrt() 
+```
+
+```nohighlights
+// some examples of scalar and vector summary functions
+mean(), min(), max(), sum(), sd(), var(), cumsum(), diff(), 
+pmin(), pmax()
+```
+
+```nohighlights
+// finding values
+match(), self_match(), which_max(), which_min()
+```
+Very convenient: the d/p/q/r functions for standard distribution are implemented, too.
+
+```nohighlights
+NumericVector x = rnorm(100);
+```
+
+---
+### `Rcpp` &mdash; Case Study: Simulating $\pi$ in C++
+
+![:image 60%](img/simulate_pi.gif)
+
+---
+### `Rcpp` &mdash; Case Study: Simulating $\pi$ in C++
+
+We use that for $x_i, y_i \sim i.i.d. \mathcal{U}[0,1]$,
+
+$$\frac{1}{N}\sum_{i=1}^N \mathcal{I}_{\{\sqrt{x_i^2+y_i^2}\leq1\}} \xrightarrow{p} \pi/4$$
+
+to implement the simulation `pi_R()`.
+
+```{r}
+pi_R <- function(N) {
+  x <- runif(N)
+  y <- runif(N)
+  d <- sqrt(x*x + y*y)
+  return(4 * sum(d <= 1.0) / N)
+}
+```
+
+```{r, cache=T}
+set.seed(123)
+sapply(10^(3:6), pi_R)
+```
+
+---
+### `Rcpp` &mdash; Case Study: Simulating $\pi$ in C++
+
+A compact C++ version is easily implemented using sugar functions. 
+
+```nohighlights
+#include <Rcpp.h>
+using namespace Rcpp;
+
+// [[Rcpp::export]]
+double pi_Sugar(const int N) {
+  RNGScope scope; // ensure RNG gets set/reset
+  NumericVector x = runif(N);
+  NumericVector y = runif(N);
+  NumericVector d = sqrt(x*x + y*y);
+  return 4.0 * sum(d <= 1.0) / N;
+}
+```
+
+```{r, echo=F}
+cppFunction('
+double pi_sugar(const int N) {
+  RNGScope scope; // ensure RNG gets set/reset
+  NumericVector x = runif(N);
+  NumericVector y = runif(N);
+  NumericVector d = sqrt(x*x + y*y);
+  return 4.0 * sum(d <= 1.0) / N;
+}')
+```
+
+```{r}
+set.seed(123)
+sapply(10^(3:6), pi_sugar)
+```
+
+---
+### `Rcpp` &mdash; Case Study: Gibbs Sampler
+
+Suppose we wish to sample from the bivariate distribution with PDF
+
+$$f(x,y) \propto x^2 \exp(-xy^2 - y^2 + 2y - 4x),\quad x>0, \ y \in \mathbb{R}$$
+
+We have $$f(x\vert y) \propto x^2 \exp\{(y^2-4)x\} \propto \text{Gamma}\left(3, 4 + y^2\right)$$ and 
+$$f(y\vert x) \propto \exp\{-y^2(x+1)+2y\} \propto \mathcal{N}\left(\frac{1}{x+1}, \frac{1}{2(x+1)}\right).$$
+Sampling from the conditional distributions is easy in R and C++/Rcpp so we may use a *Gibbs sampler*.
+
+---
+### `Rcpp` &mdash; Case Study: Gibbs Sampler
+
+**Gibbs sampler for two variables**
+
+1. Choose a starting value $y^{(0)}$
+
+2. At the first iteration, draw $$x^{(1)}\text{ from } f(x\vert y^{(0)}) \\ y^{(1)} \text{ from } f(y\vert x^{(1)})$$
+
+3. At the $b^{th}$ iteration, draw $$x^{(b)}\text{ from } f(x\vert y^{(b-1)}) \\ y^{(b)} \text{ from } f(y\vert x^{(b)})$$ until the desired number of iterations is obtained
+
+---
+### `Rcpp` &mdash; Case Study: Gibbs Sampler
+
+We implement the Gibbs algorithm with *thinning* which reduces dependence of the samples.
+
+```{r}
+# base R implementation
+Gibbs_R <- function(N, thin) {
+  
+  mat <- matrix(0, ncol = 2, nrow = N)
+  x <- 0; y <- 0
+  
+  for (i in 1:N) {
+    for (j in 1:thin) {
+      x <- rgamma(1, 3, y*y+4)
+      y <- rnorm(1, 1/(x+1), 1/sqrt(2*x+2))
+    }
+    mat[i, ] = c(x, y)
+  }
+  
+  names(mat) <- c("x", "y")
+  return(mat)
+}
+```
+
+---
+### `Rcpp` &mdash; Case Study: Gibbs Sampler
+
+Thanks to sugar functions, the Rcpp version looks very similar.
+
+```{r, echo=F, message=F, warning=F}
+cppFunction('NumericMatrix Gibbs_Rcpp(int N, int thin) {
+    NumericMatrix mat(N, 2);
+    double x=0, y=0;
+    for (int i=0; i<N; i++) {
+        for (int j=0; j<thin; j++) {
+            x = R::rgamma(3.0, 1.0/(y*y+4));
+            y = R::rnorm(1.0/(x+1), 1.0/sqrt(2*x+2));
+        }
+        mat(i, 0) = x;
+        mat(i, 1) = y;
+    }
+    return mat; 
+}')
+```
+
+```nohighlights
+#include <Rcpp.h>
+using namespace Rcpp;	
+
+// [[Rcpp::export]]
+NumericMatrix Gibbs_Rcpp(int N, int thin) {
+
+    NumericMatrix mat(N, 2);
+    double x=0, y=0;
+
+    for (int i=0; i<N; i++) {
+        for (int j=0; j<thin; j++) {
+            x = R::rgamma(3.0, 1.0/(y*y+4));
+            y = R::rnorm(1.0/(x+1), 1.0/sqrt(2*x+2));
+        }
+        mat(i, 0) = x;
+        mat(i, 1) = y;
+    }
+
+    return mat; 
+}
+```
+
+---
+### `Rcpp` &mdash; Case Study: Gibbs Sampler
+
+Rcpp really shines at this one since the double loop is slow in R.
+
+```{r, cache = T}
+bench::mark(
+    Gibbs_R(2000, 200),
+    Gibbs_Rcpp(2000, 200),
+    relative = T, check = F
+)[, 1:4]
+```
+
+---
+### `Rcpp` &mdash; Case Study: Gibbs Sampler
+
+```{r, eval=F, echo=F}
+library(MASS)
+library(plotly)
+
+f <- function(x, y) {
+  x*x*exp(-x*y*y - y*y + 2*y - 4*x)
+}
+
+x <- seq(0,4,0.1)
+y <- seq(-2,4,0.1)
+z <- outer(x, y, f)
+
+p <- plot_ly(x = x, y = y, z = z) %>% add_contour() %>% 
+  layout(yaxis = list(range = c(-2, 0)))
+
+api_create(p, filename = "contours_true")
+
+samples <- Gibbs_Rcpp(2e5, 1e3)
+kd <- kde2d(samples[, 1], samples[, 2], n = 100, h = c(0.3,0.3))
+
+p <- plot_ly(x = kd$x, y = kd$y, z = kd$z) %>% add_contour() %>% 
+  layout(yaxis = list(range = c(-1.8, 0.5)))
+
+api_create(p, filename = "contours_gibbs")
+```
+
+<iframe width="700" height="400" frameborder="0" scrolling="no" src="https://www.plot.ly/~mca_unidue/57.embed?showlink=false"></iframe>
+
+**Countours of the (unnormalized) density function**
+
+---
+### `Rcpp` &mdash; Case Study: Gibbs Sampler
+
+<iframe width="700" height="400" frameborder="0" scrolling="no" src="https://www.plot.ly/~mca_unidue/59.embed?showlink=false"></iframe>
+
+**Contours of kernel density estimate from Gibbs samples**
+
+---
+### `Rcpp` &mdash; Standard Template Library (STL)
+
+The C++ STL is an extensive collection of generic data structures, algorithms and iterators. We will discuss simple examples of some components.
+
+The [cplusplus reference](http://www.cplusplus.com/) provides a comprehensive summary of the available libraries.
+
+The following collections are recommended for beginners to start with:
+
+- [numeric](http://www.cplusplus.com/reference/numeric/) &mdash; operations on sequences of numeric values
+
+- [algorithm](http://www.cplusplus.com/reference/algorithm/) &mdash; functions which work on ranges of elements using iterators
+
+The following examples show .cpp-files as some require a different header than included by default
+
+---
+### `Rcpp` &mdash; STL Iterators
+
+Iterator objects come with operators that allow to iterate over a range elements in in a more abstract way than a classic `for()` loop with an indexing variable.
+
+**Example: NumericVector::iterator**
+
+```nohighlights
+#include <Rcpp.h>
+using namespace Rcpp;
+
+// [[Rcpp::export]]
+double sum_it(NumericVector x) {
+  double total = 0;
+  
+  NumericVector::iterator it;
+  for(it = x.begin(); it != x.end(); ++it) {
+    total += *it;
+  }
+  return total;
+}
+```
+
+Each Rcpp vector type has a separate iterator.
+
+Note that we use the *dereference operator* `*it` to get the value of the current element.
+
+---
+### `Rcpp` &mdash; STL Iterators
+
+There are functions which accept iterators as arguments.
+
+**Example: `apply()`-style functions**
+
+```nohighlights
+#include <numeric>
+#include <Rcpp.h>
+using namespace Rcpp;
+
+// [[Rcpp::export]]
+double sum_accu(NumericVector x) {
+  return std::accumulate(x.begin(), x.end(), 0.0);
+}
+```
+
+- `accumulate()` is in the <tt>numeric</tt> STL so we have to include it in the header
+
+- Setting the starting value `0.0` ensures that a double is returned (use `0` for an integer)
+
+---
+### `Rcpp` &mdash; STL Algorithms
+
+A very useful STL algorithm is `transform()` which applies an operation sequentially to elements in (up to two) ranges and stores the result in another range.
+
+**Example: `std::transform()`**
+
+We use `transform()` to square all elements of a vector.
+
+```nohighlights
+#include <Rcpp.h>
+using namespace Rcpp;
+
+double f(double x) { 
+ return std::pow(x, 2); 
+}
+
+// [[Rcpp::export]]
+std::vector<double> square(std::vector<double> x) {
+  std::transform(x.begin(), x.end(), x.begin(), f);
+return x;
+}
+```
+Note that we do not need to export `f()` because it is only a subroutine of `square()`
+
+---
+### `Rcpp` &mdash; STL Algorithms
+
+**Example: (partial) sort**
+
+The following Rcpp function returns a *copy* of the input vector with the first `n` elements sorted.
+
+```nohighlights
+// [[Rcpp::export]]
+NumericVector nth_partial_sort(NumericVector x, int nth) {
+  NumericVector y = clone(x);
+  std::nth_element(y.begin(), y.begin()+nth, y.end());
+  std::sort(y.begin(), y.begin()+nth);
+  return y;
+}
+```
+
+```{r, echo=F}
+cppFunction('
+NumericVector nth_partial_sort(NumericVector x, int nth) {
+  NumericVector y = clone(x);
+  std::nth_element(y.begin(), y.begin()+nth, y.end());
+  std::sort(y.begin(), y.begin()+nth);
+  return y;
+}')
+```
+
+---
+### `Rcpp` &mdash; STL Algorithms
+
+**Example: (partial) sort**
+
+Let us benchmark `nth_partial_sort()` against R's `sort()` for a full sort.
+
+```{r, cache=T}
+x <- rnorm(100)
+bench::mark(
+        nth_partial_sort(x, 100),
+        sort(x),
+        relative = T)
+```
+
+---
+### `Rcpp` &mdash; Programming Strategy
+
+- Write most of your code in R to take advantage of its high abstraction level
+
+- Profile your code, identify bottlenecks and replace those
+sections (by writing entire functions) with C++ for performance improvement. 
+
+- Make sure that your C++ routines have the same call signature as their slow R equivalents.
+
+---
+### `Rcpp` &mdash; Exercises Part 2
+
+- Implement the R function below using `Rcpp` for integer input (and output) and benchmark both versions.
+
+      ```
+      f <- function(n) {
+        if(n < 2) return(n)
+        return(f(n-1) + f(n-2))
+      }
+      ```
+
+- Reconsider the function `nth_partial_sort()`. Compare its perforamnce with that of R's `sort()` for larg vectors. Explain your findings.
+
+- Convert `all()`, `range()` and `var()` into C++. You may assume that the inputs have no missing values. 
+
+---
 class: center, middle
 
 ![:image 100%](img/armadillo.png)
 
+---
+### Armadillo &mdash; FAQs
+
+**What is Armadillo?**
+
+Armadillo is a templated high quality linear algebra library for C++ with good balance between speed and ease of use
+
+**Why use it?**
+
+- Matrix multiplication, inversion and decomposition are indispensible in econometrics and statistics
+
+- C++ (and Rcpp) do not provide suitable classes and methods (in fact, there isn't a method for even matrix multiplication in Rcpp). Coding these by hand is tedious and error prone.
+
+    Armadillo provides well tested matrix classes for integer, floating point and complex numbers and fast methods
+
+**Do I need advanced C++ skills?**
+
+- No. Armadillo uses an easy syntax which is close to that of MATLAB.
+
+- The Armadillo library has a very good documentation at [sourceforge](http://arma.sourceforge.net/docs.html).
 
 ---
-### xaringan
+### `RcppArmadillo` &mdash; Prerequisites
 
-```terminal
-josh@brick ~/repos/aha $ git log -2
-<span style="color:olive;">commit 36b0a3af174e204c8d0a7a993ad467cd7be39bca</span>
-Author: Ziz <zizsdl@googlemail.com>
-Date:   Fri Aug 3 10:29:43 2012 +0200
-    Small version changes, make clean, merging, etc.
-...
-```
+- `RcppArmadillo` provides an interface from and to Armadillo which is based on the C++/R interface impemented in Rcpp
 
+- The package requires a development toolchain to use which should be already setup if C++ integration with Rcpp works without issues. Setting up `RcppArmadillo` then boils down to installing the package from CRAN
+
+    ```nohighlights
+    install.packages('RcppArmadillo')
+    library(RcppArmadillo)
+    ```
+- It is straighfowrd to verify if it works by setting `"RcppArmadillo"` as a dependency in `Rcpp::cppFunction()` or `Rcpp::evalCpp()`.
+
+    ```nohighlights
+    Rcpp::evalCpp("1 + 1", depends = "RcppArmadillo")
+    #> [1] 2
+    ```
 ---
-class: inverse, center, middle
+### `RcppArmadillo` &mdash; `sourceCpp()`
 
-# Get Started
+- Again the preferred method for compiling Armadillo code is to use a `C++` file with a modified header. The following lines replace the default header:
 
----
-
-# Hello World
-
-Install the **xaringan** package from [Github](https://github.com/yihui/xaringan):
-
-```{r eval=FALSE, tidy=FALSE}
-devtools::install_github("yihui/xaringan")
-```
-
---
-
-You are recommended to use the [RStudio IDE](https://www.rstudio.com/products/rstudio/), but you do not have to.
-
-- Create a new R Markdown document from the menu `File -> New File -> R Markdown -> From Template -> Ninja Presentation`;<sup>1</sup>
-
---
-
-- Click the `Knit` button to compile it;
-
---
-
-- or use the [RStudio Addin](https://rstudio.github.io/rstudioaddins/)<sup>2</sup> "Infinite Moon Reader" to live preview the slides (every time you update and save the Rmd document, the slides will be automatically reloaded in RStudio Viewer.
-
-.footnote[
-[1] 中文用户请看[这份教程](http://slides.yihui.name/xaringan/zh-CN.html)
-
-[2] See [#2](https://github.com/yihui/xaringan/issues/2) if you do not see the template or addin in RStudio.
-]
-
----
-background-image: url(`r xaringan:::karl`)
-background-position: 50% 50%
-class: center, bottom, inverse
-
-# You only live once!
-
----
-
-# Hello Ninja
-
-As a presentation ninja, you certainly should not be satisfied by the "Hello World" example. You need to understand more about two things:
-
-1. The [remark.js](https://remarkjs.com) library;
-
-1. The **xaringan** package;
-
-Basically **xaringan** injected the chakra of R Markdown (minus Pandoc) into **remark.js**. The slides are rendered by remark.js in the web browser, and the Markdown source needed by remark.js is generated from R Markdown (**knitr**).
-
----
-
-# remark.js
-
-You can see an introduction of remark.js from [its homepage](https://remarkjs.com). You should read the [remark.js Wiki](https://github.com/gnab/remark/wiki) at least once to know how to
-
-- create a new slide (Markdown syntax<sup>*</sup> and slide properties);
-
-- format a slide (e.g. text alignment);
-
-- configure the slideshow;
-
-- and use the presentation (keyboard shortcuts).
-
-It is important to be familiar with remark.js before you can understand the options in **xaringan**.
-
-.footnote[[*] It is different with Pandoc's Markdown! It is limited but should be enough for presentation purposes. Come on... You do not need a slide for the Table of Contents! Well, the Markdown support in remark.js [may be improved](https://github.com/gnab/remark/issues/142) in the future.]
-
----
-background-image: url(`r xaringan:::karl`)
-background-size: cover
-class: center, bottom, inverse
-
-# I was so happy to have discovered remark.js!
-
----
-class: inverse, middle, center
-
-# Using xaringan
-
----
-
-# xaringan
-
-Provides an R Markdown output format `xaringan::moon_reader` as a wrapper for remark.js, and you can use it in the YAML metadata, e.g.
-
-```yaml
----
-title: "A Cool Presentation"
-output:
-  xaringan::moon_reader
-    yolo: true
-    nature:
-      autoplay: 30000
----
-```
-
-See the help page `?xaringan::moon_reader` for all possible options that you can use.
-
----
-
-# remark.js vs xaringan
-
-Some differences between using remark.js (left) and using **xaringan** (right):
-
-.pull-left[
-1. Start with a boilerplate HTML file;
-
-1. Plain Markdown;
-
-1. Write JavaScript to autoplay slides;
-
-1. Manually configure MathJax;
-
-1. Highlight code with `*`;
-
-1. Edit Markdown source and refresh browser to see updated slides;
-]
-
-.pull-right[
-1. Start with an R Markdown document;
-
-1. R Markdown (can embed R/other code chunks);
-
-1. Provide an option `autoplay`;
-
-1. MathJax just works;<sup>*</sup>
-
-1. Highlight code with `{{}}`;
-
-1. The RStudio addin "Infinite Moon Reader" automatically refreshes slides on changes;
-]
-
-.footnote[[*] Not really. See next page.]
-
----
-
-# Math Expressions
-
-You can write LaTeX math expressions inside a pair of dollar signs, e.g. &#36;\alpha+\beta$ renders $\alpha+\beta$. You can use the display style with double dollar signs:
-
-```
-$$\bar{X}=\frac{1}{n}\sum_{i=1}^nX_i$$
-```
-
-$$\bar{X}=\frac{1}{n}\sum_{i=1}^nX_i$$
-
-Limitations:
-
-1. The source code of a LaTeX math expression must be in one line, unless it is inside a pair of double dollar signs, in which case the starting `$$` must appear in the very beginning of a line, followed immediately by a non-space character, and the ending `$$` must be at the end of a line, led by a non-space character;
-
-1. There should not be spaces after the opening `$` or before the closing `$`.
-
-1. Math does not work on the title slide (see [#61](https://github.com/yihui/xaringan/issues/61) for a workaround).
-
----
-
-# R Code
-
-```{r comment='#'}
-# a boring regression
-fit = lm(dist ~ 1 + speed, data = cars)
-coef(summary(fit))
-dojutsu = c('地爆天星', '天照', '加具土命', '神威', '須佐能乎', '無限月読')
-grep('天', dojutsu, value = TRUE)
-```
-
----
-
-# R Plots
-
-```{r cars, fig.height=4, dev='svg'}
-par(mar = c(4, 4, 1, .1))
-plot(cars, pch = 19, col = 'darkgray', las = 1)
-abline(fit, lwd = 2)
-```
-
----
-
-# Tables
-
-If you want to generate a table, make sure it is in the HTML format (instead of Markdown or other formats), e.g.,
-
-```{r}
-knitr::kable(head(iris), format = 'html')
-```
-
----
-
-# HTML Widgets
-
-I have not thoroughly tested HTML widgets against **xaringan**. Some may work well, and some may not. It is a little tricky.
-
-Similarly, the Shiny mode (`runtime: shiny`) does not work. I might get these issues fixed in the future, but these are not of high priority to me. I never turn my presentation into a Shiny app. When I need to demonstrate more complicated examples, I just launch them separately. It is convenient to share slides with other people when they are plain HTML/JS applications.
-
-See the next page for two HTML widgets.
-
----
-
-```{r out.width='100%', fig.height=6, eval=require('leaflet')}
-library(leaflet)
-leaflet() %>% addTiles() %>% setView(-93.65, 42.0285, zoom = 17)
-```
-
----
-
-```{r eval=require('DT'), tidy=FALSE}
-DT::datatable(
-  head(iris, 10),
-  fillContainer = FALSE, options = list(pageLength = 8)
-)
-```
-
----
-
-# Some Tips
-
-- When you use the "Infinite Moon Reader" addin in RStudio, your R session will be blocked by default. You can click the red button on the right of the console to stop serving the slides, or use the _daemonized_ mode so that it does not block your R session. To do the latter, you can set the option
-
-    ```r
-    options(servr.daemon = TRUE)
+    ```nohighlights
+    #include <RcppArmadillo.h>
+    // [[Rcpp::depends(RcppArmadillo)]]
     ```
     
-    in your current R session, or in `~/.Rprofile` so that it is applied to all future R sessions. I do the latter by myself.
+    This ensures that the C++ library headers `Rcpp.h` and `Armadillo.h` are included and adds `RcppArmadillo` onto the compiler's search path.
+
+- In what follows we refer explicitly to Armadillo functions by prefixing the namespace. This avoids overlapping of function names. 
+
+    We may specify that the Armadillo package namespace is used by default.
+
+    ```nohighlights
+    using namespace arma;
+    ```
+
+- `sourceCpp()` then can be used for sourcing the script (on save) just as for `Rcpp` code.
+
+---
+### `RcppArmadillo` &mdash; Classes
+
+- The most important Armadillo classes store elements as <tt>double</tt>:
+
+    ```nohighlights
+    arma::mat, arma::vec (arma::colvec, arma::rowvec)
+    ```
+    Other types are available, e.g. `arma::uvec` and `arma::umat` which store unsigned integers.
     
-    To know more about the web server, see the [**servr**](https://github.com/yihui/servr) package.
+- There are other classes, e.g. for sparse matrices and higher-dimensional arrays
 
---
+- All classes have attributes and associated methods which can be accessed using *dot syntax* just as for the STL.
 
-- Do not forget to try the `yolo` option of `xaringan::moon_reader`.
+    **Example: Attributes and Methods**
 
-    ```yaml
-    output:
-      xaringan::moon_reader:
-        yolo: true
+    ```nohighlights
+    arma::mat I(10, 10);   //define 10x10 matrix
+    int n = I.n_rows();    //get number of rows
+    I.eye();               //transform to identity matrix
     ```
-
+    
 ---
+### `RcppArmadillo` 
 
-# Some Tips
+**Example: inner vector product**
 
-- Slides can be automatically played if you set the `autoplay` option under `nature`, e.g. go to the next slide every 30 seconds in a lightning talk:
-
-    ```yaml
-    output:
-      xaringan::moon_reader:
-        nature:
-          autoplay: 30000
-    ```
-
---
-
-- A countdown timer can be added to every page of the slides using the `countdown` option under `nature`, e.g. if you want to spend one minute on every page when you give the talk, you can set:
-
-    ```yaml
-    output:
-      xaringan::moon_reader:
-        nature:
-          countdown: 60000
-    ```
-
-    Then you will see a timer counting down from `01:00`, to `00:59`, `00:58`, ... When the time is out, the timer will continue but the time turns red.
-
----
-
-# Some Tips
-
-- There are several ways to build incremental slides. See [this presentation](https://slides.yihui.name/xaringan/incremental.html) for examples.
-
-- The option `highlightLines: true` of `nature` will highlight code lines that start with `*`, or are wrapped in `{{ }}`, or have trailing comments `#<<`;
-
-    ```yaml
-    output:
-      xaringan::moon_reader:
-        nature:
-          highlightLines: true
-    ```
-
-    See examples on the next page.
-
----
-
-# Some Tips
-
-
-.pull-left[
-An example using a leading `*`:
-
-    ```r
-    if (TRUE) {
-    ** message("Very important!")
-    }
-    ```
-Output:
-```r
-if (TRUE) {
-* message("Very important!")
+```nohighlights
+// using Rcpp
+double inner_prod_rcpp(NumericVector x, NumericVector y) {
+  int K = x.length();
+  double ip = 0;
+  for (int k = 0; k < K; k++) {
+    ip += x(k) * y(k);
+  }
+  return(ip);
+}
+```
+Note that matrix multiplication requires two loops which looks even more bulky.
+```nohighlights
+// using RcppArmadillo
+double inner_prod_rcpparma(arma::vec x, arma::vec y) {
+  arma::mat out = x.t() * y;
+  return(out(0));
 }
 ```
 
-This is invalid R code, so it is a plain fenced code block that is not executed.
-]
+---
+### `RcppArmadillo` 
 
-.pull-right[
-An example using `{{}}`:
+**Example: inner vector product**
 
-    `r ''````{r tidy=FALSE}
-    if (TRUE) {
-    *{{ message("Very important!") }}
-    }
-    ```
-Output:
-```{r tidy=FALSE}
-if (TRUE) {
-{{ message("Very important!") }}
+It's faster.
+
+```{r, echo=F, message=F, warning=F, cache=T}
+cppFunction('
+  double inner_prod_rcpp(NumericVector x, NumericVector y) {
+  int K = x.length();
+  double ip = 0;
+  for (int k = 0; k < K; k++) {
+    ip += x(k) * y(k);
+  }
+  return(ip);
+  }', depends = "RcppArmadillo")
+cppFunction('
+  double inner_prod_rcpparma(arma::vec x, arma::vec y) {
+  arma::mat out = x.t() * y;
+  return(out(0));
+}', depends = "RcppArmadillo")
+```
+
+```{r, cache=T}
+x <- rnorm(1e4); y <- rnorm(1e4)
+bench::mark(
+  t(x) %*% y,       
+  inner_prod_rcpp(x, y),
+  inner_prod_rcpparma(x, y),
+  check = F,
+  relative = T
+)[, 1:5]
+```
+
+---
+### `RcppArmadillo` 
+
+**Example: eigenvalues of real symmetric matrix**
+
+```{r, echo=F, message=F, warning=F}
+cppFunction('
+arma::vec Eigenvals_Armadillo(arma::mat& M) {
+  return arma::eig_sym(M);
+}', depends = "RcppArmadillo")
+```
+
+```nohighlights
+arma::vec Eigenvals_Armadillo(arma::mat A) {
+  return arma::eig_sym(A);
 }
 ```
 
-It is valid R code so you can run it. Note that `{{}}` can wrap an R expression of multiple lines.
-]
-
----
-
-# Some Tips
-
-An example of using the trailing comment `#<<` to highlight lines:
-
-````markdown
-`r ''````{r tidy=FALSE}
-library(ggplot2)
-ggplot(mtcars) + 
-  aes(mpg, disp) + 
-  geom_point() +   #<<
-  geom_smooth()    #<<
-```
-````
-
-Output:
-
-```{r tidy=FALSE, eval=FALSE}
-library(ggplot2)
-ggplot(mtcars) + 
-  aes(mpg, disp) + 
-  geom_point() +   #<<
-  geom_smooth()    #<<
+```{r}
+X <- rnorm(1000); X <- X %*% t(X)
+bench::mark(
+  eigen(X)$values,
+  Eigenvals_Armadillo(X),
+  check = F
+)[, 1:4]
 ```
 
 ---
+### `RcppArmadillo` &mdash; Programming Strategy
 
-# Some Tips
+We recommend a similar procedure as for Rcpp: 
 
-- To make slides work offline, you need to download a copy of remark.js in advance, because **xaringan** uses the online version by default (see the help page `?xaringan::moon_reader`).
+- Write the code in R and divide it into functions if possible so that bottlenecks can be easily identified
 
-- You can use `xaringan::summon_remark()` to download the latest or a specified version of remark.js. By default, it is downloaded to `libs/remark-latest.min.js`.
+- Replace slow components with C++ Armadillo functions that have the same call signature.
 
-- Then change the `chakra` option in YAML to point to this file, e.g.
-
-    ```yaml
-    output:
-      xaringan::moon_reader:
-        chakra: libs/remark-latest.min.js
-    ```
-
-- If you used Google fonts in slides (the default theme uses _Yanone Kaffeesatz_, _Droid Serif_, and _Source Code Pro_), they won't work offline unless you download or install them locally. The Heroku app [google-webfonts-helper](https://google-webfonts-helper.herokuapp.com/fonts) can help you download fonts and generate the necessary CSS.
+- New: Try to keep the number of casts between RcppArmadillo, Rcpp and R data types to a minimum. 
 
 ---
+### `RcppArmadillo` 
 
-# Macros
+**Example: fast regression**
 
-- remark.js [allows users to define custom macros](https://github.com/yihui/xaringan/issues/80) (JS functions) that can be applied to Markdown text using the syntax `![:macroName arg1, arg2, ...]` or `![:macroName arg1, arg2, ...](this)`. For example, before remark.js initializes the slides, you can define a macro named `scale`:
+Rcpp input *by reference* / Rcpp return
 
-    ```js
-    remark.macros.scale = function (percentage) {
-      var url = this;
-      return '<img src="' + url + '" style="width: ' + percentage + '" />';
-    };
-    ```
+```nohighlights
+#include <RcppArmadillo.h>
+using namespace Rcpp;
 
-    Then the Markdown text
-
-    ```markdown
-    ![:scale 50%](image.jpg)
-    ```
-
-    will be translated to
+// [[Rcpp::export]]
+List fastReg_TwoCasts(NumericMatrix Xr,  NumericVector yr) {
+    int n = X.n_rows, k = X.n_cols;
     
-    ```html
-    <img src="image.jpg" style="width: 50%" />
-    ```
+    arma::mat X(Xr.begin(), n, k, false);
+    arma::colvec y(yr.begin(), yr.size(), false);
+        
+    arma::colvec coef = arma::solve(X, y);
+    arma::colvec res  = y-X*coef;
 
----
-
-# Macros (continued)
-
-- To insert macros in **xaringan** slides, you can use the option `beforeInit` under the option `nature`, e.g.,
-
-    ```yaml
-    output:
-      xaringan::moon_reader:
-        nature:
-          beforeInit: "macros.js"
-    ```
-
-    You save your remark.js macros in the file `macros.js`.
-
-- The `beforeInit` option can be used to insert arbitrary JS code before `remark.create()`. Inserting macros is just one of its possible applications.
-
----
-
-# CSS
-
-Among all options in `xaringan::moon_reader`, the most challenging but perhaps also the most rewarding one is `css`, because it allows you to customize the appearance of your slides using any CSS rules or hacks you know.
-
-You can see the default CSS file [here](https://github.com/yihui/xaringan/blob/master/inst/rmarkdown/templates/xaringan/resources/default.css). You can completely replace it with your own CSS files, or define new rules to override the default. See the help page `?xaringan::moon_reader` for more information.
-
----
-
-# CSS
-
-For example, suppose you want to change the font for code from the default "Source Code Pro" to "Ubuntu Mono". You can create a CSS file named, say, `ubuntu-mono.css`:
-
-```css
-@import url(https://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700,400italic);
-
-.remark-code, .remark-inline-code { font-family: 'Ubuntu Mono'; }
+    return List::create(Named("coefficients") = coef);
+}
 ```
 
-Then set the `css` option in the YAML metadata:
+---
+### `RcppArmadillo` 
 
-```yaml
-output:
-  xaringan::moon_reader:
-    css: ["default", "ubuntu-mono.css"]
+**Example: fast regression**
+
+Armadillo input *by value* / Rcpp return
+
+```nohighlights
+#include <RcppArmadillo.h>
+using namespace Rcpp;
+
+// [[Rcpp::export]]
+List fastReg_OneCast(arma::mat X, arma::colvec y) {
+    int n = X.n_rows, k = X.n_cols;
+
+    arma::colvec coef = arma::solve(X, y);
+    arma::colvec res  = y-X*coef;
+
+    return List::create(Named("coefficients") = coef);
+}
+```
+---
+### `RcppArmadillo` 
+
+**Example: fast regression**
+
+Armadillo input *by constant reference* / Rcpp return
+
+```nohighlights
+#include <RcppArmadillo.h>
+using namespace Rcpp;
+
+// [[Rcpp::export]]
+List fastReg_ConstRef(const arma::mat& X, const arma::colvec& y) {
+    int n = X.n_rows, k = X.n_cols;
+        
+    arma::colvec coef = arma::solve(X, y);
+    arma::colvec res  = y-X*coef;
+
+    return List::create(Named("coefficients") = coef);
+}
 ```
 
-Here I assume `ubuntu-mono.css` is under the same directory as your Rmd.
+---
+### `RcppArmadillo` 
 
-See [yihui/xaringan#83](https://github.com/yihui/xaringan/issues/83) for an example of using the [Fira Code](https://github.com/tonsky/FiraCode) font, which supports ligatures in program code.
+**Example: fast regression**
+
+Armadillo input *by constant reference* / RcppArmadillo return
+
+```nohighlights
+#include <RcppArmadillo.h>
+using namespace Rcpp;
+
+// [[Rcpp::export]]
+arma::mat fastReg_NoCast(const arma::mat& X, const arma::vec& y) {  
+ arma::vec b_hat;  
+ 
+ beta_hat = (X.t() * X).i() * X.t() * y;  
+ 
+ return(beta_hat);  
+}
+```
 
 ---
+### `RcppArmadillo` 
 
-# Themes
+**Example: fast regression**
 
-Don't want to learn CSS? Okay, you can use some user-contributed themes. A theme typically consists of two CSS files `foo.css` and `foo-fonts.css`, where `foo` is the theme name. Below are some existing themes:
+```{r, echo=F, warning=F, message=F, cache=T}
+cppFunction('
+List fastReg_TwoCasts(NumericMatrix Xr,  NumericVector yr) {
+    int n = Xr.nrow(), k = Xr.ncol();
+    arma::mat X(Xr.begin(), n, k, false);
+    arma::colvec y(yr.begin(), yr.size(), false);
+    arma::colvec coef = arma::solve(X, y);
+    arma::colvec res  = y-X*coef;
+    return List::create(Named("coefficients") = coef);
+}', depends = "RcppArmadillo")
+cppFunction('
+List fastReg_OneCast(arma::mat X, arma::colvec y) {
+    arma::colvec coef = arma::solve(X, y);
+    arma::colvec res  = y-X*coef;
+    return List::create(Named("coefficients") = coef);
+}', depends = "RcppArmadillo")
+cppFunction('
+List fastReg_ConstRef(const arma::mat& X, const arma::colvec& y) {
+    arma::colvec coef = arma::solve(X, y);
+    arma::colvec res  = y-X*coef;
+    return List::create(Named("coefficients") = coef);
+}', depends = "RcppArmadillo")
+cppFunction('
+arma::mat fastReg_NoCast(const arma::mat& X, const arma::vec& y) {  
+ arma::vec b_hat;  
+ b_hat = (X.t()*X).i()*X.t()*y;  
+ return(b_hat);  
+ }', depends = "RcppArmadillo")
+```
+
+```{r, cache = T}
+k <- 4; N <- 1e4
+X <- cbind(1,matrix(rnorm(N), ncol = k))
+Y <- X %*% c(1, runif(k)) + rnorm(N/k)
+
+bench::mark(
+    lm(Y ~ X - 1), solve(t(X) %*% X) %*% t(X) %*% Y, lm.fit(X, Y),
+    fastReg_TwoCasts(X, Y), fastReg_OneCast(X, Y),
+    fastReg_ConstRef(X, Y), fastReg_NoCast(X, Y),
+    check = F, relative = T, iterations = 500)[, 1:4]
+```
+
+---
+### `RcppArmadillo` 
+
+**Example: simulating a VAR(1) process**
+
+- A VAR(1) process is given by $$\mathbf{y}_t = \mathbf{A}\mathbf{y}_{t-1} + \boldsymbol{\varepsilon}_t$$ with $K$ endogenous variables $\mathbf{y}_t = (y_{1t}, \dots, y_{kt})$, $\mathbf{A}$ a $K\times K$ coefficient matrix and $\boldsymbol{\varepsilon}_t$ a $K$ dimensional error process with $E(\boldsymbol{\varepsilon}_t) = \mathbf{0}$ and $E(\boldsymbol{\varepsilon}_t \boldsymbol{\varepsilon}_t') = \boldsymbol{\Sigma}_{\boldsymbol{\varepsilon}}$.
+
+- $\mathbf{y}_t$ is a stable process if $$\det(\mathbf{I}_K - \mathbf{A}z) \neq 0$$ for $\lvert z\rvert \leq 1$. An equivalent condition is that all eigenvalues of $\mathbf{A}$ have modulus less than 1.
+
+- We consider a DGP for $K=2$ variables where $\boldsymbol{\varepsilon}_t$ is bivariate standard normal and $$\mathbf{A} = \begin{pmatrix}0.8 & 0.15\\ 0.15 & 0.8\end{pmatrix}$$ 
+
+---
+### `RcppArmadillo` 
+
+**Example: simulating a VAR(1) process**
+
+Let's check that the DGP generates stable processes.
 
 ```{r}
-names(xaringan:::list_css())
+A <- matrix(c(0.8, 0.15, 0.15, 0.8), ncol = 2)
+all(Eigenvals_Armadillo(A) < 1)
 ```
 
-To use a theme, you can specify the `css` option as an array of CSS filenames (without the `.css` extensions), e.g.,
+We write the DGP as an R function of the coefficient matrix and the error process.
 
-```yaml
-output:
-  xaringan::moon_reader:
-    css: [default, metropolis, metropolis-fonts]
+```{r}
+VARSim_R <- function(A, epsilon) {
+   out <- matrix(0, nrow(epsilon), ncol(epsilon))
+   for (i in 2:nrow(epsilon)) {
+      out[i,] <- A %*% out[i-1,] + epsilon[i,]
+   }
+   return(out)
+}
 ```
 
-If you want to contribute a theme to **xaringan**, please read [this blog post](https://yihui.name/en/2017/10/xaringan-themes).
+---
+### `RcppArmadillo` 
+
+**Example: simulating a VAR(1) process**
+
+An Armadillo version is readily implemented
+
+```nohighlights
+#include <RcppArmadillo.h>
+// [[Rcpp::depends(RcppArmadillo)]]
+
+// [[Rcpp::export]]
+arma::mat VARSim_Rcpp(arma::mat coef, arma::mat epsilon) {
+  int m = epsilon.n_rows; int n = epsilon.n_cols;
+  arma::mat out(m, n, arma::fill::zeros);
+  for (int i=1; i<m; i++) {
+    out.row(i) = out.row(i-1) * coef.t() + epsilon.row(i);
+  }
+  return out;
+}
+```
+
+```{r, echo=F}
+cppFunction('
+arma::mat VARSim_Rcpp(arma::mat& coef, arma::mat& epsilon) {
+  int m = epsilon.n_rows; int n = epsilon.n_cols;
+  arma::mat out(m, n, arma::fill::zeros);
+  for (int i=1; i<m; i++) {
+    out.row(i) = out.row(i-1) * coef.t() + epsilon.row(i);
+  }
+  return out;
+}', depends = "RcppArmadillo")
+```
 
 ---
-class: inverse, middle, center
-background-image: url(https://upload.wikimedia.org/wikipedia/commons/3/39/Naruto_Shiki_Fujin.svg)
-background-size: contain
+### `RcppArmadillo` 
 
-# Naruto
+**Example: simulating a VAR(1) process**
 
----
-background-image: url(https://upload.wikimedia.org/wikipedia/commons/b/be/Sharingan_triple.svg)
-background-size: 100px
-background-position: 90% 8%
+.smaller[
+```{r, fig.width=10, fig.height=5, fig.align='center'}
+epsilon <- matrix(rnorm(500), ncol = 2)
+df <- data.frame(VARSim_Rcpp(A, epsilon)) %>% 
+  mutate(time = row_number()) %>% gather(key = "var", value = "y", -time) 
 
-# Sharingan
-
-The R package name **xaringan** was derived<sup>1</sup> from **Sharingan**, a dōjutsu in the Japanese anime _Naruto_ with two abilities:
-
-- the "Eye of Insight"
-
-- the "Eye of Hypnotism"
-
-I think a presentation is basically a way to communicate insights to the audience, and a great presentation may even "hypnotize" the audience.<sup>2,3</sup>
-
-.footnote[
-[1] In Chinese, the pronounciation of _X_ is _Sh_ /ʃ/ (as in _shrimp_). Now you should have a better idea of how to pronounce my last name _Xie_.
-
-[2] By comparison, bad presentations only put the audience to sleep.
-
-[3] Personally I find that setting background images for slides is a killer feature of remark.js. It is an effective way to bring visual impact into your presentations.
+ggplot(df) + geom_line(aes(x=time, y=y, color = var))
+```
 ]
 
 ---
+### `RcppArmadillo` 
 
-# Naruto terminology
+**Example: simulating a VAR(1) process**
 
-The **xaringan** package borrowed a few terms from Naruto, such as
+```{r, cache=T}
+bench::mark(
+  VARSim_R(A, epsilon),
+  VARSim_Rcpp(A, epsilon),
+  relative = T)[, 1:4]
+```
 
-- [Sharingan](http://naruto.wikia.com/wiki/Sharingan) (写輪眼; the package name)
-
-- The [moon reader](http://naruto.wikia.com/wiki/Moon_Reader) (月読; an attractive R Markdown output format)
-
-- [Chakra](http://naruto.wikia.com/wiki/Chakra) (查克拉; the path to the remark.js library, which is the power to drive the presentation)
-
-- [Nature transformation](http://naruto.wikia.com/wiki/Nature_Transformation) (性質変化; transform the chakra by setting different options)
-
-- The [infinite moon reader](http://naruto.wikia.com/wiki/Infinite_Tsukuyomi) (無限月読; start a local web server to continuously serve your slides)
-
-- The [summoning technique](http://naruto.wikia.com/wiki/Summoning_Technique) (download remark.js from the web)
-
-You can click the links to know more about them if you want. The jutsu "Moon Reader" may seem a little evil, but that does not mean your slides are evil.
 
 ---
+### `RcppArmadillo` &mdash; Case Study: EM-Algorithm
 
-class: center
+.smaller[
 
-# Hand seals (印)
+**Gaussian mixture distribution**
 
-Press `h` or `?` to see the possible ninjutsu you can use in remark.js.
+Let
+\begin{align}
+  f(x)=&\sum_{z}f(x,z) = \sum_{z} f(z) f(x\vert z) \\
+      =&\pi_1 \mathcal{N}(x\vert\mu_1, \sigma_1)+(1-\pi) \mathcal{N}(x\vert\mu_2, \sigma_2)
+\end{align}
+where $z$ is an unobserved binary random variable stating whether $x$ is generated from $\mathcal{N}(x\vert\mu_1, \sigma_1)$ or $\mathcal{N}(x\vert\mu_2, \sigma_2)$, thus $$f(z) = \pi^{z}\cdot(1-\pi)^{1-z}.$$
 
-![](https://upload.wikimedia.org/wikipedia/commons/7/7e/Mudra-Naruto-KageBunshin.svg)
+The unknown parameters $\pi, \mu_1,\mu_2,\sigma_1,\sigma_2$ are estimated by maximum likelihood methods. 
+
+$$\log f(x\vert\pi,\boldsymbol{\mu},\boldsymbol{\sigma}) = $$
+
+In the above latent-variable representation, the *Expectation-Maximization* (EM) algorithm is a popular choice. 
+
+]
 
 ---
+### `RcppArmadillo` &mdash; Case Study: EM-Algorithm
 
-class: center, middle
+.smaller[
 
-# Thanks!
+**Gaussian mixture distribution**
 
-Slides created via the R package [**xaringan**](https://github.com/yihui/xaringan).
 
-The chakra comes from [remark.js](https://remarkjs.com), [**knitr**](http://yihui.name/knitr), and [R Markdown](https://rmarkdown.rstudio.com).
+
+]
+
 
 
 
