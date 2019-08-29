@@ -1,5 +1,5 @@
 ---
-title: "Data Wrangling ddd hhh"
+title: "Data Wrangling"
 author: 
   - "Martin Arnold"
   - "Alexander Gerber"
@@ -22,20 +22,28 @@ options(htmltools.dir.version = FALSE)
 knitr::opts_chunk$set(echo = FALSE, warning=FALSE, message=FALSE)
 ```
 
-```{r, include=FALSE}
-library(microbenchmark)
-```
-
----
 class: top, left
 ### Tibble
-- Tibbles are the main data structure used in the tidyverse and can be viewed as a modern version of the `data.frame`. 
+- Tibbles are the main data structure used in the tidyverse and can be viewed as a modern version of the data frame. 
 
-- `tibble()` creates a new tibble from scatch
+- `tibble()` creates a new tibble from scratch.
+    ```{r, echo = TRUE, eval = TRUE}
+    library(tidyverse)
+    new_tibble <- tibble(x = 1:3, y = letters[1:3])
+    ```
 
-- `as_tibble()` creates a tibble from an existing object (e.g. a `data.frame`)
+- `as_tibble()` creates a tibble from an existing object (e.g. a data frame or a matrix).
+    ```{r, echo = TRUE, eval = TRUE}
+    a_data.frame <- data.frame(x = 1:3, y = letters[1:3])
+    a_tibble     <- as_tibble(a_data.frame)
+    ```
 
-- Why should we use tibbles instead of `data.frame`s? See the following comparison.  
+- everything that works for data frames also works with tibbles because
+    ```{r, echo = TRUE, eval = TRUE}
+    class(a_tibble)
+    ```
+
+- Why should we use tibbles instead of data frames? See the following comparison.  
 
 ---
 class: top, left
@@ -43,7 +51,6 @@ class: top, left
 ### Tibble vs. data.frame
 
 ```{r, echo = TRUE}
-library(tidyverse)
 data(mtcars) 
 mtcars_tibble <- as_tibble(mtcars)
 ```
@@ -65,29 +72,50 @@ mtcars_tibble[ ,1]   # Returns a tibble
 ---
 ### Tibble vs. data.frame
 - Lazy and sequential evaluation 
-```{r, echo = TRUE, eval = FALSE}
+    ```{r, echo = TRUE, eval = FALSE}
 data.frame(x = 1:3, y = x^2) # not working
 tibble(x = 1:3, y = x^2)
-```
+    ```
 
 - Does not change input types
-```{r, echo = TRUE, results='hold'}
+    ```{r, echo = TRUE, results='hold'}
 text <- letters[1:3]
 class(text)
 df   <- data.frame(text) # stringsAsFactors = TRUE is the default 
 class(df$text)
 tib  <- tibble(text)
 class(tib$text)
-```
+    ```
 
 - For more see `vignette("tibble")`.
 
 ---
 class: top, left
+### dplyr 
 
-### dplyr
-`dplyr` is the tidyverse package for data manipulations.
-First we look at functions that work on a single table. 
+The `dplyr` package is the most important package of the `tidyverse` when it comes to data manipulation and transformation. 
+
+The core characteristics of the package:
+
+- focus on data frames (data frame in &rarr; data frame out)
+- verbose compared to base R which leads to longer but easier to read code
+- consistent syntax. 
+
+You can compare the functionality to that of a  relational database which provides methods to work with
+ 
+- single tables
+- multiple tables. 
+
+
+
+
+
+
+---
+class: top, left
+### Single Table Functions
+
+First, we look at functions that work on a single table. 
  
 - `filter()` to select rows based on their values.
     ```{r, echo = TRUE, eval = FALSE}
@@ -98,14 +126,14 @@ filter(mtcars_tibble, hp >= 100 & mpg >= 20)
     ```{r, eval = FALSE, echo = TRUE}
 slice(mtcars_tibble, 10:15)
     ```
-- `select()` and `rename()` to select variables based on their names.
+- `select()`/`rename()` to select/rename variables based on their names.
     ```{r, echo = TRUE, eval = FALSE}
 select(mtcars_tibble, cyl, hp)
     ```
 
 ---
 class: top, left
-### dplyr
+### Single Table Functions
 
 - `arrange()` to reorder rows.
     ```{r, echo = TRUE, eval = FALSE}
@@ -118,6 +146,7 @@ arrange(mtcars_tibble, desc(cyl))
     mutate(mtcars_tibble, gpm = 1/mpg)
     transmute(mtcars_tibble, gpm = 1/mpg) 
     ```
+
 - `summarise()` to condense multiple values to a single value.
     ```{r, echo = TRUE, eval = FALSE}
     summarise(mtcars_tibble, mean_hp = mean(hp), max_mpg = max(mpg))
@@ -125,111 +154,272 @@ arrange(mtcars_tibble, desc(cyl))
 
 ---
 class: top, left
-### dplyr
+### Single Table Functions
 - `sample_n()` and `sample_frac()` to take random samples.
     ```{r, echo = TRUE, eval = FALSE}
     sample_n(mtcars_tibble, 10)
     sample_frac(mtcars_tibble, 0.1)
     ```
 
+- `distinct()` removes duplicate rows.
+    ```{r, echo = TRUE, eval = FALSE}
+    tibble_with_duplicates    <- tibble(x = c(1,1,2,3), 
+                                        y = c(4,4,5,6))
+    tibble_without_duplicates <- distinct(tibble_with_duplicates)
+    ```
+
+- `count()` and `tally()` count rows.  
+    ```{r, echo = TRUE, eval = FALSE}
+    count(mtcars_tibble); count(mtcars_tibble, cyl)
+    tally(mtcars_tibble); tally(mtcars_tibble, cyl)
+    ```
+
+
 ---
 class: top, left
-### Helper functions for select
+
+### Filter 
+
+The function `filter()` selects rows based on their values. 
+
+- Use comparison operators `==`, `>`, `>=`, `<`, `<=`, and `!=` to filter rows based on a condition. 
+    ```{r, echo = TRUE, eval = FALSE}
+filter(mtcars_tibble, hp == 100)
+    ```
+
+- Use logical operators such as  `&` (and) and `|` (or) to combine multiple conditions. 
+    ```{r, echo = TRUE, eval = FALSE}
+filter(mtcars_tibble, hp > 100 & cyl == 4)
+filter(mtcars_tibble, hp > 100 | cyl == 4)
+    ```
+
+- Additional arguments to `filter()` are combined with `&` which is the same as the above. 
+    ```{r, echo = TRUE, eval = FALSE}
+filter(mtcars_tibble, hp > 100, cyl == 4)
+```
+
+- For the common operation `x >= left & x <= right` there is the shorthand `between(x, left, right)`.
+    ```{r, echo = TRUE, eval = FALSE}
+filter(mtcars_tibble, x >= 90 & x <= 110)
+filter(mtcars_tibble, between(hp, 90, 110)
+    ```
+
+---
+### Select
+
+The function `select()` selects columns based on their name. 
+
+- The function can handle standard and non-standard evaluation (more about this later). 
+    ```{r, echo = TRUE, eval = FALSE}
+  select(mtcars_tibble, disp, vs) 
+  select(mtcars_tibble, "disp", "vs") 
+    ```
+
+- You can also work with character vectors. 
+    ```{r, echo = TRUE, eval = FALSE}
+  select(mtcars_tibble, c("disp", "vs"))
+    ```
+
+- Use `-` to select all except the provided columns.
+    ```{r, echo = TRUE, eval = FALSE}
+  select(mtcars_tibble, -disp, -vs) 
+  select(mtcars_tibble, -c("disp", "vs")) 
+    ```
+
+- There is a whole bunch of helper functions for `select()` on the next slides. 
+
+---
+class: top, left
+
+### Helper Functions for `select()`
+
 - Select columns whose name contains a character string.
-  ```{r, echo=TRUE, eval = FALSE}
+    ```{r, echo=TRUE, eval = FALSE}
 select(iris, contains("."))
-  ```
+    ```
 
 - Select columns whose name ends with a character string.
-  ```{r, echo=TRUE, eval = FALSE}
+    ```{r, echo=TRUE, eval = FALSE}
 select(iris, ends_with("Length"))
-  ```
-
-- Select every column.
-  ```{r, echo=TRUE, eval = FALSE}
-select(iris, everything())
-  ```
+    ```
 
 - Select columns whose name matches a regular expression.
-  ```{r, echo=TRUE, eval = FALSE}
+    ```{r, echo=TRUE, eval = FALSE}
 select(iris, matches(".t."))
-  ```
+    ```
 
 - Select columns named x1, x2, x3, x4, x5.
-  ```{r, echo=TRUE, eval = FALSE}
+    ```{r, echo=TRUE, eval = FALSE}
 select(iris, num_range("x", 1:5))
-  ```
+    ```
+
+- Select all columns from Sepal.Width to Petal.Width.
+    ```{r, echo=TRUE, eval = FALSE}
+select(iris, Sepal.Width:Petal.Width)
+    ```
+
 
 ---
 class: top, left
-### Helper functions for select
+### Helper Functions for `select()`
 - Select columns whose names are in a group of names.
-```{r, echo=TRUE, eval = FALSE}
+    ```{r, echo=TRUE, eval = FALSE}
 select(iris, one_of(c("Species", "Genus")))
-```
+    ```
 
 - Select columns whose name starts with a character string.
-```{r, echo=TRUE, eval = FALSE}
+    ```{r, echo=TRUE, eval = FALSE}
 select(iris, starts_with("Sepal"))
-```
+    ```
 
 - Select all columns between Sepal.Length and Petal.Width (inclusive).
-
-```{r, echo=TRUE, eval = FALSE}
+    ```{r, echo=TRUE, eval = FALSE}
 select(iris, Sepal.Length:Petal.Width)
-```
-
+    ```
 
 - Select all columns except Species. 
-```{r, echo=TRUE, eval = FALSE}
+    ```{r, echo=TRUE, eval = FALSE}
 select(iris, -Species)
+    ```
+
+- Select everything
+    ```{r, echo=TRUE, eval = FALSE}
+select(iris, everything())
+    ```
+
+---
+### Mutate
+
+The function `mutate()` adds new columns or replaces old columns based on existing columns. 
+```{r, echo=TRUE, eval = FALSE}
+mutate(mtcars_tibble,
+       gpm = 1/mpg,
+       disp =  disp - mean(disp) # replaces disp 
+       )
 ```
+
+- Use `lag()` and `lead()` if you want to access values that are not in the same row (e.g. for time series data). 
+    ```{r, echo=TRUE, eval = FALSE}
+    rw <- tibble(t = 1:10, y = cumsum(rnorm(10)))
+    mutate(rw, increments =  y - lag(y, k = 1))
+    ```
+
+- Use `min_rank()` to add a column with the rank (`?min_rank()` gives you an overview of further ranking functions).
+    ```{r, echo=TRUE, eval = FALSE}
+    mutate(mtcars_tibble,
+           hp_rank_smallest_first = min_rank(hp),
+           hp_rank_largest_first  = min_rank(desc(hp))
+       )
+    ```
+
+---
+### Summarise
+
+`summarise()` can be used to collapse columns to a single row used with e.g.: 
+- base R functions such as `mean()`, `sd()`, `max()`
+- dplyr specific functions for
+  - position `first()`, `nth()`, `last()`
+  - counts `n()`, `n_disticnt()`
+  
+```{r, echo = TRUE, eval = FALSE}
+summarise(mtcars_tibble,
+          mean_hp    = mean(hp),
+          max_wt     = max(wt), 
+          n          = n(),            
+          third_cyl  = nth(cyl, 3) 
+          )
+```
+
+- functions you have written yourself 
+    ```{r, echo = TRUE, eval = FALSE}
+my_variance <- function(x) 1/(n()-1) * sum((x - mean(x))^2)
+summarise(by_cyl, my_variance(mpg))
+    ```
+---
+### Summarise
+
+- You cannot use `summarise()` with functions that return more than one value per group. 
+    ```{r, eval = FALSE, echo = TRUE}
+two_return_vaules <- function(x) c(mean(x), sd(x))
+summarise(by_cyl, two_return_vaules(mpg))
+    ```
+
+- the function can take multiple variable or fixed inputs.
+    ```{r, echo = TRUE, eval = FALSE}
+two_input_vaules <- function(x, y) sum(x + y)
+summarise(by_cyl, two_input_vaules(hp, qsec))       # variable inputs
+summarise(by_cyl, two_input_vaules(hp, trim = 0.1)) # fixed input
+    ```
+
+---
+class: top, left
+### Exercises
+
+1. Load the `nycflights13::flights` data set. Does it come formated as a tibble? 
+2. Find all flights that 
+  - had an arrival delay of two or more hours.
+  - flew to Houston (IAH or HOU).
+  - were delayed by at least an hour, but made up over 30 minutes in flight.
+  - departed between midnight and 6am. 
+3. Which flights travelled the longest? Which travelled the shortest?  
+4. Brainstorm as many ways as possible to select `dep_time`, `dep_delay`, `arr_time`, and `arr_delay`.
+5. Create a new variable `first_flight` which takes the value `TRUE` if it is the first flight of the day. 
+
+
+```{r, echo=FALSE, eval = FALSE}
+library(tidyverse)
+library(nycflights13)
+filter(flights, day == 1)
+
+
+```
+
 
 
 ---
 class: top, left
-### dplyr &mdash; grouping
+### Grouping
 
-To exploit the full potential of `summarise()` we need to pair it with `group_by()`.
+To exploit the full potential of `summarise()` we need to pair it with `group_by()`. 
 
 ```{r, echo = TRUE, results='markup'}
 by_cyl <- group_by(mtcars_tibble, cyl)
 print(summarise(by_cyl, mean(mpg)))
 ```
 
----
-class: top, left
-### dplyr &mdash; Useful summary functions
-
-`summary()` can be used with 
-
-- base R functions such as `mean()`, `sd()`, `max()`
-- dplyr specific functions for
-  - position `first()`, `nth()`, `last()`
-  - counts `n()`, `n_disticnt()`
-
+Use `ungroup()` remove the grouping, when you want to work on the whole data set again. 
 
 ---
 class: top, left
-### dplyr &mdash; Advanced subjects 
+### Grouping
 
+It is also possible to use `group_by()` together with a lot of other single table operations.
 
+```{r, echo = TRUE, eval = FALSE}
+by_cyl <- group_by(mtcars_tibble, cyl)
 
-```{r}
+# group mean is used for centering
+mutate(by_cyl, centered_mpg = mpg - mean(mpg))   
+transmute(by_cyl, centered_mpg = mpg - mean(mpg))
 
-mtcars %>%
-  group_by(cyl) %>% 
-  group_map(~ lm(mpg  ~ hp, data = . ), keep = TRUE)
-  
+# return only first 3 rows for each group
+slice(by_cyl, 1:3)  
+
+# counts the number of rows for each row
+count(by_cyl)   
+
+# returns all groups with more than 10 rows
+filter(by_cyl, n() > 10)  
+
+# sorts one group after the other
+arrange(by_cyl, disp)                          
 ```
-
-
 ---
 class: top, left
 ### The Pipe
 
-Usually we combine multiple operations together, e.g. first we filter, than we mutate, group and finally summarise. 
-To do this we could save an intermidiate result after each step like this:
+Usually, we combine multiple operations, e.g. first we filter, then we mutate, group and finally summarise. 
+To do this we could save an intermediate result after each step like this:
 
 ```{r, echo = TRUE}
 filtered   <- filter(mtcars_tibble, cyl <= 8)
@@ -240,12 +430,12 @@ summarized <- summarise(grouped, count = n(),
                         mean_gpm = mean(gpm)) 
 ```
 
-This code has the disadvantage that we need to save intermidiate results that we do not care about. 
+This code has the disadvantage that we need to save intermediate results that we do not care about. 
 ---
 class: top, left
 ### The Pipe
 
-We could nest all those functions to get rid of the intermidiate result.
+We could nest all those functions to get rid of the intermediate result.
 
 ```{r, echo = TRUE}
 summarise(group_by(mutate(filter(mtcars_tibble, cyl <= 8), gpm = 1/mpg)), 
@@ -272,25 +462,12 @@ mtcars_tibble %>%
   
 ```
 
-The pipe operater is not limited to `dplyr` or the `tidyverse`
+The pipe operator is not limited to `dplyr` or the `tidyverse`
 
 ```{r, echo = TRUE, eval = FALSE}
 1:6 %>% mean
 ```
 
----
-class: top, left
-
-## Problems
-
-Use dplyr on the Boston crime data to:
-
-1. Find out in which district the most incident where reported. 
-2. Create an ordered list of the top ten districts according to the number of drug violations. Start with the district with most drug violations. 
-3. What is the most dangerous hour of the week?
-4. Calculate for each district the proportion of motor vehicle accidents on all reported incidents. 
-5. Sort the data set chronological by year and month. Then take the first 10.000 observations and compute the proportion of incidents where a 
-shooting was involved for each district. Now take a random sample of size 10.000. Is there a noteworthy difference?
 
 ```{r, eval = FALSE, cache=TRUE}
 library(data.table)
@@ -311,9 +488,77 @@ plot(table(crime$DISTRICT[1:10000])/sum(table(crime$DISTRICT[1:10000])))
 points(table(crime$DISTRICT)/sum(table(crime$DISTRICT)), col = alpha("red", 0.4), lty = 3, lwd = 5)
 ```
 
+
 ---
 class: top, left
-### dplyr for 2 tables
+### Scoped Functions 
+
+Often operations on all or several columns at once should be done. In this case, the standard 
+functions are pedestrian. Most helpful are the scoped versions of  `summarise()` and `mutate()`.
+
+- Use `summarise_all()`, if you want to summarise every column.
+    ```{r, eval = FALSE, echo = TRUE}
+mtcars_tibble %>% summarise_all(mean)
+    ```
+
+- Use `summarise_if()` to logically subset the columns to be summarised. 
+    ```{r, eval = FALSE, echo = TRUE}
+iris %>% summarise_if(is.numeric, mean)
+    ```
+
+-  Use `summarise_if()`, if you want to summarise some specific columns `summarise_at()`.
+    ```{r, eval = FALSE, echo = TRUE}
+iris %>% summarise_at(c("Sepal.Length", "Sepal.Width"), mean)
+    ```
+
+
+
+---
+class: top, left
+### Advanced Subjects 
+
+If `summarise()` is to limited, because it can only handle functions that have a single 
+return value one can use 
+  - `group_modify()` returns a grouped tibble. In that case .f must return a data frame.
+  - `group_map()` returns a list of results from calling .f on each group.
+  - `group_walk()` calls .f for side effects and returns the input .tbl, invisibly.
+  
+Those functions are closely related to the functions in the `purrr` package which we 
+will talk about later. Here we will only give a short example of how they can be used. 
+
+```{r, echo = TRUE, eval = FALSE}
+mtcars %>%
+  group_by(cyl) %>% 
+  group_map(~ lm(mpg  ~ hp, data = . ))
+
+mtcars %>%
+  group_by(cyl) %>% 
+  group_modify(~ broom::tidy(lm(mpg  ~ hp, data = . )))
+
+par(mfrow = c(2,2))
+mtcars %>%
+  group_by(cyl) %>% 
+  group_walk(~ plot(mpg  ~ hp, data = . ))
+```
+
+---
+class: top, left
+
+### Exercises
+
+Use dplyr on the Boston crime data to:
+
+1. Find out in which district the most incident where reported. 
+2. Create an ordered list of the top ten districts according to the number of drug violations. Start with the district with most drug violations. 
+3. What is the most dangerous hour of the week?
+4. Calculate for each district the proportion of motor vehicle accidents on all reported incidents. 
+5. Sort the data set chronological by year and month. Then take the first 10.000 observations and compute the proportion of incidents where a 
+shooting was involved for each district. Now take a random sample of size 10.000. Is there a noteworthy difference?
+
+
+---
+class: top, left
+### Functions for 2 Tables
 
 ```{r, echo = TRUE, results='markup'}
 band_members   
@@ -345,9 +590,9 @@ band_members %>% inner_join(band_instruments, by = "name")
 ```
 ---
 class: top, left
-### Semi Join
+### Semi-Join
 
-A semi join keeps all observations of the left table where there are matching values in the right table.
+A semi-join keeps all observations of the left table where there are matching values in the right table.
 It keeps only tables from the left. 
 ```{r, echo = TRUE, results='markup'}
 band_members %>% semi_join(band_instruments, by = "name")
@@ -363,4 +608,142 @@ band_members %>% anti_join(band_instruments, by = "name")
 ---
 class: top, left
 ### Reshaping Data with tidy R
+
+The goal of tidyr is to help you create tidy data. Tidy data is data where:
+
+- Each variable is in a column.
+- Each observation is a row.
+- Each value is a cell.
+
+We will talk about 
+
+- `gather()` takes multiple columns, and gathers them into key-value pairs: it makes “wide” data longer.
+- `spread()` takes two columns (key & value), and spreads into multiple columns: it makes “long” data wider.
+- `separate()` takes a single column and tuns it into multiple columns based on a separator.  
+- `unite()` takes multiple columns and pastes them together into one column.  
+
+---
+class: top, left
+### Tidy Data
+
+```{r, echo = TRUE}
+tidyr::table1
+```
+
+Each observation is in one row and each variable is one cloumn. 
+
+---
+class: top, left
+### Untidy data
+
+```{r, echo = TRUE}
+tidyr::table2
+```
+
+Observations are scattered across multiple rows
+
+
+---
+class: top, left
+### Spreading
+
+The function `tidyr::spread()` takes as arguments 
+
+- `key`, containing the variable names
+- `value`, containing the values for the variables in the `key` column. 
+
+```{r, echo = TRUE}
+table2 %>%
+    spread(key = type, value = count)
+```
+
+---
+### Untidy Data
+
+```{r, echo = TRUE}
+tidyr::table4b
+```
+
+- Columns do not cointain variables and column names are values. 
+
+---
+### Gathering
+
+The function `gather()` takes as arguments
+
+- the column names which are actual values
+- `key`, the name of the newly created variable resulting from the column name
+- `value` the name of the newly created variable.
+
+```{r, echo = TRUE}
+table4a %>% 
+  gather(`1999`, `2000`, key = "year", value = "cases")
+```
+
+---
+### Untidy Data
+
+```{r, echo = TRUE}
+tidyr::table3 
+```
+
+- One column contains two variables. 
+
+---
+### Separating 
+
+The function `sparate()` can split one column into multiple columns. 
+As input it takes: 
+- `col`, the column to be separated
+- `into`, the names of the newly created columns
+- `sep`, a regular expression which tells the function where to split (by default any non-alphanumeric character ). 
+- `convert`, a logical value which controls whether or not to run `run type.convert()` on the new columns.
+
+```{r, echo = TRUE}
+table3 %>% 
+  separate(rate, into = c("cases", "population"), convert = TRUE)
+```
+
+---
+### Untidy Data
+
+```{r, echo = TRUE}
+tidyr::table5 
+```
+
+- One variable is spread over multiple columns.  
+
+---
+### Unite
+
+The function `unite()` pastes multiple columns together. 
+As input it takes: 
+- `col`, the name of the new column
+- `...`. the columns to be pasted together
+- `sep`, the separator between values.
+
+```{r, echo = TRUE}
+table5 %>% 
+  unite(new, century, year, sep = "")
+```
+
+---
+### Exercises
+1. Compute the rate for `table2`, and `table4a` + `table4b`.
+2. Recreate the plot given below using `table2` instead of `table1`. 
+    ```{r, echo = TRUE, eval = FALSE}
+library(ggplot2)
+ggplot(table1, aes(year, cases)) + 
+  geom_line(aes(group = country), colour = "grey50") + 
+  geom_point(aes(colour = country))
+    ```
+
+---
+### Case Study
+Prepare the trade data set which contains multiple tables for an analysis. 
+Use the techniques you learnt so far to get some insight into the trading relationship between the USA and Germany. 
+
+
+
+
 
