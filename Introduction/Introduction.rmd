@@ -38,7 +38,11 @@ knitr::opts_chunk$set(echo = TRUE)
   - Profiling and Benchmarking 
   - Parallelisation
   - Rcpp
-
+6. Further subjects
+  - web scraping 
+  - shiny 
+  - text mining 
+  - package development 
 ---
 class: top, left
 
