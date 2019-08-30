@@ -65,11 +65,17 @@ h1, h2, h3 {
   opacity: 1;
   font-size: 0.9em;
 }
+
+/* Links */
 strong{color:#09017F;}
 a, a > code {
   color: #09017F;
-  text-decoration: none;
+  text-decoration: underline;
 }
+
+
+
+
 .footnote {
   
   position: absolute;

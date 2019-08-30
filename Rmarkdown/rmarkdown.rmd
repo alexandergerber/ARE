@@ -25,7 +25,7 @@ def.chunk.hook  <- knitr::knit_hooks$get("chunk")
 class: left, top
 ## R Markdown
 
-R Markdown provides a framework for combining  code, results and commentary.
+R Markdown provides a framework for combining  code, results, and commentary.
 
 You can use R Markdown 
 
@@ -80,7 +80,7 @@ class: left, top
 ## The YAML header
 The YAML header contains settings passed to pandoc and the rendering functions.
 Here you can: 
-- provide information for the title page such as title, name and date
+- provide information for the title page such as title, name, and date
 - specify the output format with optional output specific options 
 - include external files (e.g. `.css`) or additional packages for $\LaTeX$
 - define parameters. 
@@ -122,8 +122,8 @@ params:
 class: left, top
 ## Text Formatting
 
-- R Markdown is build on [Pandoc Markdown](https://rmarkdown.rstudio.com/authoring_pandoc_markdown.html%23raw-tex#pandoc_markdown), which in turn is a flavour of the markup language Markdown.  
-- The advantage of Markdown compared to other markup languages such as HTML and Latex is its simplicity .
+- R Markdown is built on [Pandoc Markdown](https://rmarkdown.rstudio.com/authoring_pandoc_markdown.html%23raw-tex#pandoc_markdown), which in turn is a flavour of the markup language Markdown.  
+- The advantage of Markdown compared to other markup languages such as HTML and Latex is its simplicity.
 
 Some examples:  
 
@@ -208,7 +208,7 @@ class: left, top
 
 ]
 
-Note that Markdown does not support nested ordered list with numbering 1.1, 1.2.1 and so on. For this you would have to fall back to HTML or $\LaTeX$. 
+Note that Markdown does not support nested ordered lists with numbering 1.1, 1.2.1 and so on. For this, you would have to fall back to HTML or $\LaTeX$. 
 
 ---
 class: left, top
@@ -222,7 +222,7 @@ class: left, top
   Second paragraph
 ```
 
-A new paragraph is startet by a blank line.
+A new paragraph is started by a blank line.
 
 
 - linebreaks
@@ -269,7 +269,7 @@ This is display style $$f(x)=\frac{1}{2\pi}e^{-\frac{1}{2}x^2}.$$
 ---
 class: left, top
 ## Math Expressions
-- Even more complex math enviornments such as `align` can be used 
+- Even more complex math environments such as `align` can be used 
     ```{r echo = FALSE, comment = ""}
 cat("
 \\begin{align}
@@ -305,7 +305,7 @@ Some useful options:
   - `message` (`TRUE`; logical): whether to preserve messages 
   - `include` (`TRUE`; logical): whether to include the chunk output in the final output document
   
-For a complete list we refer to the `knitr` documentation: [Chunk options](https://yihui.name/knitr/options#code-evaluation).
+For a complete list, we refer to the `knitr` documentation: [Chunk options](https://yihui.name/knitr/options#code-evaluation).
 
 ---
 class: left, top
@@ -319,7 +319,7 @@ lm(y ~ x)
 ```
 ````
 
-If you use mainly chunk options which are not the default, then it saves you work to change the default for your document with ``knitr::opts_chunk$set()`.  
+If mainly chunk options are used which are not the default, then it saves time to change the default for the document with ``knitr::opts_chunk$set()`.  
 
 ````markdown
 `r ''````{r setup, include=FALSE}
@@ -387,7 +387,7 @@ The following slides show some examples.
 class: left, top
 ## Tables using kable
 
-- `knitr::kable` is the probably the easiest to transform a matrix or a data frame into a simple Table.
+- `knitr::kable` is probably the easiest to transform a matrix or a data frame into a simple Table.
 
 ````markdown
 `r ''````{r}
@@ -409,7 +409,7 @@ class: left, top
 ## Tables using xtable
 
 - `xtable` provides more functionality than kable but is a bit more difficult to use
-- If your code produces raw HTML or $\LaTeX{}$ for e.g. a table then you usually have to set in the  chunk options `results='asis'`, otherwise it gets formatted and will not work as intended
+- If your code produces raw HTML or $\LaTeX{}$ e.g. for a table then you usually have to set in the  chunk options `results='asis'`, otherwise it gets formatted and will not work as intended
 
 ````markdown
 `r ''````{r, echo = FALSE, results='asis'}
@@ -469,7 +469,7 @@ class: left, top
 - If only R Markdown is used the document can be compiled without problems
 to all supported output formats. 
 
-- Somtimes R Markdown is to limited and one would like to use the more powerful 
+- Sometimes R Markdown is too limited and one would like to use the more powerful 
 tools provided by HTML or Latex. 
 
 - If the output format is HTML, you can also use HTML instead of R Markdown 
@@ -520,7 +520,7 @@ plot_ly(mtcars, x = ~wt, y = ~hp, z = ~qsec, color = ~am, colors = c('#BF382A', 
 class: left, top
 ## Interactive documents
 
-- An interactive map with focus on the university of Essen 
+- An interactive map with a focus on the University of Essen 
 
 ````markdown
 `r ''````{r, out.width='100%'}
@@ -569,19 +569,19 @@ DT::datatable(
 class: left, top
 ## Problems
 
-1. Create an Rmarkdown document that is compiled to an HTML document. 
+1. Create an R Markdown document that is compiled to an HTML document. 
    The document should consist of 2 sections 
    
     - Getting Data
     - Explorative Data Analysis
 
 2. Use the first section to read in the data available under 
-   [Boston crime](https://data.boston.gov/dataset/6220d948-eae2-4e4b-8723-2dc8e67722a3/resource/12cb3883-56f5-47de-afa5-3b1cf61b257b/download/tmppj4rb047.csv) in R.
-   Try to avoid saving the data on your hard drive first. Also add some information about the source of the data. Also provide a brief overview of the data. 
+   [Boston crime](https://data.boston.gov/dataset/6220d948-eae2-4e4b-8723-2dc8e67722a3/resource/12cb3883-56f5-47de-afa5-3b1cf61b257b/download/tmppj4rb047.csv).
+   Try to avoid saving the data on your hard drive first. Add also some information about the source of the data and list all available columns. 
 
 3. Use the second section to summarize the data. You are free to do whatever you like but produce at least one table and one plot. 
 
-4. Optimize your code chunks so that the document doesn't everytime you compile loads the data. Also let us see what you did by making the code visible. 
+4. Optimize your code chunks so that the document doesn't load the data ever time you compile. Also let us see what you did by making the code visible. 
 
 5. Create a PDF document.
 

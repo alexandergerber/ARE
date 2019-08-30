@@ -1,0 +1,15 @@
+https://data.world/ita/trade-with-germany
+
+	Total All Merchandise
+MANUFACTURES
+5--Chemicals And Related Products
+6--Manufactured Goods Classified Chiefly By Material
+7--Machinery And Transport Equipment
+8--Miscellaneous Manufactured Articles
+9--Commodities & Transactions Not Classified Elsewher
+NON-MANUFACTURES
+0--Food And Live Animals
+1--Beverages And Tobacco
+2--Crude Materials, Inedible, Except Fuels
+3--Mineral Fuels, Lubricants And Related Materials
+4--Animal And Vegetable Oils, Fats And Waxes

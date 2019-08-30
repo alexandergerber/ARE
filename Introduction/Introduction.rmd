@@ -1,0 +1,70 @@
+---
+title: "Introduction"
+author: 
+  - "Martin Arnold"
+  - "Alexander Gerber"
+date: '`r Sys.Date()`'
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    css:  ["../xaringan_files/xaringan-themer.css", "../xaringan_files/custom.css"]
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+     #ratio: "16:9"
+    #includes:
+     # after_body: ../xaringan_files/terminal_highlight.html
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Outline
+1. Introduction 
+2. Prerequisites
+  - Rmarkdown
+  - Git and Github
+3. R for Data Science 
+  - Data Visualisation 
+  - Data Handling
+  - Modeling 
+4. R Programming
+  - Internals
+  - Functional Programming
+  - Object Oriented Programming 
+5. Performance
+  - Profiling and Benchmarking 
+  - Parallelisation
+  - Rcpp
+
+---
+class: top, left
+
+### Getting Help
+
+If you want to find out how a package works, search for
+
+  - a vignitte by the package authors 
+    ```{r, echo = TRUE, eval = FALSE}
+    library(broom)
+    vignette("broom")
+    ```
+  - a blog post about the package, e.g. on [R Bloggers](https://www.r-bloggers.com)
+  
+If you have specific questions about your code or an error messages search
+  - [StackOverflow](https://stackoverflow.com/)  
+  - [RStudio Community](https://community.rstudio.com/) (if it is about RStudio or packages developed by RStudio).
+  - the [GitHub](https://github.com/) repository.
+
+Probably somebody else has already asked the same questions. 
+
+If you don't find an answer, you can ask a question yourself, what is harder then it sounds.  
+Most importantly you have to provide a [reproducible example](https://stackoverflow.com/questions/5963269/how-to-make-a-great-r-reproducible-example).
+
+
+
+---
+class: top, left
+
