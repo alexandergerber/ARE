@@ -1,0 +1,539 @@
+---
+title: "RcppArmadillo"
+author: 
+  - "Martin Arnold"
+  - "Alexander Gerber"
+date: '`r Sys.Date()`'
+output:
+  xaringan::moon_reader:
+    seal: false
+    lib_dir: libs
+    css: ["../xaringan_files/xaringan-themer.css", "../xaringan_files/custom.css"]
+    nature:
+      beforeInit: ../xaringan_files/macros.js
+      highlightStyle: solarized-dark
+      highlightLines: true
+      countIncrementalSlides: false
+    includes:
+      after_body: ../xaringan_files/terminal_highlight.html
+---
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = F)
+knitr::opts_chunk$set(warning = F, message = F)
+```
+
+```{r xaringan-themer, include=FALSE}
+# solarized_dark(
+#   code_font_family = "Fira Code",
+#   code_font_url    = "https://cdn.rawgit.com/tonsky/FiraCode/1.204/distr/fira_code.css"
+# )
+# library(xaringanthemer)
+# 
+# mono_accent(
+#     base_color           = "#09017F",
+#     header_font_google   = google_font("Roboto", "700"),
+#     text_font_google     = google_font("Roboto Condensed"),
+#     code_highlight_color = "#D2B6E8",
+#     code_font_family     = "Fira Code",
+#     code_font_url        = "https://cdn.rawgit.com/tonsky/FiraCode/1.204/distr/fira_code.css"
+#     )
+```
+
+```{r, include=FALSE}
+# packages needed
+library(microbenchmark)
+library(parallel)
+library(tictoc)
+library(dplyr)
+library(tidyr)
+library(Rcpp)
+library(ggplot2)
+```
+
+class: center, middle
+
+![:image 100%](../img/armadillo.png)
+
+---
+### Armadillo &mdash; FAQs
+
+**What is Armadillo?**
+
+Armadillo is a templated high quality linear algebra library for C++ with good balance between speed and ease of use
+
+**Why use it?**
+
+- Matrix multiplication, inversion and decomposition are indispensible in econometrics and statistics
+
+- C++ (and Rcpp) do not provide suitable classes and methods (in fact, there isn't a method for even matrix multiplication in Rcpp). Coding these by hand is tedious and error prone.
+
+    Armadillo provides well tested matrix classes for integer, floating point and complex numbers and fast methods
+
+**Do I need advanced C++ skills?**
+
+- No. Armadillo uses an easy syntax which is close to that of MATLAB.
+
+- The Armadillo library has a very good documentation at [sourceforge](http://arma.sourceforge.net/docs.html).
+
+---
+### `RcppArmadillo` &mdash; Prerequisites
+
+- `RcppArmadillo` provides an interface from and to Armadillo which is based on the C++/R interface impemented in Rcpp
+
+- The package requires a development toolchain to use which should be already setup if C++ integration with Rcpp works without issues. Setting up `RcppArmadillo` then boils down to installing the package from CRAN
+
+    ```nohighlights
+    install.packages('RcppArmadillo')
+    library(RcppArmadillo)
+    ```
+- It is straighfowrd to verify if it works by setting `"RcppArmadillo"` as a dependency in `Rcpp::cppFunction()` or `Rcpp::evalCpp()`.
+
+    ```nohighlights
+    Rcpp::evalCpp("1 + 1", depends = "RcppArmadillo")
+    #> [1] 2
+    ```
+---
+### `RcppArmadillo` &mdash; `sourceCpp()`
+
+- Again the preferred method for compiling Armadillo code is to use a `C++` file with a modified header. The following lines replace the default header:
+
+    ```nohighlights
+    #include <RcppArmadillo.h>
+    // [[Rcpp::depends(RcppArmadillo)]]
+    ```
+    
+    This ensures that the C++ library headers `Rcpp.h` and `Armadillo.h` are included and adds `RcppArmadillo` onto the compiler's search path.
+
+- In what follows we refer explicitly to Armadillo functions by prefixing the namespace. This avoids overlapping of function names. 
+
+    We may specify that the Armadillo package namespace is used by default.
+
+    ```nohighlights
+    using namespace arma;
+    ```
+
+- `sourceCpp()` then can be used for sourcing the script (on save) just as for `Rcpp` code.
+
+---
+### `RcppArmadillo` &mdash; Classes
+
+- The most important Armadillo classes store elements as <tt>double</tt>:
+
+    ```nohighlights
+    arma::mat, arma::vec (arma::colvec, arma::rowvec)
+    ```
+    Other types are available, e.g. `arma::uvec` and `arma::umat` which store unsigned integers.
+    
+- There are other classes, e.g. for sparse matrices and higher-dimensional arrays
+
+- All classes have attributes and associated methods which can be accessed using *dot syntax* just as for the STL.
+
+    **Example: Attributes and Methods**
+
+    ```nohighlights
+    arma::mat I(10, 10);   //define 10x10 matrix
+    int n = I.n_rows();    //get number of rows
+    I.eye();               //transform to identity matrix
+    ```
+    
+---
+### `RcppArmadillo` 
+
+**Example: inner vector product**
+
+```nohighlights
+// using Rcpp
+double inner_prod_rcpp(NumericVector x, NumericVector y) {
+  int K = x.length();
+  double ip = 0;
+  for (int k = 0; k < K; k++) {
+    ip += x(k) * y(k);
+  }
+  return(ip);
+}
+```
+Note that matrix multiplication requires two loops which looks even more bulky.
+```nohighlights
+// using RcppArmadillo
+double inner_prod_rcpparma(arma::vec x, arma::vec y) {
+  arma::mat out = x.t() * y;
+  return(out(0));
+}
+```
+
+---
+### `RcppArmadillo` 
+
+**Example: inner vector product**
+
+It's faster.
+
+```{r, echo=F, message=F, warning=F, cache=T}
+cppFunction('
+  double inner_prod_rcpp(NumericVector x, NumericVector y) {
+  int K = x.length();
+  double ip = 0;
+  for (int k = 0; k < K; k++) {
+    ip += x(k) * y(k);
+  }
+  return(ip);
+  }', depends = "RcppArmadillo")
+cppFunction('
+  double inner_prod_rcpparma(arma::vec x, arma::vec y) {
+  arma::mat out = x.t() * y;
+  return(out(0));
+}', depends = "RcppArmadillo")
+```
+
+```{r, cache=T}
+x <- rnorm(1e4); y <- rnorm(1e4)
+bench::mark(
+  t(x) %*% y,       
+  inner_prod_rcpp(x, y),
+  inner_prod_rcpparma(x, y),
+  check = F,
+  relative = T
+)[, 1:5]
+```
+
+---
+### `RcppArmadillo` 
+
+**Example: eigenvalues of real symmetric matrix**
+
+```{r, echo=F, message=F, warning=F}
+cppFunction('
+arma::vec Eigenvals_Armadillo(arma::mat& M) {
+  return arma::eig_sym(M);
+}', depends = "RcppArmadillo")
+```
+
+```nohighlights
+arma::vec Eigenvals_Armadillo(arma::mat A) {
+  return arma::eig_sym(A);
+}
+```
+
+```{r}
+X <- rnorm(1000); X <- X %*% t(X)
+bench::mark(
+  eigen(X)$values,
+  Eigenvals_Armadillo(X),
+  check = F
+)[, 1:4]
+```
+
+---
+### `RcppArmadillo` &mdash; Programming Strategy
+
+We recommend a similar procedure as for Rcpp: 
+
+- Write the code in R and divide it into functions if possible so that bottlenecks can be easily identified
+
+- Replace slow components with C++ Armadillo functions that have the same call signature.
+
+- New: Try to keep the number of casts between RcppArmadillo, Rcpp and R data types to a minimum. 
+
+---
+### `RcppArmadillo` 
+
+**Example: fast regression**
+
+Rcpp input *by reference* / Rcpp return
+
+```nohighlights
+#include <RcppArmadillo.h>
+using namespace Rcpp;
+
+// [[Rcpp::export]]
+List fastReg_TwoCasts(NumericMatrix Xr,  NumericVector yr) {
+    int n = X.n_rows, k = X.n_cols;
+    
+    arma::mat X(Xr.begin(), n, k, false);
+    arma::colvec y(yr.begin(), yr.size(), false);
+        
+    arma::colvec coef = arma::solve(X, y);
+    arma::colvec res  = y-X*coef;
+
+    return List::create(Named("coefficients") = coef);
+}
+```
+
+---
+### `RcppArmadillo` 
+
+**Example: fast regression**
+
+Armadillo input *by value* / Rcpp return
+
+```nohighlights
+#include <RcppArmadillo.h>
+using namespace Rcpp;
+
+// [[Rcpp::export]]
+List fastReg_OneCast(arma::mat X, arma::colvec y) {
+    int n = X.n_rows, k = X.n_cols;
+
+    arma::colvec coef = arma::solve(X, y);
+    arma::colvec res  = y-X*coef;
+
+    return List::create(Named("coefficients") = coef);
+}
+```
+---
+### `RcppArmadillo` 
+
+**Example: fast regression**
+
+Armadillo input *by constant reference* / Rcpp return
+
+```nohighlights
+#include <RcppArmadillo.h>
+using namespace Rcpp;
+
+// [[Rcpp::export]]
+List fastReg_ConstRef(const arma::mat& X, const arma::colvec& y) {
+    int n = X.n_rows, k = X.n_cols;
+        
+    arma::colvec coef = arma::solve(X, y);
+    arma::colvec res  = y-X*coef;
+
+    return List::create(Named("coefficients") = coef);
+}
+```
+
+---
+### `RcppArmadillo` 
+
+**Example: fast regression**
+
+Armadillo input *by constant reference* / RcppArmadillo return
+
+```nohighlights
+#include <RcppArmadillo.h>
+using namespace Rcpp;
+
+// [[Rcpp::export]]
+arma::mat fastReg_NoCast(const arma::mat& X, const arma::vec& y) {  
+ arma::vec b_hat;  
+ 
+ beta_hat = (X.t() * X).i() * X.t() * y;  
+ 
+ return(beta_hat);  
+}
+```
+
+---
+### `RcppArmadillo` 
+
+**Example: fast regression**
+
+```{r, echo=F, warning=F, message=F, cache=T}
+cppFunction('
+List fastReg_TwoCasts(NumericMatrix Xr,  NumericVector yr) {
+    int n = Xr.nrow(), k = Xr.ncol();
+    arma::mat X(Xr.begin(), n, k, false);
+    arma::colvec y(yr.begin(), yr.size(), false);
+    arma::colvec coef = arma::solve(X, y);
+    arma::colvec res  = y-X*coef;
+    return List::create(Named("coefficients") = coef);
+}', depends = "RcppArmadillo")
+cppFunction('
+List fastReg_OneCast(arma::mat X, arma::colvec y) {
+    arma::colvec coef = arma::solve(X, y);
+    arma::colvec res  = y-X*coef;
+    return List::create(Named("coefficients") = coef);
+}', depends = "RcppArmadillo")
+cppFunction('
+List fastReg_ConstRef(const arma::mat& X, const arma::colvec& y) {
+    arma::colvec coef = arma::solve(X, y);
+    arma::colvec res  = y-X*coef;
+    return List::create(Named("coefficients") = coef);
+}', depends = "RcppArmadillo")
+cppFunction('
+arma::mat fastReg_NoCast(const arma::mat& X, const arma::vec& y) {  
+ arma::vec b_hat;  
+ b_hat = (X.t()*X).i()*X.t()*y;  
+ return(b_hat);  
+ }', depends = "RcppArmadillo")
+```
+
+```{r, cache = T}
+k <- 4; N <- 1e4
+X <- cbind(1,matrix(rnorm(N), ncol = k))
+Y <- X %*% c(1, runif(k)) + rnorm(N/k)
+
+bench::mark(
+    lm(Y ~ X - 1), solve(t(X) %*% X) %*% t(X) %*% Y, lm.fit(X, Y),
+    fastReg_TwoCasts(X, Y), fastReg_OneCast(X, Y),
+    fastReg_ConstRef(X, Y), fastReg_NoCast(X, Y),
+    check = F, relative = T, iterations = 500)[, 1:4]
+```
+
+---
+### `RcppArmadillo` 
+
+**Example: simulating a VAR(1) process**
+
+- A VAR(1) process is given by $$\mathbf{y}_t = \mathbf{A}\mathbf{y}_{t-1} + \boldsymbol{\varepsilon}_t$$ with $K$ endogenous variables $\mathbf{y}_t = (y_{1t}, \dots, y_{kt})$, $\mathbf{A}$ a $K\times K$ coefficient matrix and $\boldsymbol{\varepsilon}_t$ a $K$ dimensional error process with $E(\boldsymbol{\varepsilon}_t) = \mathbf{0}$ and $E(\boldsymbol{\varepsilon}_t \boldsymbol{\varepsilon}_t') = \boldsymbol{\Sigma}_{\boldsymbol{\varepsilon}}$.
+
+- $\mathbf{y}_t$ is a stable process if $$\det(\mathbf{I}_K - \mathbf{A}z) \neq 0$$ for $\lvert z\rvert \leq 1$. An equivalent condition is that all eigenvalues of $\mathbf{A}$ have modulus less than 1.
+
+- We consider a DGP for $K=2$ variables where $\boldsymbol{\varepsilon}_t$ is bivariate standard normal and $$\mathbf{A} = \begin{pmatrix}0.8 & 0.15\\ 0.15 & 0.8\end{pmatrix}$$ 
+
+---
+### `RcppArmadillo` 
+
+**Example: simulating a VAR(1) process**
+
+Let's check that the DGP generates stable processes.
+
+```{r}
+A <- matrix(c(0.8, 0.15, 0.15, 0.8), ncol = 2)
+all(Eigenvals_Armadillo(A) < 1)
+```
+
+We write the DGP as an R function of the coefficient matrix and the error process.
+
+```{r}
+VARSim_R <- function(A, epsilon) {
+   out <- matrix(0, nrow(epsilon), ncol(epsilon))
+   for (i in 2:nrow(epsilon)) {
+      out[i,] <- A %*% out[i-1,] + epsilon[i,]
+   }
+   return(out)
+}
+```
+
+---
+### `RcppArmadillo` 
+
+**Example: simulating a VAR(1) process**
+
+An Armadillo version is readily implemented
+
+```nohighlights
+#include <RcppArmadillo.h>
+// [[Rcpp::depends(RcppArmadillo)]]
+
+// [[Rcpp::export]]
+arma::mat VARSim_Rcpp(arma::mat coef, arma::mat epsilon) {
+  int m = epsilon.n_rows; int n = epsilon.n_cols;
+  arma::mat out(m, n, arma::fill::zeros);
+  for (int i=1; i<m; i++) {
+    out.row(i) = out.row(i-1) * coef.t() + epsilon.row(i);
+  }
+  return out;
+}
+```
+
+```{r, echo=F}
+cppFunction('
+arma::mat VARSim_Rcpp(arma::mat& coef, arma::mat& epsilon) {
+  int m = epsilon.n_rows; int n = epsilon.n_cols;
+  arma::mat out(m, n, arma::fill::zeros);
+  for (int i=1; i<m; i++) {
+    out.row(i) = out.row(i-1) * coef.t() + epsilon.row(i);
+  }
+  return out;
+}', depends = "RcppArmadillo")
+```
+
+---
+### `RcppArmadillo` 
+
+**Example: simulating a VAR(1) process**
+
+.smaller[
+```{r, fig.width=10, fig.height=5, fig.align='center'}
+epsilon <- matrix(rnorm(500), ncol = 2)
+df <- data.frame(VARSim_Rcpp(A, epsilon)) %>% 
+  mutate(time = row_number()) %>% gather(key = "var", value = "y", -time) 
+
+ggplot(df) + geom_line(aes(x=time, y=y, color = var))
+```
+]
+
+---
+### `RcppArmadillo` 
+
+**Example: simulating a VAR(1) process**
+
+```{r, cache=T}
+bench::mark(
+  VARSim_R(A, epsilon),
+  VARSim_Rcpp(A, epsilon),
+  relative = T)[, 1:4]
+```
+
+
+---
+### `RcppArmadillo` &mdash; Case Study: EM Algorithm
+
+.smaller[
+
+**Gaussian mixture model**
+
+A mixture of two univariate Gaussians can be written as
+`\begin{align*}
+  f(x)=&\sum_{z}f(x,z) = \sum_{z} f(z) f(x\vert z) \\
+      =&\pi \mathcal{N}(x\vert\mu_1, \sigma_1)+(1-\pi) \mathcal{N}(x\vert\mu_2, \sigma_2)
+\end{align*}`
+where `\(z\)` is a latent (i.e. unobserved) binary random variable stating whether `\(x\)` is generated from `\(\mathcal{N}(x\vert\mu_1, \sigma_1)\)` or `\(\mathcal{N}(x\vert\mu_2, \sigma_2)\)`, `$$f(z) = \pi^{z}\cdot(1-\pi)^{1-z}.$$`
+
+The unknown parameters `\(\pi, \mu_1,\mu_2,\sigma_1,\sigma_2\)` are estimated as maximizers of
+`\begin{align*}
+\log L(x\vert \pi, \mu_1,\mu_2,\sigma_1,\sigma_2) = \sum_{i=1}^N\log\left\{\pi \mathcal{N}(x_i\vert\mu_1, \sigma_1)+(1-\pi) \mathcal{N}(x_i\vert\mu_2, \sigma_2)\right\}.
+\end{align*}`
+*Expectation-Maximization* (EM) algorithms are a popular choice.
+]
+
+---
+### `RcppArmadillo` &mdash; Case Study: EM Algorithm
+
+.smaller[
+
+**Gaussian mixture model**
+
+Using the posterior probabilities
+`\begin{align*}
+  P(z_i=1\vert x_i) =& \gamma_{1i} = \frac{\pi\mathcal{N}(x_i\vert \mu_1, \sigma_1)}{\pi\mathcal{N}(x_i\vert \mu_1, \sigma_1) + (1-\pi)\mathcal{N}(x_i\vert \mu_2,\sigma_2)},\\
+  P(z_i=0\vert x_i) =& \gamma_{2i} = 1 - \gamma_{1i},
+\end{align*}`
+rearranging the first order conditions gives
+`\begin{align*}
+  \pi =& \frac{1}{n}\sum_{i=1}^n \gamma_{1i}\\
+  \mu_1 =& \frac{1}{n}\sum_{i=1}^n\gamma_{1i}x_i/\pi, \quad \mu_2=(\overline{x} - \pi\mu_1)/(1-\pi),\\
+  \sigma_1^2 =& \frac{1}{n}\sum_{i=1}^n\gamma_{1i}(x_i-\mu_1)^2, \quad \sigma_2^2 = \frac{1}{n}\sum_{i=1}^n\gamma_{2i}(x_i-\mu_2)^2.
+\end{align*}`
+This suggests an iterative procedure where we compute compute `\(\gamma_{1i}\)` and `\(\gamma_{2i}\)` and then update the parameters.
+]
+
+---
+### `RcppArmadillo` &mdash; Case Study: EM Algorithm
+
+**EM for two-component univariate Gaussian mixture model**
+
+1. Initialize `\(\pi\)`, `\(\mu_1\)`, `\(\mu_2\)`, `\(\sigma_1\)`, `\(\sigma_2\)` and compute the log-likelihood.
+
+2. Evaluate `\(\gamma_{1i}\)` and `\(\gamma_{2i}\)` (*E step*)
+
+3. Re-estimate `\(\pi\)`, `\(\mu_1\)`, `\(\mu_2\)`, `\(\sigma_1\)`, `\(\sigma_2\)` as shown on the previous slide (*M step*)
+
+4. Evaluate the likelihood and check for convergence using the likelihood (check if difference in log-likelihood between iterations is smaller than some prespecified `\(\epsilon>0\)`. Return to 2. if the convergence criterion is not met.
+
+---
+### `RcppArmadillo` &mdash; Case Study: EM Algorithm
+
+**Complete the following tasks:**
+
+1. Implement an R function which estimates the paramesters of a two-component univariate Gaussian mixture model. The function should allow the user to specify the maximum number of iteration and a tolerance for checking convergence of the log-likelihood.
+
+2. Identify bottlenecks of your function and rewrite it using `Rcpp`/`RcppArmadillo`. Benchmark against the R implementation.
+
+3. Use the function for estimating a two-component mixture model of XXX. Visualise the the results.
+
+
+
+

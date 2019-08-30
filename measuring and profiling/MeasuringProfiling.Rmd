@@ -1,0 +1,816 @@
+---
+title: "Measuring Performance and Profiling"
+author: 
+  - "Martin Arnold"
+  - "Alexander Gerber"
+date: '`r Sys.Date()`'
+output:
+  xaringan::moon_reader:
+    seal: false
+    lib_dir: libs
+    css: ["../xaringan_files/xaringan-themer.css", "../xaringan_files/custom.css"]
+    nature:
+      beforeInit: ../xaringan_files/macros.js
+      highlightStyle: solarized-dark
+      highlightLines: true
+      countIncrementalSlides: false
+    includes:
+      after_body: ../xaringan_files/terminal_highlight.html
+---
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = F)
+knitr::opts_chunk$set(warning = F, message = F)
+```
+
+```{r xaringan-themer, include=FALSE}
+# solarized_dark(
+#   code_font_family = "Fira Code",
+#   code_font_url    = "https://cdn.rawgit.com/tonsky/FiraCode/1.204/distr/fira_code.css"
+# )
+# library(xaringanthemer)
+# 
+# mono_accent(
+#     base_color           = "#09017F",
+#     header_font_google   = google_font("Roboto", "700"),
+#     text_font_google     = google_font("Roboto Condensed"),
+#     code_highlight_color = "#D2B6E8",
+#     code_font_family     = "Fira Code",
+#     code_font_url        = "https://cdn.rawgit.com/tonsky/FiraCode/1.204/distr/fira_code.css"
+#     )
+```
+
+```{r, include=FALSE}
+# packages needed
+library(microbenchmark)
+library(parallel)
+library(tictoc)
+library(dplyr)
+library(tidyr)
+```
+
+class: top, left
+
+### Performance &mdash; Overview
+
+- Measuring Performance: Profiling and Microbenchmarking
+
+- (Why) is R slow?
+
+- Improving Performance
+
+- Speeding Things Up Using <code>Rcpp</code>
+
+---
+class: inverse, middle, left
+
+background-image: url(../img/road.jpg)
+background-size: cover
+
+### Measuring Performance
+
+#### *Programmers waste enormous amounts of time thinking about, or worrying about, the speed of noncritical parts of their programs, and these attempts at efficiency actually have a strong negative impact when debugging and maintenance are considered.*
+
+#### — Donald Knuth (famous american computer scientist) .
+
+---
+## Prerequisites
+
+Before trying to make code run faster it is necessary to understand what is making it slow. `r emo::ji('snail')`
+
+
+**Profiling** means measuring run time of our code line-by-line using realistic inputs in order to identify *bottlenecks*.
+
+After identifying bottlenecks we experiment with equivalent alternatives of code and find the fastest using a **microbenchmark**.
+
+We will use the packages `profvis` and `bench` for profiling and benchmarking. Please make sure they are installed by checking whether the following code chunk executes without issues.
+
+```{r, echo=T, eval=F}
+library(profvis)
+library(bench)
+```
+
+---
+class: inverse, middle, left
+
+### Profiling
+
+#### *It’s tempting to think you just know where the bottlenecks in your code are. I mean, after all, you write it! But trust me, I can’t tell you how many times I’ve been surprised at where exactly my code is spending all its time. The reality is that profiling is better than guessing.*
+
+#### — Roger D. Peng
+
+---
+### Profiling - `utils::Rprof()`
+
+`Rprof()` is a build-in *sampling profiler*. It keeps track of the *function call stack* at regularly sampled intervals.
+
+- The function call stack is a record of the function currently executing, the function that called the function, and so on (from right to left)
+
+- The default time interval between sampling is 0.02 seconds. If the profiled code executes faster you need to pass an appropriate sampling time to the argument `interval`.
+
+- The output of `Rprof()` is a complete listing of the function call stack at every sampling iteration (which, on its own, is often not very informative) which is printed to a binary file in the current working directory
+
+- Note: results are *stochastic* &mdash; we never run a function twice under the same conditions (memory usage, CPU load etc.) 
+
+---
+### `utils::Rprof()`
+
+**Example: profiling a call of `replicate()`**
+
+```{r, eval = F, cache=TRUE}
+tmp <- tempfile()
+
+Rprof(tmp, interval = 0.1)       # start the profiler
+replicate(5, mean(rnorm(1e6)))
+Rprof(NULL)                      # stop profiling
+
+writeLines(readLines(tmp))
+```
+```{r, echo=FALSE}
+cat('
+sample.interval=100000
+"rnorm" "mean" "FUN" "lapply" "sapply" "replicate" 
+"rnorm" "mean" "FUN" "lapply" "sapply" "replicate" 
+"rnorm" "mean" "FUN" "lapply" "sapply" "replicate" 
+')
+```
+
+So `rnorm()` is six levels deep in the call stack and it seems that R spends most of time evaluating `rnorm(1e6)` and the code takes ~ 0.3 seconds to run.
+
+---
+### `utils::Rprof()`
+
+A more useful output is produced by `utils::summaryRprof()`. 
+
+By appending `$by.total` we get the time spend in each function by the total run time. 
+
+**Example: Profiling a call of `replicate()`**
+
+```{r, eval=F}
+summaryRprof(tmp)$by.total
+```
+
+```{r, echo = F}
+cat('
+             total.time total.pct self.time self.pct
+"rnorm"            0.3       100       0.3      100
+"FUN"              0.3       100       0.0        0
+"lapply"           0.3       100       0.0        0
+"mean"             0.3       100       0.0        0
+"replicate"        0.3       100       0.0        0
+"sapply"           0.3       100       0.0        0
+')
+```
+
+---
+### `utils::Rprof()`
+
+By appending `$by.self` the results are adjusted for the time to run functions above the current function in the call stack.
+
+**Example: profiling a call of `replicate()`**
+```{r, eval=F}
+summaryRprof(tmp)$by.self
+```
+```{r, echo = F}
+cat('
+       self.time self.pct total.time total.pct
+"rnorm"       0.3      100        0.3       100
+')
+```
+
+As expected, the random number generation takes approx. 100% of the total computation time.
+
+---
+### Visualising profiles: `profvis::profvis()`
+
+**Example: profiling nested functions**
+
+```{r}
+# define some nested example functions
+f <- function() {
+  pause(0.1)
+  g()
+  h()
+}
+
+g <- function() {
+  pause(0.1)
+  h()
+}
+
+h <- function() {
+  pause(0.1)
+}
+```
+
+(We use `profvis::pause()` because the time spend in `base::sys.sleep()` is not measured as computing time.)
+
+---
+### Visualising profiles: `profvis::profvis()`
+**Example: profiling nested functions**
+
+Visualisation using `profvis()` works best when the code is sourced from an .R-script
+
+```{r, eval=FALSE}
+# source f(), g(), h() form R script
+source("codes/profiling-example.R")
+
+# visualise profiling results
+profvis(f())
+```
+
+After profiling, `profvis()` opens an interactive HTML window will *RStudio* which lets you explore the results.
+
+The interface provided by `profvis()` connects the profiling data back to the source code. This makes it easier to build up a 'mental' model of what you need to change.
+
+---
+background-image: url(../img/profiling.png)
+background-position: 50% 85%
+background-size: 600px
+
+### Visualising profiles: `profvis::profvis()`
+
+---
+### Visualising profiles: `profvis::profvis()`
+
+The top pane 
+
+- displays bar plots of running times and memory allocations with the latter being no issue here (why?)
+
+- provides a good overall feel for bottlenecks but is quite imprecise about the *cause*
+
+`h()` is not significantly slower than `g()`: `h()` is reported to take 150 ms (twice as long as `g()`) because it is called two times.
+
+
+The bottom pane shows a *flame graph* of the full call stack. The full sequence confirms that
+
+ - `h()` is called from two different places (once by `g()` and once by `f()`)
+
+ - the execution time of `h()` is roughly the same in each call.
+ 
+Mousing over a cell in the function stack indicates the corresponding line in the source code.
+
+---
+background-image: url(../img/profiling_data_tab.png)
+background-position: 50% 85%
+background-size: 500px
+
+### Visualising profiles: `profvis::profvis()`
+
+The data tab provides a tree-based representation of the top pane. <br> (useful for analysing more complicated components of the code)
+
+---
+### Visualising profiles: `profvis::profvis()`
+**Example: profiling linear regression**
+
+```{r, eval=FALSE}
+profvis({
+  
+  dat <- data.frame(
+    x = rnorm(5e4),
+    y = rnorm(5e4)
+  )
+
+  plot(x ~ y, data = dat)
+  m <- lm(x ~ y, data = dat)
+  abline(m, col = "red")
+
+})
+```
+
+---
+background-image: url(../img/profiling_regression_1.png)
+background-position: 50% 80%
+background-size: 650px
+### Visualising profiles: `profvis::profvis()`
+**Example: profiling linear regression**
+
+---
+background-image: url(../img/profiling_regression_2.png)
+background-position: 50% 80%
+background-size: 650px
+### Visualising profiles: `profvis::profvis()`
+**Example: profiling linear regression**
+
+
+---
+### Memory Profiling
+
+**Example: extensive garbage collection**
+
+The following code generates a large number of short-lived objects by *copy-on-modify*.
+
+```{r, eval=F}
+profvis({
+  
+  x <- integer()
+  
+  for (i in 1:1e4) {
+    x <- c(x, i)
+  }
+  
+})
+```
+
+---
+background-image: url(../img/profiling_gc.png)
+background-position: 50% 70%
+background-size: 650px
+
+### Memory Profiling
+
+It looks like R spends most of the time modifying the data in-place, but that’s not actually what’s happening internally.
+
+---
+### Memory Profiling
+
+What is going on?
+
+- The memory column indicates that large amounts of memory are being allocated (right bar) and freed (left bar)
+
+  Reasons: 
+  
+  1. A new memory object is generated by modifying a copy of the 'old' `x` which is then reassigned to `x` in each iteration
+  
+  2. Garbage collection (GC) automatically frees memory by deleting no more required objects
+
+- While `c()` runs for a total of 170 ms, a considerable amount of this time is due to garbage collection (`<GC>`)
+
+When you see the garbage collector taking up a lot of time, you can often come up with a more efficient alternative.
+
+---
+### Memory Profiling
+
+Sometimes code statements seem fairly innocent but are very inefficient both when it comes to memory and speed.
+
+**Example: coercion to another type**
+
+```{r, eval=F, }
+profvis({
+  x <- matrix(nrow = 1e4, ncol = 1e4)
+  x[1, 1] <- 0
+  x[1:3, 1:3] 
+})
+```
+
+---
+background-image: url(../img/profiling_coercion.png)
+background-position: 50% 90%
+background-size: 650px
+### Memory Profiling
+**Example: coercion to another type**
+
+Can you explain why execution of the third line needs 762.9MB memory?
+
+---
+### Memory Profiling
+**Example: coercion to another type**
+```{r, cache=T}
+p <- profmem::profmem({
+  x <- matrix(nrow = 1e4, ncol = 1e4)
+  x[1, 1] <- 0
+  x[1:3, 1:3]  
+})
+
+print(p, expr = F)
+```
+
+---
+### Memory Profiling
+
+**Example: coercion to another type**
+
+What is going on?
+
+The code seems fairly innocent, but it turns out that it is very inefficient - both when it comes to memory and speed:
+
+- `x` is initialized with type `logical` (it is filled with `NA`s) and thus cannot contain numeric values.
+
+- `x[1, 1] <- 0` internally coerces `x` to a `numeric` matrix before assigning `0` to the (1,1) element which is quite costly: initializing `x` was more than twice as fast!
+
+Especially if a large number of computations need to be performed, coercion should be avoided wherever possible!
+
+---
+### Profiling &mdash; some notes and hints
+
+- C/C++ (or other compiled) code cannot be profiled
+
+- We also cannot profile what happens *inside* primitive functions, e.g., `sum()` and `sqrt()` (these functions are written in C or FORTRAN).
+
+  We thus cannot use profiling to see whether the code is slow due because something further down the call stack is slow.
+  
+**Example: primitive functions**
+  
+```{r, eval=F}
+profvis({
+  sqrt(sum(abs(rnorm(sum(1e6)))))
+  })
+```
+
+- Profiling is just another reason to **break your code into functions** so that the profiler can give useful information about where time is being spent
+
+---
+class: inverse, left, top
+background-image: url(../img/road.jpg)
+background-size: cover
+# Microbenchmarking
+
+---
+### What is a Microbenchmark?
+
+*A microbenchmark is a program designed to test a very small snippets of code for a specific task. Microbenchmarks are always artificial and they are not intended to represent normal use.*
+
+- We usually speak of milliseconds (ms), microseconds (µs), or nanoseconds (ns) here. 
+
+- Important: microbenchmarks can rarely be generalised to 'real' code: the observed differences in microbenchmarks will typically be dominated by **higher-order effects** in real code.
+
+  Think of it this way:
+  
+  A deep understanding of quantum physics is not very helpful when baking cookies.
+  
+- There are several R packages for microbenchmarking. We will rely on the `bench` package by Hester (2018) which currently has the most accurate timer function.
+
+---
+### Microbenchmarking &mdash; the `bench` package
+
+- `bench` is part of the `tidyerse`. It uses the highest precision APIs available for the common operating system (often nanoseconds-level!)
+
+- `mark()` is the working horse of the `bench` package and measures both memory allocation and computation time.
+
+- By default, a human-readable statistical summary on the distributions of memory load and timings based on 1e4 iterations is returned which also reports on garbage collections
+
+- Benchmarking across a grid of input values with `bench::press()` is possible
+
+- The package also has methods for neat visualization of the results using `ggplot2::autoplot()` (default plot type is [beeswarm](https://flowingdata.com/2016/09/08/beeswarm-plot-in-r-to-show-distributions/)) 
+
+---
+### Microbenchmarking &mdash; `bench::mark()`
+
+**Example: "the fastest square root"**
+
+```{r, eval=1:5}
+x <- runif(100)
+(lb <- bench::mark(
+  sqrt(x),
+  x ^ 0.5
+))
+
+```
+
+```{r, eval=F, warning=F, message=F}
+plot(lb)
+```
+
+---
+### Microbenchmarking &mdash; `bench::mark()`
+
+**Example: "the fastest square root"**
+
+```{r, echo=F, fig.width=14, fig.height=8.5}
+plot(lb)
+```
+
+---
+### Microbenchmarking &mdash; `bench::mark()`
+
+**Example: non-equivalent code**
+
+```{r, eval=F}
+set.seed(42)
+
+dat <- data.frame(
+  x = runif(10000, 1, 1000),
+  y = runif(10000, 1, 1000))
+
+bench::mark(
+  dat[dat$x > 500, ],
+  dat[which(dat$x > 499), ],
+  subset(dat, x > 500))
+```
+
+```{r, echo=FALSE}
+cat('
+Error: Each result must equal the first result:
+  `dat$x > 500` does not equal `which(dat$x > 499)` Each result must 
+  equal the first result:
+  `` does not equal ``
+    ')
+```
+
+Use `check = FALSE` to disable checking of consistent results.
+
+---
+### Microbenchmarking &mdash; `bench::mark()`
+
+**Example: benchmark against parameter grid**
+
+```{r, results='hide', cache=T}
+set.seed(42)
+
+create_df <- function(rows, cols) {
+  as.data.frame(setNames(
+    replicate(cols, runif(rows, 1, 1000), simplify = FALSE),
+    rep_len(c("x", letters), cols)))
+}
+
+results <- bench::press(
+  rows = c(10000, 100000),
+  cols = c(10, 100),
+  {
+    dat <- create_df(rows, cols)
+    bench::mark(
+      min_iterations = 100,
+      bracket = dat[dat$x > 500, ],
+      which = dat[which(dat$x > 500), ],
+      subset = subset(dat, x > 500)
+    )
+  }
+)
+```
+
+---
+### Microbenchmarking &mdash; `bench::mark()`
+
+**Example: benchmark against parameter grid**
+
+.small[
+
+```{r, echo=F}
+cat('
+#> # A tibble: 12 x 12
+#>    expression   rows  cols      min     mean   median      max `itr/sec` mem_alloc  n_gc n_itr total_time
+#>    <chr>       <dbl> <dbl> <bch:tm> <bch:tm> <bch:tm> <bch:tm>     <dbl> <bch:byt> <dbl> <int>   <bch:tm>
+#>  1 bracket     10000    10    830µs   1.06ms 987.08µs   2.29ms    940.      1.17MB    18   304   323.47ms
+#>  2 which       10000    10 447.96µs 652.94µs 564.73µs    1.6ms   1532.    827.04KB    21   551   359.77ms
+#>  3 subset      10000    10 906.91µs   1.15ms   1.04ms   2.27ms    866.      1.28MB    21   320   369.44ms
+#>  4 bracket    100000    10  14.96ms  17.34ms  17.39ms  19.95ms     57.7    11.54MB    46    54   936.47ms
+#>  5 which      100000    10   9.09ms  11.24ms  11.04ms  15.25ms     89.0     7.91MB    32    68   764.24ms
+#>  6 subset     100000    10  14.76ms  16.86ms  16.07ms  20.74ms     59.3    12.68MB    46    54   910.46ms
+#>  7 bracket     10000   100   7.19ms   9.16ms   8.76ms     13ms    109.      9.71MB    34    66   604.84ms
+#>  8 which       10000   100   2.74ms   4.17ms   3.98ms   8.17ms    240.      5.91MB    19    81   338.03ms
+#>  9 subset      10000   100   7.19ms   9.63ms   9.46ms  12.54ms    104.      9.84MB    35    65   626.03ms
+#> 10 bracket    100000   100 100.19ms  111.1ms 111.08ms 121.63ms      9.00   97.47MB    83    21      2.33s
+#> 11 which      100000   100  54.19ms  59.62ms  59.36ms  65.77ms     16.8    59.51MB    36    64      3.82s
+#> 12 subset     100000   100 103.36ms 113.58ms 111.83ms    134ms      8.80   98.62MB    84    16      1.82s
+')
+```
+
+]
+
+`ggplot2::autoplot()` automatically generates a facet plot for `results`.
+
+```{r, eval=F}
+plot(results)
+```
+
+---
+### Microbenchmarking &mdash; `bench::mark()`
+
+**Example: benchmark against parameter grid**
+
+```{r, echo=F, fig.width = 13, fig.height=8.5}
+plot(results)
+```
+
+---
+### Microbenchmarking &mdash; Exercises
+
+1. Instead of using `bench::mark()`, you could use the built-in function `system.time()` which is, however, much less precise, so you’ll need to repeat each operation many times with a loop, and then divide to find the average time of each operation, as in the code below.
+    
+    ```
+    n <- 1e6
+    system.time(for (i in 1:n) sqrt(x)) / n
+    system.time(for (i in 1:n) x ^ 0.5) / n
+    ```
+
+  How do the estimates from `system.time()` compare to those from `bench::mark()`? Why are they different?
+
+2. Here are two other ways to compute the square root of a vector. Which do you think will be fastest? Which will be slowest? Use microbenchmarking to test your answers.
+
+    ```
+    x ^ (1 / 2)
+    exp(log(x) / 2)
+    ```
+---
+class: inverse, left, top
+background-image: url(img/road.jpg)
+background-size: cover
+### (Why) is R slow?
+
+---
+### (Why) is R slow?
+
+Think of R as both the definition of a language and its implementation.
+
+**`R` language**
+
+- The R language defines meaning of code statements and how they work (*very abstract*) 
+
+- R is an extremely dynamic language, i.e., you have *a lot* freedom in modifying objects after they have been created
+
+- This dynamism is comfortable because is allows you to iterate your code and alter objects &mdash; there's no need to start from scratch when something doesn't work out!
+
+`r emo::ji('lightning')` Changes for improving speed without breaking existing code are problematic. 
+
+---
+### (Why) is R slow? &mdash; Slow Code Interpretation
+
+... but:
+
+`R` is an interpreted language. Its dynamism causes code interpretation to be relatively time consuming.
+
+**Example**
+
+```{r, echo=TRUE, rx =T}
+x <- 0L
+for (i in 1:1e6) {
+  x <- x + 1
+}
+```
+
+In the above example, the interpreter cannot predict that the loop always adds `1` to an integer `x`. `R` needs to look for the right `+` method (the method for adding two doubles) in *every* iteration of the loop!
+
+---
+### (Why) is R slow?
+
+**Implementation**
+
+- Processes R code and computes results; commonly base R (*GNU-R*) from [cran.r-project.org](https://cran.r-project.org/src/base/R-3/)
+
+- R (written in *FORTRAN*, *R*, and *C*) is more than 20 years old was not indented for super fast computations
+
+- `r emo::ji('bolt')` tweaking for speed improvements is easier (done by R-core team) but not feasible for end users like us. <br><br> Some alternatives address specific issues:
+
+  - "pretty quick R" [pqR](http://www.pqr-project.org/) (parallelisation of core functions)
+  
+  - [Microsoft R Open](https://mran.microsoft.com/open) (some fast extensions for machine learning)
+
+
+---
+### (Why) is R slow? &mdash; Name Look-up with Mutable Environments
+
+**Lexical Scoping in a Nutshell:**
+
+*"Values of variables are searched for in the environment the function belongs to."*
+
+
+- If a value is not found in the environment in which a function was defined, search steps-up to the *parent environment*
+
+- This continues down the sequence of parent environments until the top-level environment (usually the *global environment* or a package namespace) is reached
+
+- After the top-level environment, the search continues down the *search list* until we hit the *empty environment*.
+
+---
+### (Why) is R slow? &mdash; Name Look-up with Mutable Environments
+
+**Example: have you seen z?**
+
+Interpreter asks: which environment does the value of `z` come from?
+
+```{r, eval=FALSE}
+f <- function(x, y) {
+  x + y / z
+}
+```
+
+```{r}
+# print search list
+search()
+```
+
+---
+### (Why) is R slow? &mdash; Name Look-up with Mutable Environments
+
+**Example: have you seen z?**
+
+Interpreter asks: which environment does the value of `z` come from?
+
+```{r, eval=FALSE}
+z <- 1                 # global environment
+
+f <- function() {      # f() is parent to g()
+  print(z)
+  g <- function() {
+    z <- 3
+    print(z)
+  }
+  z <- 2
+  print(z)
+  g() 
+}
+f()
+```
+
+Name look-up is done every time we call `print(z)`!
+
+---
+### (Why) is R slow? &mdash; Look-up with Mutable Environments
+
+Even more problematic: most operations are lexically scoped function calls. This includes `+` and `-` but also (sometimes "recklessly" used) *operators* like `(` and `{`.
+
+**Example: excessive usage of parenthesis.**
+
+(a first example of poorly written code)
+
+```{r, cache=T}
+g <- function(x) x = (1/(1 + x))
+h <- function(x) x = ((1/(1 + x)))
+i <- function(x) x = (((1/(1 + x))))
+
+x <- sample(1:100, 100, replace = TRUE)
+
+bench::mark(g(x), h(x), i(x))
+```
+
+---
+### (Why) is R slow? &mdash; Look-up with Mutable Environments
+
+**Example: function calls in nested environments**
+
+
+```{r, cache=T}
+f <- function(x, y) {
+  (x + y) ^ 2
+}
+
+random_env <- function(parent = globalenv()) {
+  letter_list <- setNames(as.list(runif(26)), LETTERS)
+  list2env(letter_list, envir = new.env(parent = parent))
+}
+
+set_env <- function(f, e) {
+  environment(f) <- e
+  f
+}
+
+f2 <- set_env(f, random_env())
+f3 <- set_env(f, random_env(environment(f2)))
+f4 <- set_env(f, random_env(environment(f3)))
+
+```
+
+---
+### (Why) is R slow? &mdash; Look-up with Mutable Environments
+
+**Example: function calls in nested environments &mdash; ctd.**
+
+```{r, warning=F, message=F, cache=T}
+bench::mark(f(1, 2), f2(1, 2), f3(1, 2), f4(1, 2))
+```
+
+Each additional environment between `f()` and the global environment where `+` and `^` are defined increases computation time.
+
+---
+### (Why) is R slow? &mdash; Lazy Evaluation Overhead
+
+R function arguments are lazy --- they are only evaluated when actually needed. An unevaluated argument is called *promise* and consists of
+
+  1. an expression
+    
+  2. a corresponding environment
+    
+  3. a value (if the expression was evaluated)
+
+**Example: lazy evaluation**
+
+```{r, eval=F}
+f1 <- function(a) {force(a); NULL} # why not simply write 'a'?
+f1(stop("My dog speaks Chinese"))
+```
+
+vs.
+
+```{r, eval=F}
+f1 <- function(a) NULL
+f1(stop("My dog speaks Chinese"))
+```
+
+---
+### (Why) is R slow? &mdash; Lazy Evaluation Overhead
+
+Promises are very convenient but should be avoided if speed is crucial.
+
+**Example: lazy evaluation**
+
+```{r}
+f1 <- function(a) NULL
+f2 <- function(a = 1, b = 2, c = 4, d = 4, e = 5) NULL
+bench::mark(f1(), f2())
+```
+
+Arguments trigger promises each time the function is *called*. Superfluous arguments thus lead to avoidable overhead.
+
+---
+### (Why) is R slow? &mdash; Summary
+
+- R is not slow *per se* &mdash; but it is slow compared to other languages:
+
+    Speed isn't its strongest suit but accessability and compatibility are. R was designed to make life easier for you, not for your computer!
+
+    More technically: R is an easy-to-use high level programming language. It provides a flexible and extensible toolkit for data analysis and statistics.
+
+- We are (mostly) happy to accept the slower speed for the time saved from not having to reinvent the wheel each time we want to implement a new function that, e.g., computes a test statistic.
+
+    (meanwhile there are `r nrow(available.packages(repos = "http://cran.us.r-project.org"))` packages available on [CRAN](https://cran.r-project.org/) with many useful functions waiting to be discovered by you!)
+
+- We cannot overcome the circumstances described in this section. However, there are a few things to keep in mind when you want to write high performance code. We'll discuss these in the next chapter.
