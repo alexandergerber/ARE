@@ -146,7 +146,7 @@ ggplot(diamonds, aes(carat, price)) +
 
 ---
 class: left, top
-## Adding a layers
+## Adding a layer
 
 ```{r, echo = FALSE, eval = TRUE, fig.width=10}
 ggplot(diamonds, aes(x = carat, y = price)) + 

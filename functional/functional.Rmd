@@ -1,0 +1,793 @@
+---
+title: "Functional Style Programming in R"
+author: 
+  - "Martin Arnold"
+  - "Alexander Gerber"
+date: '`r Sys.Date()`'
+output:
+  xaringan::moon_reader:
+    seal: false
+    lib_dir: libs
+    css: ["../xaringan_files/xaringan-themer.css", "../xaringan_files/custom.css"]
+    nature:
+      beforeInit: ../xaringan_files/macros.js
+      highlightStyle: solarized-dark
+      highlightLines: true
+      countIncrementalSlides: false
+      #ratio: '16:9'
+    includes:
+      in_header: ../xaringan_files/mathjax-equation-numbers.html
+      after_body: ../xaringan_files/terminal_highlight.html
+---
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = F)
+knitr::opts_chunk$set(warning = F, message = F)
+```
+
+```{r xaringan-themer, include=FALSE}
+# solarized_dark(
+#   code_font_family = "Fira Code",
+#   code_font_url    = "https://cdn.rawgit.com/tonsky/FiraCode/1.204/distr/fira_code.css"
+# )
+# library(xaringanthemer)
+# 
+# mono_accent(
+#     base_color           = "#09017F",
+#     header_font_google   = google_font("Roboto", "700"),
+#     text_font_google     = google_font("Roboto Condensed"),
+#     code_highlight_color = "#D2B6E8",
+#     code_font_family     = "Fira Code",
+#     code_font_url        = "https://cdn.rawgit.com/tonsky/FiraCode/1.204/distr/fira_code.css"
+#     )
+```
+
+```{r, include=FALSE}
+# packages needed
+library(dplyr)
+library(purrr)
+library(readr)
+```
+
+class: inverse, middle, left
+
+background-image: url(../img/road.jpg)
+background-size: cover
+
+### Functional Style Programming in R
+
+#### *To become significantly more reliable, code must become more transparent. In particular, nested conditions and loops must be viewed with great suspicion. Complicated control flows confuse programmers. Messy code often hides bugs.*
+
+#### — Bjarne Stroustrup
+
+---
+### FAQs
+
+**What is functional programming language?**
+
+- Simply put: a language which is centered on problem solving using functions!
+
+- More technically there are two common threats:
+
+    1. A functional language has **first-class functions** which behave like any other data type. In R this means we may treat function like variables (e.g. assign them, store them in alist or pass them as arguments in other functions)
+    
+    2. functional languages often require **pure** functions. These are function which have no side-effects (i.e. they do not interfer with anything outside their scope, violated by, e.g., `print()`) and outputs which depend only on inputs (not true for,  e.g, `rnorm()`).
+
+---
+### FAQs
+    
+**Is R a functional programming language?**
+
+In view of the above (no requirement of pure functions), strictly speaking R is not a functional programming language but we may adopt a functional *style* of programming, which is what we will focus on.
+
+**Why should I use functional programming style?**
+
+- Functional programming is often space efficient, very comprehensible and easily adopted to new situations
+
+- Functionals are easily analysed in isolation and thus are often straightforward to optimize and parallelise
+
+---
+### FAQs
+
+**What does 'functional programming style' even mean?**
+
+It’s hard to describe exactly what a functional style is, but generally we will refer to a definition by Hadley Whickham:  
+
+#### *Functional programming style means decomposing a big problem into smaller pieces, then solving each piece with a function or combination of functions.*
+
+We will briefly discuss several key techniques in functional R programming which are best summarized be the table below. We will focus on `purrr` functionals and applications of function factories.  
+
+![:image 45%](img/fp.png)
+
+---
+### Functionals
+
+A **functional** takes a function as an input and returns a vector as output.
+
+```{r}
+randomise <- function(f) f(rnorm(1e3))
+randomise(mean)
+randomise(sum)
+```
+
+More prominent examples are, e.g. `lapply()` and `integrate()`.
+
+---
+### Functionals
+
+- Functionals are often used as an alternative for loops. Not because they are (inherently) slow, but because loops are very flexible:
+
+    Loops convey that an iteration is done, but not what should be done with the results.
+    
+    Functionals are taylored to specific tasks which immedeatly convey *why* they are being used.
+    
+- Switching from loops to functionals doesn't necessarily mean that we must write our own functionals (and sometimes it is even better to stick with a loop). 
+
+    For many use cases, the `purrr` package has functionals that could be implemented using base R functions. However, the `purrr` variants are much more concise in application and also fast as they are written in C.
+
+---
+### Functionals &mdash; The `purrr` package
+
+```{r}
+library(purrr)
+```
+
+**Example: `map()`**
+
+<br>
+
+![:image 45%](img/map.png)
+
+---
+### Functionals &mdash; `purrr::map()`
+
+**Example: `map()`**
+
+`map(1:3, f)` is equivalent to `list(f(1), f(2), f(3))`.
+
+```{r}
+triple <- function(x) x * 3
+map(1:3, triple)
+```
+
+So `map()` is just a faster version of `lapply()`. There are, however, other helper function which are more convenient if simpler data structures are required.
+
+---
+### `purrr::map()` &mdash; Producing Atomic Vectors
+
+**Example: `map_*()`**
+
+`map_lgl()`, `map_int()`, `map_dbl()`, and `map_chr()` return an atomic vector of the specified type.
+
+<br>
+
+![:image 60%](img/map-list.png)
+
+---
+### `purrr::map()` &mdash; Producing Atomic Vectors
+
+**Example: `map_*()`**
+
+```{r}
+map_lgl(mtcars, is.double)
+
+n_unique <- function(x) length(unique(x))
+map_int(mtcars, n_unique)
+```
+
+Base R equivalents are `sapply()` and `vapply()`.
+
+---
+### `purrr::map()` &mdash; Producing Atomic Vectors
+
+The *twiddle* operator `~` allows to use anonymous functions in a less verbose manner. It conveys that the subsequent expression is a formula.
+
+**Example: `map_*()` with inline anonymous functions**
+
+```{r}
+map_dbl(mtcars, function(x) length(unique(x)))
+```
+
+```{r}
+map_dbl(mtcars, ~ length(unique(.x)))
+```
+
+However, a good rule of thumb is that if a function spans lines or uses `{}`, we should give it a name.
+
+---
+### `purrr::map()` &mdash; Producing Atomic Vectors
+
+The `map_*()` functions are very useful for selecting elements from (nested) lists by name, position (or both).
+
+**Example: element extraction with `map_*()`**
+
+```{r}
+x <- list(
+  list(-1, x = 1, y = c(2), z = "a"),
+  list(-2, x = 4, y = c(5, 6), z = "b"),
+  list(-3, x = 8, y = c(9, 10, 11))
+)
+```
+
+```{r}
+map_dbl(x, "x")   # select by name
+```
+```{r}
+map_dbl(x, 1)     # select by position
+```
+
+
+---
+### `purrr::map()` &mdash; Producing Atomic Vectors
+
+**Example: element extraction with `map_*()`**
+
+Note that components must exist in all lists. 
+
+```{r, error=TRUE}
+map_chr(x, "z")   # z doesn't exist in x[[3]]
+```
+
+A `.default` value can be supplied
+
+```{r}
+map_chr(x, "z", .default = NA)
+```
+
+---
+### `purrr::map()` &mdash; Producing Atomic Vectors
+
+**Example: mapping with additional arguments**
+
+Additional arguments to the function used for mapping may be passed *after* the function name.
+
+<br>
+
+![:image 60%](img/map-arg.png)
+
+---
+### `purrr::map()` &mdash; Producing Atomic Vectors
+
+**Example: mapping with additional arguments**
+
+```{r}
+x <- list(1:5, c(1:10, NA))
+map_dbl(x, ~ mean(.x, na.rm = TRUE))
+```
+
+More convenient:
+
+```{r}
+map_dbl(x, mean, na.rm = TRUE)
+```
+
+Arguments passed to an anonymous function are evaluated in every iteration. The latter approach is more efficient because additional arguments are evaluated just once.
+
+---
+### `purrr::map()` &mdash; Producing Atomic Vectors
+
+**Example: mapping with additional arguments**
+
+Additional arguments are not not decomposed, i.e. `map_*()` is only vectorised over the data passed as the first argument. Vector arguments will be passed along.
+
+<br>
+
+![:image 60%](img/map-arg-recycle.png)
+
+---
+### `purrr::map()` &mdash; Producing Atomic Vectors
+
+**Example: mapping with additional arguments**
+
+```{r}
+map(1:3, rnorm, mean = c(100, 10, 1))   # mean is recycled
+```
+
+Notice that we passed the argument `mean`. Especially for multiple arguments, this practice is less error prone and easier for the reader to comprehend.
+
+---
+### `purrr::map()` &mdash; Producing Atomic Vectors
+
+**Example: mapping with additional arguments**
+
+Arguments passed to an anonymous function are evaluated *in every iteration*. The approach `map_dbl(x, f, add_arg)` is more efficient because additional arguments are evaluated just once.
+
+```{r}
+plus <- function(x, y) x + y
+
+x <- c(0, 0, 0, 0)
+map_dbl(x, plus, runif(1))
+
+map_dbl(x, ~ plus(.x, runif(1)))
+```
+
+---
+### `purrr::map()` &mdash; Producing Atomic Vectors
+
+**Example: mapping over a different argument than the first one**
+
+How can we do this?
+
+![:image 60%](img/map-arg-flipped.png)
+
+---
+### `purrr::map()` &mdash; Producing Atomic Vectors
+
+.smaller[
+
+**Example: mapping over a different argument**
+
+Consider the following example where we would like to investigate the impact of different amounts of trimming when computing the sample mean of observations from a heavy-tailed distribution.
+
+```{r}
+trims <- c(0, 0.1, 0.2, 0.5)
+x <- rcauchy(1000)
+```
+
+We may switch arguments using an anonymous function:
+
+```{r}
+map_dbl(trims, ~ mean(x, trim = .x))
+```
+
+```{r}
+map_dbl(trims, function(trim) mean(x, trim = trim))  # somewhat clearer
+```
+
+]
+
+---
+### `purrr::map()` &mdash; Exercises
+
+1. `map(1:3, ~ runif(2))` is a useful pattern for generating random numbers, but `map(1:3, runif(2))` is not. Why not? Can you explain why it returns the result that it does?
+
+2. The following code simulates the performance of a t-test for non-normal data. Extract the p-value from each test, then visualise.
+
+    ```nohighlights
+    trials <- map(1:100, ~ t.test(rpois(10, 10), rpois(7, 10)))
+    ```
+
+3. Use `map()` to fit linear models to the `mtcars` dataset using the formulas stored in this list:
+
+    ```nohighlights
+    formulas <- list(
+       mpg ~ disp,
+       mpg ~ disp + wt,
+       mpg ~ I(1 / disp) + wt
+    )
+    ```
+    
+---
+### `purrr` Style
+
+.smaller[
+
+Tired of `mtcars`? We're too... let's use `cars2018`, a dataset on fuel efficiency of real cars of today from a US Department of Energy instead! 🚗🚗🚗
+
+We will now take a quick look at how purrr functions can be used to fit a regression model to subgroups of data and extract coefficient estimates and compare the approach to base R solutions.
+
+```{r, message=F}
+cars2018 <- readr::read_csv("~/ARE/data/cars2018.csv")
+by_drive <- split(cars2018, cars2018$Drive)
+```
+
+```{r}
+by_drive %>% 
+  map(~ lm(MPG ~ Cylinders, data = .x)) %>% 
+  map(coef) %>% 
+  map_dbl(2)
+```
+
+]
+
+---
+### `purrr` Style
+
+.smaller[
+
+**`apply()`-style R**
+
+```{r}
+models <- lapply(by_drive, function(data) lm(MPG ~ Cylinders, data = data))
+vapply(models, function(x) coef(x)[[2]], double(1))
+```
+
+**'Pure' base R**
+
+```{r}
+slopes <- double(length(by_drive))
+for (i in seq_along(by_drive)) {
+  model <- lm(MPG ~ Cylinders, data = by_drive[[i]])
+  slopes[[i]] <- coef(model)[[2]]
+}
+slopes
+```
+
+]
+
+---
+### `purrr` Style
+
+- The purrr version is most accessible as each line encapsulates a single step and the purrr helpers allow us to very concisely describe what to do in each step.
+
+- Moving from purrr to base R we see that the number of iterations decreases while each iteration becomes more complicated
+
+  - Using purrr we iterate 3 times (`map()`, `map()` and `map_dbl()`)
+  
+  - The `apply()` version iterates twice (`lapply()` and `vapply()`)
+  
+  - The pure Base R solution has one `for()` loop
+
+  Take away message: more simpler steps make the code easier to understand and modify.
+
+---
+### Map Variants
+
+There are 23 variants of `map()` in total which are easily understood as variants of the following 5 (new) functions with helpers for different input and outputs.
+
+- Output same type as input: `modify()`
+
+- Iterate over two inputs: `map2()`
+
+- Iterate with an index: `imap()`
+
+- Return nothing: `walk()`
+
+- Iterate over any number of inputs: `pmap()`
+
+---
+### Map Variants
+
+Inputs and outputs of the `map` family of functions are orthogonal so they can be visualised in a matrix.
+
+<br>
+
+|    	                   | List          |	Atomic       | Same type     | Nothing      |
+| ---------------------- | ------------- | ------------- | ------------- | ------------ |
+| One argument	         | `map()`	     | `map_*()`	   | `modify()`    | `walk()`     |
+| Two arguments	         | `map2()`	     | `map2_*()`	   | `modify2()`   | `walk2()`    |
+| One argument + index	 | `imap()`	     | `imap_*()`	   | `imodify()`	 | `iwalk()`    |
+| N arguments	       	   | `pmap()`      | `pmap_*()`	   | `—`	         | `pwalk()`    |
+
+---
+### `purrr::modify()`
+
+`modify()` works on the input *components* and returns an object of the same type as the input.
+
+**Example: data.frame in / data.frame out**
+
+```{r}
+df <- data.frame(
+  x = 1:3,
+  y = 6:4
+)
+
+modify(df, ~ .x * 2)
+```
+
+Note that `modify()` does not modify in place but creates a copy which must be assigned if changing the input is required.
+
+```{r}
+df <- modify(df, ~ .x * 2)
+```
+
+---
+### `purrr::map2()`
+
+**Example: weighted mean using `map2()`**
+
+`map2()` is vectorised over two arguments
+
+<br>
+
+![:image 60%](img/map2.png)
+
+---
+### `purrr::map2()`
+
+**Example: weighted mean using `map2()`**
+
+Let's generate lists of observations and associated weights.
+
+```{r}
+xs <- map(1:6, ~ runif(6))
+xs[[1]][[1]] <- NA
+ws <- map(1:6, ~ rpois(6, 5) + 1)
+```
+
+`map2_dbl` varies both `xs` and `ws` as inputs to `weighted.mean()`
+
+```{r}
+map2_dbl(xs, ws, weighted.mean)
+```
+
+---
+### `purrr::map2()`
+
+**Example: weighted mean using `map2()`**
+
+Additional arguments may be passed just as with `map()`.
+
+![:image 60%](img/map2-arg.png)
+
+```{r}
+map2_dbl(xs, ws, weighted.mean, na.rm = TRUE)
+```
+
+---
+### `purrr::map2()`
+
+**Example: weighted mean using `map2()`**
+
+Note that `map2()` recycles inputs to make sure they are the same length
+
+![:image 60%](img/map2-recycle.png)
+
+```{r}
+map2_dbl(1:6, 1, ~ .x + .y)
+```
+
+---
+### `purrr::walk()`
+
+`walk()` ignores the return of  `.f` and returns `.x` invisibly and thus is useful for functions that are called for their side-effects.
+
+![:image 35%](img/walk.png)
+
+`walk()` has no base R equivalent but wrapping `lapply()` by `invisible()` comes close.
+
+---
+### `purrr::walk()`
+
+`walk2()` is a convenient alternative which is vectorised on two arguments. 
+
+<br>
+
+![:image 45%](img/walk2.png)
+
+---
+### `purrr::walk()`
+
+**Example: writing to disk using `walk()`**
+
+A common side-effect which needs two arguments (object and path) is writing to disk.
+
+```{r, cache=T}
+temp <- tempfile()
+dir.create(temp)
+
+cyls <- split(cars2018, cars2018$Cylinders)
+paths <- file.path(temp, paste0("cyl-", names(cyls), ".csv"))
+walk2(cyls, paths, write.csv)
+
+dir(temp)
+```
+
+---
+### `purrr::imap()`
+
+.smaller[
+
+- `for(x in xs)` is essentially the analog to `map()`. 
+
+- `for(i in seq_along(xs))` and `for(nm in names(xs))` are analogous to `imap()`:
+
+- `imap(.x, .f)` applies `.f` to values `.x` *and* indices or names derived from `.x`.
+
+**Example: named column means**
+
+`imap()` is a useful helper if we want to work with values along with variable names.
+
+```{r, eval=F}
+cars2018 %>% select_if(is.numeric) %>%
+    imap_chr(~ paste0("The Mean of ", .y, " is ", mean(.x)))
+```
+]
+.small[
+```{r, echo=F}
+cars2018 %>% select_if(is.numeric) %>%
+    imap_chr(~ paste0("The Mean of ", .y, " is ", mean(.x)))
+```
+]
+
+---
+### `purrr::pmap()`
+
+`pmap()` generalises `map()` and `map2()` to `p` vectorised arguments.
+
+<br>
+
+![:image 50%](img/pmap.png)
+
+<br>
+
+`pmap(list(x, y), f)` is the same as `map2(x, y, f)`.
+
+---
+### `purrr::pmap()`
+
+As before, additional arguments may be passed after `.f` and they are recycled, if necessary.
+
+<br>
+
+![:image 60%](img/pmap-arg.png)
+
+---
+### `purrr::pmap()`
+
+**Example: weighted mean with `pmap()`**
+
+Check that `map2_dbl()` behaves as `pmap_dbl()` in the two-argument case.
+
+```{r}
+map2_dbl(xs, ws, weighted.mean)
+```
+
+```{r}
+pmap_dbl(list(xs, ws), weighted.mean)
+```
+
+Now with the additional argument `na.rm = TRUE`.
+
+```{r}
+pmap_dbl(list(xs, ws), weighted.mean, na.rm = TRUE)
+```
+
+---
+### `purrr::pmap()`
+
+Note that `pmap()` gives much finer control over argument matching due to possibility to use named lists.
+
+<br>
+
+![:image 70%](img/pmap-3.png)
+
+<br>
+
+This property makes `pmap()` very convenient for working with more complex objects that are essentially lists.
+
+---
+### `purrr::pmap()`
+
+**Example: argument matching using named list**
+
+We reconsider the trimmed mean example from before.
+
+```{r}
+trims <- c(0, 0.1, 0.2, 0.5)
+x <- rcauchy(1000)
+```
+
+Varying the `trim` argument can be done by passing the values in a named list.
+
+```{r}
+pmap_dbl(list(trim = trims), mean, x = x)
+```
+
+---
+### `purrr::pmap()`
+
+Remember that a data.frame is a list and thus can be passed as a collection of inputs to `pmap()`. 
+
+**Example: `pmap()` with data.frame as input**
+
+```{r}
+params <- tibble::tribble(
+  ~ n, ~ min, ~ max,
+   1L,     0,     1,
+   2L,    10,   100
+)
+```
+
+Since the column names match the arguments we don't have to worry about their order.
+
+```{r}
+pmap(params, runif)
+```
+
+---
+### `purrr::pmap()` &mdash; Exercises
+
+1. Explain the results of `modify(cars2018, 1)`
+
+2. Explain how the following code transforms a data frame using functions stored in a list.
+
+  ```nohighlights
+  trans <- list(
+    disp = function(x) x * 0.0163871,
+    am = function(x) factor(x, labels = c("auto", "manual"))
+  )
+
+  nm <- names(trans)
+  mtcars[nm] <- map2(trans, mtcars[nm], function(f, var) f(var))
+  ```
+  
+  Compare and contrast the `map2()` approach to this `map()` approach:
+  
+  ```nohighlights
+  mtcars[vars] <- map(vars, ~ trans[[.x]](mtcars[[.x]]))
+  ```
+
+---
+### `purrr::reduce()`
+
+Having only two main variants, the `reduce` family of functions much smaller than the `map` family and implements a less commonly needed yet powerful concept:
+
+`reduce()` produces a vector of length 1 from vector input by calling `f` with a pair of values at a time: `reduce(1:4, f)` gives `f(f(f(1, 2), 3), 4)`.
+
+<br>
+
+![:image 50%](img/reduce.png)
+
+---
+### `purrr::reduce()`
+
+`reduce()` is useful for generalising a binary function (a function with two inputs) to any number of inputs.
+
+**Example: set operations with vectors**
+
+Consider the following list of numeric vectors `l`.
+
+```{r}
+l <- map(1:4, ~ sample(1:10, 15, replace = T))
+str(l)
+```
+
+Suppose you want to find values which occur in all vectors in `l`. Note that `intersect()` is binary, i.e. it returns the intersection of elements in two input vectors.
+
+---
+### `purrr::reduce()`
+
+.smaller[
+
+**Example: set operations with vectors**
+
+A base R solution for multiple vectors is rather cumbersome even for a small set of vectors.
+
+```{r}
+out <- l[[1]]
+out <- intersect(out, l[[2]])
+out <- intersect(out, l[[3]])
+out <- intersect(out, l[[4]])
+out
+```
+
+We could generalise the above to an arbitrary number of vectors using a loop but such operations are conveniently handled by `reduce()` which is also more efficient.
+
+```{r}
+reduce(l, intersect)
+reduce(l, union)
+```
+]
+
+---
+### `purrr::accumulate()`
+
+`accumulate()` is a variant of `reduce()` which returns the final and all *intermediate results*.
+
+**Example: cumulative sum**
+
+The difference between `reduce()` and `accumulate` is best understood using a sequence of binary arithmetic operations.
+
+```{r}
+x <- 1:3
+reduce(x, `+`)
+```
+
+vs.
+
+```{r}
+x <- 1:3
+accumulate(x, `+`)
+```
+
+---
+### `purrr::accumulate()`
+
+**Example: set operations with vectors &mdash; ctd.**
+
+So with `.f` a function for binary intersection we also obtain the 'intermediate sets'.
+
+```{r}
+accumulate(l, intersect)
+```
