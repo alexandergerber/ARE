@@ -619,7 +619,7 @@ We will talk about
 
 - `gather()` takes multiple columns, and gathers them into key-value pairs: it makes “wide” data longer.
 - `spread()` takes two columns (key & value), and spreads into multiple columns: it makes “long” data wider.
-- `separate()` takes a single column and tuns it into multiple columns based on a separator.  
+- `separate()` takes a single column and turns it into multiple columns based on a separator.  
 - `unite()` takes multiple columns and pastes them together into one column.  
 
 ---
@@ -630,7 +630,7 @@ class: top, left
 tidyr::table1
 ```
 
-Each observation is in one row and each variable is one cloumn. 
+Each observation is in one row and each variable is one column. 
 
 ---
 class: top, left
@@ -740,7 +740,7 @@ ggplot(table1, aes(year, cases)) +
 
 ---
 ### Case Study
-Prepare the trade data set which contains multiple tables for an analysis. 
+Prepare the trade data set which contains multiple tables for analysis. 
 Use the techniques you learnt so far to get some insight into the trading relationship between the USA and Germany. 
 
 
