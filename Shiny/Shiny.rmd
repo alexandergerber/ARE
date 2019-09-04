@@ -1,0 +1,300 @@
+---
+title: "Shiny"
+author: 
+  - "Martin Arnold"
+  - "Alexander Gerber"
+date: '`r Sys.Date()`'
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    css: ["default", "assets/sydney-fonts.css", "assets/sydney.css"]
+    self_contained: false
+    seal: true # show a title slide with YAML information
+    nature:
+      beforeInit: ["assets/remark-zoom.js", "https://platform.twitter.com/widgets.js"]
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+      ratio: '16:9'
+      navigation:
+        scroll: true # disable slide transitions by scrolling
+---
+```{r, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
+```
+
+### What is Shiny? 
+
+The `shiny` package allows to build interactive web applications for data analysis.
+
+It can be used for, e.g.
+  - building a graphical user interface for R.
+  - reporting results.
+  - creating interactive documents.
+
+To build a Shiny app you only need to learn the Shiny syntax.  
+If you want to customize your app you can use HTML/CSS/Javascript.  
+
+Here are some examples: 
+
+  - [K-Means](https://shiny.rstudio.com/gallery/kmeans-example.html)
+  - [Genome Viewer](https://shiny.rstudio.com/gallery/genome-browser.html)
+  - [Dashboard](https://www.rgonzo.us/shiny/apps/textanalysis/)
+  
+---
+
+
+
+### Structure
+
+A Shiny app consist of 2 parts
+
+1. The user interface script 
+  - controls the layout and appearance of your app.
+  - contains elements for user input.
+  - contains the output you want to visualize.
+
+2. The server script
+  - contains the instructions for the R session which will always work behind the scene.
+  - takes the user input and produces the output which is send to the UI.
+
+---
+
+### A minimal example 
+
+
+```{r}
+library(shiny)
+
+# The user interface
+ui <- fluidPage()
+
+# Instructions for the R backend
+server <- function(input, output) {}
+
+# Run the shiny app 
+shinyApp(ui = ui, server = server)
+```
+
+ Another way to create an app is to create a new directory (say `.../App-1`) which contains `ui.R` and `server.R`, and call `shiny::runApp(".../App-1")`
+
+---
+
+### User Interface  
+
+We will now extend our app by adding a simple sidebar layout. 
+
+```{r, eval = FALSE, echo = TRUE, results='asis'}
+ui <- fluidPage(
+  
+  titlePanel("Title Panel"), 
+
+  sidebarLayout(
+       sidebarPanel( "Sidebar Panel"),
+       mainPanel("Main Panel")
+       )
+)
+server <- function(input, output) {}
+shinyApp(ui = ui, server = server)
+```
+
+- `fluidPage()` creates a new website that we can fill with content.
+-  Type any of those functions in the R console to see that HTML Code is returned. 
+
+---
+### Adding Elements for User Input 
+  
+```{r}
+ui <- fluidPage(
+  titlePanel("Title Panel"), 
+  sidebarLayout(
+    sidebarPanel("Sidebar Panel",
+                 br(),                               # linebreak
+                 br(),
+                 sliderInput(inputId = "num",        # input value can be accessed from 
+                                                     # the server function via the inputId
+                 label = "Choose a number", 
+                 value = 25, min = 1, max = 100)
+                 ),
+    mainPanel("Main Panel")
+  )
+)
+```
+  
+You can find an overview of input elements [here](https://www.dropbox.com/s/m4fuba5t3926ykv/Input_Overview.pdf?dl=0).
+
+---
+### Server Function 
+
+```{r}
+server <- function(input, output) {
+  output$hist <- renderPlot({ 
+    hist(rnorm(input$num)) 
+    }) 
+}
+```
+
+Everything that shall be displayed to the user needs to be 
+- saved as `output$.`.
+- created by render function  
+
+---
+### Add Output to user interface
+
+```{r}
+ui <- fluidPage(
+  titlePanel("Title Panel"), 
+  sidebarLayout(
+    sidebarPanel("Sidebar Panel",
+                 br(),                        #linebreaks
+                 br(),
+                 sliderInput(inputId = "num", 
+                       label = "Choose a number", 
+                       value = 25, min = 1, max = 100)
+                       ),
+    mainPanel("Main Panel",
+              br(),                    
+              br(),
+              plotOutput("hist")
+              )
+  )
+)
+```
+
+Output can be added to the user interface by one of the Output functions. 
+
+---
+### Which Render and Output Functions belong together?
+<br>
+```{r, eval = TRUE, echo = FALSE, warning=FALSE, message=FALSE, results='asis'}
+library(pander)
+a <- cbind(c("dataTableOutput","htmlOutput","imageOutput","plotOutput","tableOutput","textOutput", "verbatimTextOutput", "uiOutput"),
+           c("renderDataTable","","renderImage","renderPlot","renderTable"," renderText", "renderPrint","renderUI"),
+           c("datatable","raw HTML","e.g. .png, .jpeg","e.g. a ggplot","e.g. data frame, matrix","value output", "print output","shiny UI element"))
+colnames(a) <- c("Render Function", "Output Function", "What")
+a <- as.data.frame(a)
+#emphasize.strong.cols(c(1,2,3))
+#panderOptions("table.style", "rmarkdown")
+print(knitr::kable(a, format = "html"))
+```
+
+
+---
+### Exercises
+
+Install and load the `gapminder` package.
+
+1. Recreate the following app. 
+Hints: The variables on the x and y axis must be numeric. The values returned by the input widgets are character strings.  
+
+    ```{r, eval = TRUE, echo = FALSE, out.width = "1000px"}
+knitr::include_graphics("img/shiny1.png")
+    ```
+
+
+
+---
+<ol start=2>
+<li> Add two more input variables that control the color and size of the points. 
+<li> Add a slider that allows to subset the data by year. 
+    ```{r, eval = TRUE, echo = FALSE, out.width = "800px"}
+knitr::include_graphics("img/shiny2.png")
+    ```
+</ol>
+
+---
+### Reactivity
+
+We have already seen that the output changes automatically when we change input values change, when one of the render functions is used. 
+
+There are 3 kinds of reactive objects. 
+
+```{r, eval = TRUE, echo = FALSE, fig.align='center', out.width="50%"}
+knitr::include_graphics("img/shiny_reactivity1.png")
+```
+
+- The reactive source is usually the user input which are accesible through `input$.` It can only have dependents (its always a parent node). 
+- The reactive endpoint is usually produced by one of the render functions and saved as `output$.` It can only be dependent (is always a child node). 
+
+We have already written a simple app using those two elements.  
+
+```{r, eval = TRUE, echo = FALSE, fig.align='center', out.width="20%"}
+knitr::include_graphics("img/shiny_reactivity2.png")
+```
+
+Whenever  `input$.` changes the reactive endpoints using this input are notified that they need to re-execute. 
+
+---
+### Reactivity
+
+Which structure has the following code?
+
+```{r, echo = TRUE}
+# Calculate nth number in Fibonacci sequence
+fib <- function(n) ifelse(n<3, 1, fib(n-1)+fib(n-2))
+
+server <- function(input, output) {
+  output$nthValue    <- renderText({ fib(as.numeric(input$n)) })
+  output$nthValueInv <- renderText({ 1 / fib(as.numeric(input$n)) })
+}
+```
+
+---
+### Reactivity
+
+Which structure has the following code?
+
+```{r, echo = TRUE}
+# Calculate nth number in Fibonacci sequence
+fib <- function(n) ifelse(n<3, 1, fib(n-1)+fib(n-2))
+
+server <- function(input, output) {
+  output$nthValue    <- renderText({ fib(as.numeric(input$n)) })
+  output$nthValueInv <- renderText({ 1 / fib(as.numeric(input$n)) })
+}
+```
+
+There are two children nodes depending on one parent node. 
+
+```{r, eval = TRUE, echo = FALSE, fig.align='center', out.width="25%"}
+knitr::include_graphics("img/shiny_reactivity4.png")
+```
+
+Furthermore, each of the childrens evaluetes `fib()` seperatly, which leads to redundant computations.  
+
+---
+### Reactivity
+
+Using a reactive conducter created with `reactive()` the function `fib()` executes only once.  
+
+```{r}
+fib <- function(n) ifelse(n<3, 1, fib(n-1)+fib(n-2))
+
+server <- function(input, output) {
+  # reactive conductor depending on reactive source
+  currentFib         <- reactive({ fib(as.numeric(input$n)) })
+  # reactive endpoints depending on reactive conductor
+  output$nthValue    <- renderText({ currentFib() })
+  output$nthValueInv <- renderText({ 1 / currentFib() })
+}
+```
+
+```{r, eval = TRUE, echo = FALSE, fig.align='center', out.width="30%"}
+knitr::include_graphics("img/shiny_reactivity3.png")
+```
+  
+Note that you need `()` (here ` currentFib()`) to access the value computed by `reactive()`. 
+
+---
+### Exercise 
+
+---
+### Datatables
+
+
+
+---
+### References 
+
+https://shiny.rstudio.com/articles/reactivity-overview.html
+
