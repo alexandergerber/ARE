@@ -1,20 +1,22 @@
 ---
-title: "Data Visualization "
-author: 
-  - "Martin Arnold"
-  - "Alexander Gerber"
-date: '`r Sys.Date()`'
+title: "Data Visualization with ggplot2"
+author: "Alexander Gerber"
+date: "5 November 2018"
 output:
   xaringan::moon_reader:
-    lib_dir: libs
-    css: ../xaringan_files/xaringan-themer.css
+    css: ["default", "../assets/sydney-fonts.css", "../assets/sydney.css"]
+    self_contained: false # if true, fonts will be stored locally
+    seal: true # show a title slide with YAML information
+    includes:
+      in_header: "../assets/mathjax-equation-numbers.html"
     nature:
+      beforeInit: ["../assets/remark-zoom.js", "https://platform.twitter.com/widgets.js"]
       highlightStyle: github
       highlightLines: true
       countIncrementalSlides: false
-    includes:
-      after_body: ../xaringan_files/terminal_highlight.html
-#      ratio: "16:9"
+      ratio: '16:9' # alternatives '16:9' or '4:3' or others e.g. 13:9
+      navigation:
+        scroll: false # disable slide transitions by scrolling
 ---
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, warning=FALSE, message=FALSE)

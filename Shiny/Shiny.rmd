@@ -1,23 +1,22 @@
 ---
 title: "Shiny"
-author: 
-  - "Martin Arnold"
-  - "Alexander Gerber"
-date: '`r Sys.Date()`'
+author: "Alexander Gerber"
+date: "5 November 2018"
 output:
   xaringan::moon_reader:
-    lib_dir: libs
-    css: ["default", "assets/sydney-fonts.css", "assets/sydney.css"]
-    self_contained: false
+    css: ["default", "../assets/sydney-fonts.css", "../assets/sydney.css"]
+    self_contained: false # if true, fonts will be stored locally
     seal: true # show a title slide with YAML information
+    includes:
+      in_header: "../assets/mathjax-equation-numbers.html"
     nature:
-      beforeInit: ["assets/remark-zoom.js", "https://platform.twitter.com/widgets.js"]
+      beforeInit: ["../assets/remark-zoom.js", "https://platform.twitter.com/widgets.js"]
       highlightStyle: github
       highlightLines: true
       countIncrementalSlides: false
-      ratio: '16:9'
+      ratio: '16:9' # alternatives '16:9' or '4:3' or others e.g. 13:9
       navigation:
-        scroll: true # disable slide transitions by scrolling
+        scroll: false # disable slide transitions by scrolling
 ---
 ```{r, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
@@ -41,6 +40,8 @@ Here are some examples:
   - [Genome Viewer](https://shiny.rstudio.com/gallery/genome-browser.html)
   - [Dashboard](https://www.rgonzo.us/shiny/apps/textanalysis/)
   
+There is also a [cheatsheet](https://shiny.rstudio.com/images/shiny-cheatsheet.pdf). 
+  
 ---
 
 
@@ -55,8 +56,8 @@ A Shiny app consist of 2 parts
   - contains the output you want to visualize.
 
 2. The server script
-  - contains the instructions for the R session which will always work behind the scene.
-  - takes the user input and produces the output which is send to the UI.
+  - contains the instructions for the R session which always works behind the scene.
+  - takes the user input and produces the output which is send back to the UI.
 
 ---
 
@@ -76,7 +77,9 @@ server <- function(input, output) {}
 shinyApp(ui = ui, server = server)
 ```
 
- Another way to create an app is to create a new directory (say `.../App-1`) which contains `ui.R` and `server.R`, and call `shiny::runApp(".../App-1")`
+Another way to build an app is 
+- create a new directory (say `.../App-1`) with files `ui.R` and `server.R`
+- run `shiny::runApp(".../App-1"). `
 
 ---
 
@@ -111,9 +114,8 @@ ui <- fluidPage(
     sidebarPanel("Sidebar Panel",
                  br(),                               # linebreak
                  br(),
-                 sliderInput(inputId = "num",        # input value can be accessed from 
-                                                     # the server function via the inputId
-                 label = "Choose a number", 
+                 sliderInput(inputId = "num",        # input value can be accessed from the server 
+                 label = "Choose a number",          # function via the inputId via the inputId
                  value = 25, min = 1, max = 100)
                  ),
     mainPanel("Main Panel")
@@ -124,7 +126,18 @@ ui <- fluidPage(
 You can find an overview of input elements [here](https://www.dropbox.com/s/m4fuba5t3926ykv/Input_Overview.pdf?dl=0).
 
 ---
-### Server Function 
+### Create Output in the Server Function 
+
+The server function takes the input from the UI and returns e.g. text, plots or tables
+back to the UI. 
+
+There are some rules: 
+
+- the input is acessed by `input$inputId`.
+- the output that depends on user input needs to be created by a render function.
+- the output to be displayed needs to be saved as `output$outputId`.
+
+
 
 ```{r}
 server <- function(input, output) {
@@ -134,12 +147,11 @@ server <- function(input, output) {
 }
 ```
 
-Everything that shall be displayed to the user needs to be 
-- saved as `output$.`.
-- created by render function  
 
 ---
-### Add Output to user interface
+### Display Output in the User Interface
+
+Output can be added to the user interface by one of the output functions. 
 
 ```{r}
 ui <- fluidPage(
@@ -161,7 +173,7 @@ ui <- fluidPage(
 )
 ```
 
-Output can be added to the user interface by one of the Output functions. 
+
 
 ---
 ### Which Render and Output Functions belong together?
@@ -170,8 +182,8 @@ Output can be added to the user interface by one of the Output functions.
 library(pander)
 a <- cbind(c("dataTableOutput","htmlOutput","imageOutput","plotOutput","tableOutput","textOutput", "verbatimTextOutput", "uiOutput"),
            c("renderDataTable","","renderImage","renderPlot","renderTable"," renderText", "renderPrint","renderUI"),
-           c("datatable","raw HTML","e.g. .png, .jpeg","e.g. a ggplot","e.g. data frame, matrix","value output", "print output","shiny UI element"))
-colnames(a) <- c("Render Function", "Output Function", "What")
+           c("a datatable","raw HTML","e.g. .png, .jpeg","e.g. a ggplot","e.g. data frame, matrix","value output", "print output","shiny UI element"))
+colnames(a) <- c("Render Function", "Output Function", "What?")
 a <- as.data.frame(a)
 #emphasize.strong.cols(c(1,2,3))
 #panderOptions("table.style", "rmarkdown")
@@ -188,7 +200,7 @@ Install and load the `gapminder` package.
 Hints: The variables on the x and y axis must be numeric. The values returned by the input widgets are character strings.  
 
     ```{r, eval = TRUE, echo = FALSE, out.width = "1000px"}
-knitr::include_graphics("img/shiny1.png")
+knitr::include_graphics("../img/shiny1.png")
     ```
 
 
@@ -198,7 +210,7 @@ knitr::include_graphics("img/shiny1.png")
 <li> Add two more input variables that control the color and size of the points. 
 <li> Add a slider that allows to subset the data by year. 
     ```{r, eval = TRUE, echo = FALSE, out.width = "800px"}
-knitr::include_graphics("img/shiny2.png")
+knitr::include_graphics("../img/shiny2.png")
     ```
 </ol>
 
@@ -210,7 +222,7 @@ We have already seen that the output changes automatically when we change input 
 There are 3 kinds of reactive objects. 
 
 ```{r, eval = TRUE, echo = FALSE, fig.align='center', out.width="50%"}
-knitr::include_graphics("img/shiny_reactivity1.png")
+knitr::include_graphics("../img/shiny_reactivity1.png")
 ```
 
 - The reactive source is usually the user input which are accesible through `input$.` It can only have dependents (its always a parent node). 
@@ -219,7 +231,7 @@ knitr::include_graphics("img/shiny_reactivity1.png")
 We have already written a simple app using those two elements.  
 
 ```{r, eval = TRUE, echo = FALSE, fig.align='center', out.width="20%"}
-knitr::include_graphics("img/shiny_reactivity2.png")
+knitr::include_graphics("../img/shiny_reactivity2.png")
 ```
 
 Whenever  `input$.` changes the reactive endpoints using this input are notified that they need to re-execute. 
@@ -257,7 +269,7 @@ server <- function(input, output) {
 There are two children nodes depending on one parent node. 
 
 ```{r, eval = TRUE, echo = FALSE, fig.align='center', out.width="25%"}
-knitr::include_graphics("img/shiny_reactivity4.png")
+knitr::include_graphics("../img/shiny_reactivity4.png")
 ```
 
 Furthermore, each of the childrens evaluetes `fib()` seperatly, which leads to redundant computations.  
@@ -280,16 +292,136 @@ server <- function(input, output) {
 ```
 
 ```{r, eval = TRUE, echo = FALSE, fig.align='center', out.width="30%"}
-knitr::include_graphics("img/shiny_reactivity3.png")
+knitr::include_graphics("../img/shiny_reactivity3.png")
 ```
   
 Note that you need `()` (here ` currentFib()`) to access the value computed by `reactive()`. 
 
 ---
-### Exercise 
+### Prevent reactivity with `isolate()`
+
+Sometimes we want to prevent that some parts of our program re-execute if input values change.
+Consider the case where we we have multiple inputs and the receiving endnote runs some heavy computation. 
+
+```{r, eacho = FALSE, eval = TRUE, fig.align='center', out.width="30%"}
+knitr::include_graphics("../img/shiny_isolate1.svg")
+```
+
+What is the problem here?
 
 ---
-### Datatables
+### Example 
+
+
+```{r}
+ui <- fluidPage(
+  numericInput("n", "Number of observations" ,10),
+  numericInput("mean", "Mean" ,10),
+  numericInput("sd", "Standard Deviation" ,10),
+  actionButton("goButton", "Go!"),
+  plotOutput("hist")
+)
+
+server <- function(input, output) {
+output$hist <- renderPlot({
+  
+  x <- rnorm(input$n, mean = input$mean, sd = input$sd)
+  
+  hist(x)
+  })
+} 
+shinyApp(ui, server)
+```
+
+
+---
+### Prevent reactivity with `isolate()`
+
+We can solve this by making the render function which produces the output unresponsive to  the parameter inputs using `isolate()`. When we are ready e.g. a button can be used to start the 
+computation. 
+
+```{r, echo = FALSE, eval = TRUE, fig.align='center', out.width="30%"}
+knitr::include_graphics("../img/shiny_isolate2.svg")
+```
+
+---
+### Example
+
+```{r}
+ui <- fluidPage(
+  numericInput("n", "Number of observations" ,100),
+  numericInput("mean", "Mean" ,0),
+  numericInput("sd", "Standard Deviation" ,1),
+  actionButton("goButton", "Go!"),
+  plotOutput("hist")
+)
+
+server <- function(input, output) {
+output$hist <- renderPlot({
+  # Take a dependency on input$goButton
+  input$goButton
+  # Use isolate() to avoid dependency on the other inputs
+  x <- isolate(rnorm(input$n, mean = input$mean, sd = input$sd))
+  hist(x)
+})
+} 
+shinyApp(ui, server)
+```
+
+---
+### Exercise 
+
+- Add a button to the gapminder app and let the graph only re-render if this button is hit.
+
+---
+### DataTables
+
+The `DT` package provides a powerful tool for interactive inspection and filtration of rectangular data. 
+
+```{r}
+library(DT)
+
+ui <- basicPage(
+  h2("The mtcars data"),
+  DT::dataTableOutput("mytable")
+)
+
+server <- function(input, output) {
+  output$mytable = DT::renderDataTable({
+    mtcars
+  }, 
+  filter = "top"
+  )
+}
+  
+shinyApp(ui, server)
+```
+
+---
+### DataTables
+
+We can even use the filtered rows for further computation. 
+
+```{r}
+ui <- basicPage(
+  h2("The mtcars data"),
+  DT::dataTableOutput("mytable"),
+  plotOutput("hist")
+)
+
+server <- function(input, output) {
+  output$mytable = DT::renderDataTable({
+    mtcars
+  }, 
+  filter = "top"
+  )
+  output$hist <- renderPlot({
+    hist(mtcars[input$mytable_rows_all, "wt"], xlim = c(min(mtcars$wt), max(mtcars$wt)))
+    })
+}
+  
+shinyApp(ui, server)
+```
 
 
 
@@ -297,4 +429,9 @@ Note that you need `()` (here ` currentFib()`) to access the value computed by `
 ### References 
 
 https://shiny.rstudio.com/articles/reactivity-overview.html
+https://shiny.rstudio.com/articles/isolation.html
+https://shiny.rstudio.com/articles/datatables.html
+https://rstudio.github.io/DT/shiny.html
+
+
 
