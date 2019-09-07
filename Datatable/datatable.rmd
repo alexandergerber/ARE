@@ -1,0 +1,407 @@
+---
+title: "data.table"
+author: "Alexander Gerber"
+date: "5 November 2018"
+output:
+  xaringan::moon_reader:
+    css: ["default", "../assets/sydney-fonts.css", "../assets/sydney.css"]
+    self_contained: false # if true, fonts will be stored locally
+    seal: false # show a title slide with YAML information
+    includes:
+      in_header: "../assets/mathjax-equation-numbers.html"
+    nature:
+      beforeInit: ["../assets/remark-zoom.js", "https://platform.twitter.com/widgets.js"]
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+      ratio: '16:9' # alternatives '16:9' or '4:3' or others e.g. 13:9
+      navigation:
+        scroll: false # disable slide transitions by scrolling
+params: 
+    background_img: "../img/working_horses.jpg"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message=FALSE)
+options(htmltools.dir.version = FALSE)
+def.chunk.hook  <- knitr::knit_hooks$get("chunk")
+```
+
+class: title-slide center middle
+background-image: url(`r params$background_img`)
+background-size: cover
+
+## `r rmarkdown::metadata$title`
+
+## `r rmarkdown::metadata$author`
+
+### `r rmarkdown::metadata$date`
+
+
+---
+### What is a `data.table`?
+
+The `data.table` package provides yet another alternative to data frames.
+Similary to `tibbles` the `data.table` class extends standard data frames. 
+
+```{r}
+library(data.table)
+DT <- data.table(a = rnorm(10), b = rnorm(10)) 
+class(DT)
+```
+
+Compared to `tibbles` which provide only some convenience functionality over data frames,
+`data.tables` are more like `tibbles` with integrated `dplyr`. 
+
+
+
+
+---
+### Creating a `data.table`
+
+A data frame can be coerced to a `data.table` with `as.data.table()`. 
+
+```{r}
+library(data.table)
+df <- data.frame(a = rnorm(10), b = rnorm(10)) 
+DT <- as.data.table(df)
+class(DT)
+```
+
+However, the preferred way is to use `setDT()`.
+
+```{r}
+setDT(df)
+class(df)
+```
+
+What is the difference? 
+
+---
+### Modify by Reference
+
+```{r}
+library(lobstr)
+X <- data.frame(a = rnorm(10), b = rnorm(10)) 
+obj_addr(X$a)
+X <- as.data.table(X)
+obj_addr(X$a)
+```
+
+
+```{r}
+X <- data.frame(a = rnorm(10), b = rnorm(10)) 
+obj_addr(X$a)
+setDT(X)
+obj_addr(X$a)
+```
+
+---
+### Why using data.table
+
+Compared to base R and the tidyvere the advantages of `data.table` are
+
+- speed
+- momory efficiency 
+- compact syntax (which can be also a downside).
+
+`data.table` can be used if the other options already exceeded their limits especially in terms of memory. 
+
+The main functionality can be compared to `dplyr`
+
+  - subsetting (`filter()` and `select()`)
+  - updating (`mutate()`)
+  - grouping and summarising (`group_by()` and `summarise()`)
+  - merging  (`*_join()`)
+
+
+---
+### Syntax
+
+With `dplyr` we use for each operation a single purpose function. 
+With `data.table` (almost) all instructions are written in `[]`.
+
+
+The general form of `data.table` syntax is:
+
+```{}
+    DT[ i,  j,  by ] # + extra arguments
+        |   |   |
+        |   |    -------> grouped by what?
+        |    -------> what to do?
+         ---> on which rows?
+```
+
+
+Preparing a data.table.
+```{r}
+library(ggplot2)
+# setDT connot be used on data sets coming with packages 
+DT <- as.data.table(diamonds)
+```
+
+---
+### `i`: Filtering rows
+
+- `i` is used for filtering rows. Note that no `$` is needed. 
+
+```{r}
+DT[cut=="Fair"|cut=="Good"]
+```
+
+---
+### i: keys
+
+When setting the `key` attribute a `data.table` is sorted in memory using a radix-sort. This can be used for very fast lookup.
+
+```{r, eval = FALSE}
+# one key column
+setkey(DT,cut)
+DT["Fair"]
+
+# multiple key columns
+setkey(DT,cut,color)
+DT[list("Fair","J")] 
+```
+
+ `.(...)` is a convenient alias for `list(...)`. 
+
+```{r, eval = FALSE}
+DT[.("Fair","J")]
+```
+
+---
+### Lookup
+
+A list or a `data.table` can be passed to `i` to run a lookup. (This is actually a join as we will see later.)
+
+```{r}
+# Lookup table: 
+LU <- data.table(color = c("E","I") , clarity = c("SI2","VS2")) 
+```
+
+For every row in LU, look up corresponding rows in DT,  using the variables specified in "on".
+```{r}
+DT[LU, on=c("color","clarity")]
+```
+
+---
+### j: Subsetting cloumns 
+
+ `j` can be used for simple subsetting in the following ways:
+
+- Returning a single vector.
+    ```{r, eval = FALSE}
+DT[ ,price]
+    ```
+- Returning a `data.table` with only one column. 
+    ```{r, eval = FALSE}
+DT[ ,.(price, depth)]
+    ```
+- Returning `data.table` with multiple columns.
+    ```{r, eval = FALSE}
+DT[ ,.(price, depth)]
+DT[ ,1:2]
+DT[ ,c("price", "depth")]
+    ```
+
+---
+### j: Subsetting cloumns 
+
+- If the column names are stored in a variable use
+    ```{r, eval = FALSE}
+cols <- c("price", "depth")
+DT[ ,..cols]                # or
+DT[ ,cols, with = FALSE]
+    ```
+
+---
+###j: Add and Remove Columns by Reference
+
+- Add a variable. 
+
+```{r}
+DT[ ,price_eur := price/0.91]
+```
+
+- Add multiple variables
+```{r}
+# Here, we need to quote at the left hand side: 
+DT[ ,c("x","y"):= .(log(price), price - mean(price))]
+```
+
+- Remove one variable. 
+```{r}
+DT[ ,price_eur := NULL]
+```
+
+- Remove multiple variable. 
+```{r, eval = FALSE}
+DT[ ,c("x", "price_eur") := NULL]
+```
+
+---
+### Update Columns by Reference
+
+- Simple update
+
+```{r}
+DT[price > 2500 , price := 2500]
+```
+
+- Updating multiple columns.
+
+```{r}
+DT[price > 2500 ,c("price","depth") := .(log(price),  sqrt(depth))]
+```
+
+
+---
+### j: Evaluate Expressions
+
+`j` can be used to evaluate expressions. Columns can be accessed as if they were in the global environment (compare to `dplyr::summarise()`.  
+
+```{r}
+DT[ ,mean(price)/sd(depth)]
+```
+
+The results are simply returned as a value which can be assigned to some variable. 
+
+Several expressions can be used by putting them in a list. If a list is used, the result is returned as a `data.table`.
+
+```{r}
+DT[ ,.(mean_price = mean(price),sd_depth = sd(depth))]
+```
+
+
+
+---
+### by: Grouping
+
+The `by` argument allows operations by group (compare to `dplyr::group_by()`).
+
+- Grouping by a single variable
+```{r, eval = FALSE}
+DT[ ,.(mean_price = mean(price)), by = clarity]
+```
+
+- Grouping by multiple variables.
+```{r, eval = FALSE}
+DT[ ,.(mean_price = mean(price)), by = .(clarity, color)]
+```
+
+- Grouping by expressions.
+```{r, eval = FALSE}
+DT[,mean(carat), by = list("is price bigger than 2300?" = price > 2300)]
+```
+
+---
+### `keyby`
+
+Additionally to grouping `keyby` runs `setkey()` on the by columns 	&rarr; results are sorted.
+```{r, echo = FALSE, eval = TRUE}
+options(datatable.print.topn=5, datatable.print.nrows=5)
+```
+ 
+
+```{r, eval = TRUE}
+DT[ ,mean(price) ,keyby = .(clarity,color)]
+```
+
+
+
+---
+### .SD
+
+Similar to `dplyr::*_all()`, `dplyr::*_at()`, and `dplyr::*_if()` we can 
+aggregate multiple columns concisly using the special symbol `.SD`. 
+
+If nothing else is specified, `.SD` corresponds to all columns in the `data.table`.
+We can use this together with `lapply` to aggregate all columns using the same function. 
+
+```{r}
+numeric_DT <- data.table(a = rnorm(10), b = rnorm(10), c = rnorm(10))
+numeric_DT[ ,lapply(.SD, mean)]
+```
+
+We can however change `.SD` to only contain a subset of all columns using `.SDcols`.
+
+```{r}
+num_cols <- names(DT)[sapply(DT, is.numeric)] 
+DT[ ,lapply(.SD, mean), .SDcols = num_cols ]
+```
+
+
+
+---
+### Joins
+
+```{r}
+library(dplyr)
+members <- as.data.table(band_members)
+instruments <- as.data.table(band_instruments)
+```
+
+- Left join
+
+```{r}
+instruments[members, on = "name"]
+```
+
+- Left join by reference. 
+
+```{r}
+instruments[members, instruments := plays ,on = "name"]
+```
+
+---
+### Joins
+- Inner join
+
+```{r}
+instruments[members, on = "name",  nomatch = 0]
+```
+
+- Full join
+  - this cannot be achieved with standard `data.table` syntax. Use `data.table::merge()`.
+```{r}
+merge(members, instruments, all=TRUE)
+```
+---
+### Joins
+- Anti-Join
+
+```{r}
+merge(members, instruments, all=TRUE)[is.na(plays)]
+```
+---
+### Joins: Overview
+
+```{r, echo = FALSE}
+data.frame("Join type" = c("INNER", "LEFT", "RIGHT", "FULL", "ANTI"),
+           "DT" = c("X[Y, nomatch=0]", "X[Y]", "Y[X]", "-", "-"),
+           "data.table::merge()" = c("merge(X, Y, all=FALSE)", "merge(X, Y, all.x=TRUE)", "merge(X, Y, all.y=TRUE)", "merge(X, Y, all=TRUE)", "merge(X, Y, all=TRUE)[is.na(...)]"),
+           "dplyr" = c("inner_join(X,Y)", "left_join(X,Y)", "right_join(X,Y)", "full_join(X,Y)", "anti_join(X,Y)"),
+           check.names = FALSE) %>% knitr::kable(., format = "html")
+```
+
+
+---
+### Rolling Join 
+
+```{r}
+Y <- data.table(id=1:3,t=c(1.0,3.3,9.0) ) 
+X <- data.table(t=c(1.2,2.8,4.5,10)) 
+X[Y,on="t",roll=TRUE]
+```
+Looks for closest value in t which is smaller than t in the lookup-table.
+
+---
+### Other Useful Functions from the `data.table` package
+
+-  `fread()`, `fwrite()`: very fast data reading and writing
+-  `rbindlist()`: Creates a `data.table` from a list of `data.tables`
+-  `rowid():` Creates groupwise row ids.
+-  `fsetdiff(DT1,DT2)`, `funion(DT1,DT2)`, ...: Fast set operations for `data.tables`
+-  `uniqueN(cut)`: Number of unique elements
+-  `shift()`: For lead and lag
