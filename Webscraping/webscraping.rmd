@@ -1,0 +1,338 @@
+---
+title: "Reproducible Research with R Markdown"
+author: "Alexander Gerber"
+date: "5 November 2018"
+output:
+  xaringan::moon_reader:
+    css: ["default", "../assets/sydney-fonts.css", "../assets/sydney.css"]
+    self_contained: false # if true, fonts will be stored locally
+    seal: false # show a title slide with YAML information
+    includes:
+      in_header: "../assets/mathjax-equation-numbers.html"
+    nature:
+      beforeInit: ["../assets/remark-zoom.js", "https://platform.twitter.com/widgets.js"]
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+      ratio: '16:9' # alternatives '16:9' or '4:3' or others e.g. 13:9
+      navigation:
+        scroll: false # disable slide transitions by scrolling
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message=FALSE)
+options(htmltools.dir.version = FALSE)
+def.chunk.hook  <- knitr::knit_hooks$get("chunk")
+```
+
+class: left, top
+## What is Web Scraping?
+
+- Web Scraping is the process of extracting data from websites. It can be used if the desired data 
+are not readily available via e.g. a download link or an API.
+- There are R packages to get data from Twitter, the FRED, yahoo finance and many more. 
+
+### Example
+
+Consider the website https://www.trustpilot.com/review/www.amazon.com which offers customer
+for online shops consisting of
+- a short text
+- a date
+- a rating from 1 to 5 stars. 
+
+Lets say we are interested whether the ratings of a shop change over time. For this we would need 
+to gather the date and the star rating which are, however, not downloadable. 
+
+We will learn how we can nontheless access these data to perform the analysis. 
+
+---
+### The Structure of a Website
+
+To extract data from a website it is necessary to understand the basics of how a website is built. 
+
+Here is a very simple website bulid only with HTML: 
+.code60[
+```{}
+<!DOCTYPE html>
+  <html>
+  <head>
+  <title>Page Title</title>
+  </head>
+  <body>
+
+  <h1>This is a Heading</h1>
+  <p>This is a paragraph.</p>
+  
+  <div>
+  <h1>This is another Heading</h1>
+  <p>This is another a paragraph.</p>
+  </div>
+  
+  </body>
+  </html>
+```
+]
+
+- The `<html>...</html>` tags are the container for all ohter HTML elements.
+- The `<head>...</head>` tags contain meta date which are not directly visible on the web page. Usually everything there is of no interest for web scraping.
+- `<body>...</body>` contains everything we can see such as text, links, images, tables, lists, etc. This is the relevant part. 
+
+---
+### The Body
+
+.code70[
+```{}
+  <body>
+  
+  <h1>This is a Heading</h1>
+  <p>This is a paragraph.</p>
+  
+  <div>
+  <h1>This is another Heading</h1>
+  <p>This is another a paragraph.</p>
+  </div>
+  
+  </body>
+```
+]
+
+- In the body tags are used to give the displayed infromation a structure. In our example we use: 
+    - `<h1>...</h1>`   to define a heading
+    - `<p>...</p>`     to define text
+    - `<div>...</div>` to define different sections 
+
+- Look at the [w3schools tag list](https://www.w3schools.com/tags/default.asp) for other tags you might encounter. 
+
+We will start to "scrape" the simple example from before. Please create a new HTML document and copy 
+the code form the last slide into it.
+
+---
+### `read_html()`
+
+The package `rvest` makes use of the structure of an HTML document to extract the relevant information. 
+
+The first step is to load the website into R using `xml2::read_html()` ( `rvest` depends on `xml2` whereby `xml2` loads automatically when `rvest` is loaded). 
+
+```{r}
+library(rvest)
+URL <- here::here("webscraping/examples/simple_html_page.html") # path of my html file
+(page <- read_html(URL))
+```
+
+
+---
+### XML Structure
+
+Our page is now stored as an xml document which have a hierarchical data structure. For our page it looks like this. 
+
+```{r, eval = TRUE, echo = FALSE, out.width = "500px", fig.align='center'}
+knitr::include_graphics(here::here("img/xml_structure.png"))
+```
+
+- We call everything sourrounded by a (proper) rectangle or a circle a node. 
+- We call everything sourrounded by a rectangle with rounded corners data. 
+
+---
+### `html_node()`
+
+We can navigate through the xml object using `rvest::html_node()`.
+
+-  Get all `p` nodes.
+
+```{r}
+page %>% rvest::html_nodes("p")
+```
+
+-  Get only `p` nodes which are  children of `div` nodes.
+```{r}
+page %>% 
+  rvest::html_nodes("div")  %>% 
+  rvest::html_nodes("p")
+```
+
+---
+### `html_text()`
+
+If we got the nodes which contain the data we want to scrape, we can use `rvest::html_text()` to 
+extract the data (i.e. the text between the tags) as a normal character vector. 
+
+```{r}
+page %>% 
+  html_nodes("div") %>% 
+  html_nodes("p") %>%  
+  html_text()
+  
+```
+
+---
+### CSS 
+
+Websites are not only built with HTML. CSS is another language which is used to style a websites.
+Lets add a bit more to our simple page: 
+
+- add a link to a `css` file (which doesn't exist now) in the head section of the html file 
+
+```{}
+<link rel="stylesheet" href="stylesheet.css">
+```
+
+- add another `div` with a heading and a paragraph
+
+- create a new file `stylesheet.css` in the same folder as your html file 
+
+- copy the following code into that file and see what happens
+
+```{}
+div h1 {
+  color: white;
+  text-align: center;
+};
+```
+
+---
+### CSS Selectors
+
+What if we want different `div` sections to look differently?
+
+For this classes and ids can be specified. For web scraping we usually only need 
+to now about classes, but ids work quite simelar. 
+
+- change the code of one `div` section to  
+
+```{}
+<div class = "blue"> ... </div> 
+```
+and the other to 
+
+```{}
+<div class = "red"> ... </div> 
+```
+
+---
+### CSS Selectors
+
+Having added a class attribute to our `div` sections, we can now use this class in the CSS file as 
+follows
+
+.code90[
+```{}
+.blue h1 {
+  color: blue;
+  text-align: center;
+}
+
+.red h1 {
+  color: green;
+  text-align: center;
+}
+```
+]
+
+What is before the `{}` is called a CSS selector. It can consist of classes, ids, tags ... and of 
+any combination of those elements. E.g. `.blue h1` reads as: select all `h1` headings inside class `blue`. 
+Note: you need to put a `.` before the class name. 
+
+
+For more on selectors go to the [w3chools CSS Selector Reference](https://www.w3schools.com/cssref/css_selectors.asp).
+
+
+The web developer uses selectors to style similar content in the same way (e.g. trustpilot.com 
+each user review looks the same). We can use those to more specificly scrape the content we desire.   
+
+
+---
+### Use the Selectors 
+
+If we want to select all paragraphs (`p`) which are a decendent of an element with class `.red` we can do
+
+```{r}
+url <- here::here("webscraping/examples/simple_html_page_with_css.html")
+page <- url %>% read_html()
+page %>%  
+  html_nodes(".red") %>% 
+  html_nodes("p") %>%
+  html_text()
+```
+
+or in short
+
+```{r}
+page %>%  
+  html_nodes(".red p") %>% 
+  html_text()
+```
+
+---
+### Extract attributes
+
+Sometimes we are not interested in the text between element tags but the relevant information is hidden 
+in the tag attributes. Attributes are everything that is defined in the opening tag, e.g in 
+
+```{}
+<div class = "blue"> ... </div> 
+```
+`class = "blue"` is an attribute. With `html_attrs()` and `html_attr()`  we can extract these information.
+.code70[
+```{r}
+# Get all attributes
+page %>%  
+  html_nodes(".red") %>% 
+  html_attrs()
+
+# Get a specific attribute
+page %>%  
+  html_nodes(".red") %>% 
+  html_attr("class")
+```
+]
+
+---
+### HTML tables 
+
+Since data are often stored in tables, `rvest` provides the function `html_table()` which parses a HTML table into a data frame. Tables in HTML look like this: 
+.code70[
+```{}
+<table style="width:100%">
+  <tr>
+    <th>Firstname</th>
+    <th>Lastname</th>
+    <th>Age</th>
+  </tr>
+  <tr>
+    <td>Jill</td>
+    <td>Smith</td>
+    <td>50</td>
+  </tr>
+  <tr>
+    <td>Eve</td>
+    <td>Jackson</td>
+    <td>94</td>
+  </tr>
+</table>
+```
+]
+
+Add this table to your HTML file and try to scrape the data using `html_table()`.
+```{r, echo=FALSE}
+page %>%  
+  html_nodes("table") %>%
+  html_table()
+```
+
+---
+### CSS Selector Gadget
+
+How do we find the CSS selectors
+
+1. Looking into the source code (right click on the webpage and click on source code, inspect, ...)
+
+2. Digging through the source code is often not necessary. If you use Chrome install 
+   the [Selector Gadget](https://cran.r-project.org/web/packages/rvest/vignettes/selectorgadget.html).
+
+
+---
+### A real example: Truspilot.com 
+
+
+
+

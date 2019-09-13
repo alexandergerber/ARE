@@ -1,0 +1,13 @@
+.blue h1 {
+  color: green;
+  text-align: center;
+}
+
+.red  h1 {
+  color: blue;
+  text-align: center;
+}
+
+table, th, td {
+  border: 1px solid black;
+}
