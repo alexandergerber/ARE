@@ -34,8 +34,9 @@ are not readily available via e.g. a download link or an API.
 
 ### Example
 
-Consider the website https://www.trustpilot.com/review/www.amazon.com which offers customer
-for online shops consisting of
+Consider the website https://www.trustpilot.com/ which is a platform for customer reviews.
+
+Each review consists of different parts such as
 - a short text
 - a date
 - a rating from 1 to 5 stars. 
@@ -243,7 +244,7 @@ each user review looks the same). We can use those to more specificly scrape the
 ---
 ### Use the Selectors 
 
-If we want to select all paragraphs (`p`) which are a decendent of an element with class `.red` we can do
+Lets say we want to select all paragraphs (`p`) which are a decendent of an element with class `.red`. We can achieve this with
 
 ```{r}
 url <- here::here("webscraping/examples/simple_html_page_with_css.html")
@@ -331,7 +332,51 @@ How do we find the CSS selectors
 
 
 ---
-### A real example: Truspilot.com 
+### A real example: trustpilot.com
+
+We want to write a function that extracts for each review
+
+- the name of the reviewer
+- the number of stars
+- the date
+- the review title
+- the review text
+
+The final function to extract data from one URL might look like this: 
+
+.code70[
+```{r, eval = FALSE}
+get_reviews <- function(url){
+
+  page <- read_html(url)
+  
+  tibble(
+  name   = get_name(page),
+  rating = get_rating(page), 
+  date   = get_date(page), 
+  title  = get_title(page),
+  text   = get_text(page)
+  )
+}
+```
+]
+
+---
+### A real example: trustpilot.com
+
+We not only want to scrape all reviews from one URL but all reviews for a company which 
+are distributed over many URLs. Can you write a function which can do this?
+
+
+
+
+
+
+
+
+
+
+
 
 
 
