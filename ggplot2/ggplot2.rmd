@@ -50,7 +50,7 @@ From Wikipedia:
 
 There are three major graphical systems: 
 
-- `R base graphics` 
+- R base graphics
 - `lattice`
 - `ggplot2`
 
@@ -78,7 +78,7 @@ Some interesting links:
 
 ---
 class: left, top
-## The layered grammer of graphics
+## The Layered Grammer of Graphics
 
 The grammar consists of 
 - data
@@ -94,7 +94,7 @@ A plot can have multiple layers.
 
 ---
 class: left, top
-## A basic example
+## A Basic Example
 
 ```{r, echo = TRUE, eval = FALSE}
 library(ggplot2)
@@ -106,6 +106,7 @@ ggplot(data = diamonds) +
 `ggplot()`
 
 - creates a coordinate system that you can add layers to
+- takes as arguments the default for all added layers
 
 `geom_point()`
 
@@ -115,10 +116,11 @@ defines how variables in your dataset are mapped to visual properties
 
 ---
 class: left, top
-## A basic example
+## A Basic Example
 
 ```{r, echo = FALSE, eval = TRUE, fig.width=10}
 library(ggplot2)
+set.seed(321)
 data("diamonds")
 diamonds <- diamonds[sample(1:nrow(diamonds), 5000), ]
 ggplot(data = diamonds) + geom_point(mapping = aes(x = carat, y = price))
@@ -126,9 +128,9 @@ ggplot(data = diamonds) + geom_point(mapping = aes(x = carat, y = price))
 
 ---
 class: left, top
-## Adding layers
+## Adding Layers
 
-- To make the pattern in the data more visible we add a smoothing function to the plot 
+To make the pattern in the data better visible we add a smoothing function to the plot.
 
 ```{r, echo = TRUE, eval = FALSE}
 ggplot(data = diamonds) + 
@@ -136,9 +138,12 @@ ggplot(data = diamonds) +
   geom_smooth(mapping = aes(x = carat, y = price), method = 'loess')
 ```
 
-- to write more compact code we can leave out the parameter names and switch `mapping` to 
-`ggplot()`
-- the same mapping is then used for all layers (but can be overwritten if necessary)
+To write more compact code we can
+- leave out the parameter names 
+- switch `mapping` to `ggplot()`.    
+
+  
+The same mapping is then used for all layers (but can be overwritten if necessary).
 
 ```{r, echo = TRUE, eval = FALSE}
 ggplot(diamonds, aes(carat, price)) + 
@@ -148,7 +153,7 @@ ggplot(diamonds, aes(carat, price)) +
 
 ---
 class: left, top
-## Adding a layer
+## Adding a Layer
 
 ```{r, echo = FALSE, eval = TRUE, fig.width=10}
 ggplot(diamonds, aes(x = carat, y = price)) + 
@@ -160,9 +165,9 @@ ggplot(diamonds, aes(x = carat, y = price)) +
 class: left, top
 ## Aesthetics
 
-- until now we only used the x and y coordinates as aesthetics
-- `?geom_point()` tells us about further aesthetics that we can map data to 
-- note that each geom has its own set of aesthetics
+- Until now we only used the x and y coordinates as aesthetics.
+- `?geom_point()` tells us about further aesthetics that we can map data to. 
+- Each geom has its own set of aesthetics.
 
 ```{r, echo = TRUE, eval = FALSE}
 ggplot(diamonds, aes(x = carat, y = price,
@@ -184,9 +189,9 @@ ggplot(diamonds, aes(x = carat, y = price,
 class: left, top
 ## Statistic  Transformations and Aesthetics
 
-- if we map aesthetics to discrete variables, then ggplot will automatically group the data accordingly
-- in this case every statistic transformation is performed by group
-- you can see what this means by the following example
+- If discrete variables are mapped to aesthetics, then ggplot will automatically group the data.
+- In this case every statistic transformation is performed by group.
+
 
 ```{r, echo = TRUE, eval = FALSE, warning=FALSE}
 ggplot(diamonds, aes(x = carat, y = price, 
@@ -236,15 +241,15 @@ ggplot(diamonds, aes(x = carat, y = price, color = color, shape = cut)) +
 class: left, top
 ## Geometric Objects and Statistic transformations
 
-- we can define a new layer in terms of a geometric object (`geom_...`) or a statistic transformation (`stat_...`)
-- each geometric object is associated with a default statistic transformation and vice verse
-- e.g. `geom_point()` has the identity function as statistic transformation and `geom_smooth()` fits a regression model before plotting a line with a prediction interval
-- there is is an alias function `stat_smooth()` which does essentially the same, however, in the first case we could change the statistic transformation and in the second case we could change the geometric object
-- most of the time it is not I good idea to change the default behaviour (e.g. try  `geom_point(stat = "smooth", method = "lm")`) but we will see an example where it can be useful
+- We can define a new layer in terms of a geometric object (`geom_...`) or a statistic transformation (`stat_...`).
+- Each geometric object is associated with a default statistic transformation and vice verse.
+- E.g. `geom_point()` has the identity function as statistic transformation and `geom_smooth()` fits a regression model before plotting a line with a prediction interval.
+- There is is an alias function `stat_smooth()` which does essentially the same, however, in the first case we could change the statistic transformation and in the second case we could change the geometric object.
+- Most of the time it is not a good idea to change the default behaviour (e.g. try  `geom_point(stat = "smooth", method = "lm")`) but we will see an example where it can be useful.
 
 ---
 class: left, top
-## Bar plot
+## Bar Plot
 `geom_bar()` counts the number of observations with within each group
 ```{r, echo = TRUE, eval = TRUE, fig.width=10, fig.height=5}
 ggplot(data = diamonds) + 
@@ -310,8 +315,8 @@ ggplot(data = diamonds, mapping = aes(carat, price)) +
 ---
 class: left, top
 ## Faceting
-- Faceting generates small multiples each showing a different subset of the data
-- helps to compare patterns in different parts of the data and see whether they are the same or different
+- Faceting generates multiple plots each showing a different subset of the data.
+- Helps to compare patterns in different parts of the data.
 
 ```{r, echo = TRUE, eval = FALSE, fig.width=10}
 ggplot(data = diamonds, mapping = aes(carat, price))  + 
@@ -438,13 +443,13 @@ class: left, top
 
 Themes control the appearance of the plot 
 
-- font ype and font size
+- font type and font size
 - background
 - ticks marks and labels
 - grid lines
 - ...
 
-There are many predefined themes, however, if you like you can define all by yourself.
+There are many predefined themes, however, if you like you can define everything by yourself.
 
 ```{r, echo = TRUE, eval = FALSE}
 ggplot(diamonds, aes(carat, price, color = cut)) + 
@@ -463,8 +468,49 @@ ggplot(diamonds, aes(carat, price, color = cut)) +
 ---
 class: left, top
 
-1.  
+## Exercises 
+
+1. Follow the instructions about the Titanic data set (download from Moodle).
+
+- Use a bar plot to show how many people survived the Titanic compared to those who didn't. 
+- Add a color coding to the previous plot to visualize the diffences between the passangers gender.
+- Split the previous plot into three plots based on the passangers class. 
+- Compare the age distribution between the survivors and non-survivors.  
+
+<ol start="2">
+<li> Try to answer the following questions about the <TT>mpg</TT> dataset (comes with <TT>ggplot2</TT>) using <TT>ggplot</TT>.  </li>
+</ol>
+<ul>
+    <li> How are engine size and fuel economy related?</li>
+    <li> Do certain manufacturers care more about economy than others?</li>
+    <li> Has fuel economy improved in the last ten years?</li>
+</ul>
+
+<ol start="3">
+<li> Compare the two data sets  <TT>economics </TT> and <TT>economics_long </TT> (both come with ggplot) with respect to the ease of use when working with <TT>ggplot </TT>.</li>
+
+```{r, eval = FALSE}
+library(ggplot2)
+titanic <- read.csv(here::here("datasets", "titanic.csv"), dec = ",")
+
+write.csv(titanic, file = here::here("datasets", "titanic.csv"))
+
+ggplot(titanic) + geom_bar(aes(x = survived, fill = sex), position = "dodge")
+ggplot(titanic) + geom_bar(aes(x = survived, fill = sex), position = "dodge") + facet_wrap(~pclass)
+ggplot(titanic) + geom_bar(aes(x = survived, fill = sex), position = "dodge") + facet_wrap( ~age < 15)
+ggplot(titanic) + geom_density(aes(x = age, col = survived), position = "dodge")  + facet_grid( pclass~sex)
+ggplot(titanic) + geom_density(aes(x = age, col = survived), position = "dodge")  + facet_grid( pclass~sex)
+ggplot(titanic,aes(x = fare, y = age, col = survived)) + geom_point(position = "dodge")  + facet_grid( pclass~sex) + geom_smooth()
+```
 
 
+```{r, eval = FALSE}
+ggplot(mpg, aes(y = hwy, x  = displ, col = factor(year))) + geom_point() + geom_smooth()
+```
 
+
+```{r, eval = FALSE}
+economics_long
+ggplot(economics_long, aes(x = date, y = value, col = variable)) + geom_line()
+```
 
