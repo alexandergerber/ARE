@@ -493,3 +493,27 @@ Accent grey - supportive #F1F1F1
 C=0 M=0 Y=0 K=10
 R=241 G=241 B=241 
 */
+
+
+.remark-slide table {
+  margin: auto;
+  border-top: 1px solid #0000000;
+  border-bottom: 1px solid #000000;
+  /*added by Alex */
+  border-collapse: separate;
+  border-spacing: 0 1px;
+}
+
+.remark-slide table thead th { 
+ /*  border-top: 1px solid #000000;*/
+  border-bottom: 1px solid #000000; 
+}
+
+/* .remark-slide table thead th { border-bottom: 1px solid #ddd; } */
+
+th, td { padding-right: 10px; }
+
+
+.remark-slide thead, .remark-slide tfoot, .remark-slide tr:nth-child(even) { background: #FFFFFF }
+
+
