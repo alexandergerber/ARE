@@ -7,68 +7,551 @@ date: '`r Sys.Date()`'
 output:
   xaringan::moon_reader:
     lib_dir: libs
-    css: ["default", "assets/sydney-fonts.css", "assets/sydney.css"]
+    css: ["default", "../assets/sydney-fonts.css", "../assets/sydney.css", "../assets/custom.css"]
     nature:
       highlightStyle: github
       highlightLines: true
       countIncrementalSlides: false
-     #ratio: "16:9"
+      ratio: "16:9"
     #includes:
      # after_body: ../xaringan_files/terminal_highlight.html
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 ```
+## Preliminaries
+.left-column[Contact Information:  ]
 
-### Outline
+.right-column[
+Alexander Gerber  
+Alexander.Gerber@vwl.uni-due.de
+    
+Martin Arnold  
+Martin Arnold@vwl.uni-due.de]
+
+<br>
+Slides, exercises and announcements will be provided on 
+.center[
+  https://moodle.uni-due.de/course/view.php?id=17174  
+]
+<br>
+The password for the course is **"Hadley"**.  
+<br>
+On Moodle You will find a link to [Datacamp](https://www.datacamp.com) which will give you free access to all their content. 
+
+---
+## Grading
+
+- Over the semester there will be three graded assignments.  
+
+- You will have to work on a final group project which focuses on one or more of the topics discussed in the course. 
+
+- The final grade is a weighted average of the grades for the group project (60%), its presentation (20%) and
+the assignments (20%).
+
+- You have to pass each part (assignments, project and presentation) separately to pass the course. 
+---
+## Outline
+.pull-left[
 1. Introduction 
 2. Prerequisites
-  - Rmarkdown
-  - Git and Github
-3. R for Data Science 
-  - Data Visualisation 
-  - Data Handling
-  - Modeling 
-4. R Programming
-  - Internals
+   - Rmarkdown
+   - Git and Github
+3. Data Visualisation with ggplot 
+3. Data Wrangling  
+4. Advanced R Programming 
   - Functional Programming
   - Object Oriented Programming 
-5. Performance
-  - Profiling and Benchmarking 
-  - Parallelisation
-  - Rcpp
-6. Further subjects
-  - web scraping 
-  - shiny 
-  - text mining 
-  - package development 
+]
+.pull-right[
+<ol start = "6">
+<li>  Performance </li> 
+<ul>
+  <li> Profiling and Benchmarking </li> 
+  <li> Parallelisation </li>
+  <li> Rcpp </li>
+</ul>
+<li> Web Scraping  </li>
+<li> Shiny </li>
+<li> Writing Packages </li>
+<li>Text Mining  </li>
+</ol>
+]
+---
+
+class: top, left
+## About R
+
+- R is a language and environment for statistical computing and graphics.
+- R is highly extensible. A massive set of packages for statistical modelling, machine learning, visualisation, and importing and manipulating data. Researchers in statistics and machine learning will often publish an R package to accompany their articles.
+- R is free and open source. 
+- R provides tools for communicating your results. R packages make it easy to produce html or pdf reports, or create interactive websites.
+- R is designed to connect to high-performance programming languages like C, Fortran, and C++.
+
+- R also has some disadvantages: 
+  - It is not very fast.
+  - It has an inconsistent Syntax.
+
 ---
 class: top, left
+## Sources
 
-### Getting Help
+- [Advanced R](http://adv-r.had.co.nz/) by Hadley Wickham
+- [R for Data Science](https://r4ds.had.co.nz) by Hadley Wickham and Garrett Grolemund
+- The Art of R Programming by Norman Matloff
+- The [Use R!](https://www.springer.com/series/6991) Series by Springer
+- The [R Series](https://www.crcpress.com/go/the-r-series) by CRC Press
 
-If you want to find out how a package works, search for
 
-  - a vignitte by the package authors 
+
+
+---
+class: top, left
+## Packages
+
+- In R, the fundamental unit of shareable code is the package.
+- The chances are that someone has already solved a problem that you’re working on, and you can benefit from their work by downloading their package.
+
+The main sources for packages are
+  - CRAN (Comprehensive R Archive Network) with as of now ca. 15.000 available packages
+  - GitHub (that is the place were packages are developed before getting published on CRAN) 
+  - Bioconductor
+
+---
+class: top, left
+## Installing Packages
+
+How to install packages from CRAN?
+
+- Use `install.packages("MASS")` to install the package `MASS` from CRAN.
+- Or using RStudio: Tools &rarr; Install Packages &rarr; `MASS`
+
+How to install packages from Github?
+
+- Install the package `devtools` from CRAN.
+- Use `devtools::install_github("tidymodels/broom")` to install the `broom` package from Github.
+
+- If you want to find out how a package works, search for
+.code70[
+  - a vignette by the package authors 
     ```{r, echo = TRUE, eval = FALSE}
     library(broom)
     vignette("broom")
     ```
+  ]
   - a blog post about the package, e.g. on [R Bloggers](https://www.r-bloggers.com)
-  
-If you have specific questions about your code or an error messages search
+---
+class: top, left
+
+## Getting Help
+
+If you have specific questions about your code or an error message look on 
   - [StackOverflow](https://stackoverflow.com/)  
-  - [RStudio Community](https://community.rstudio.com/) (if it is about RStudio or packages developed by RStudio).
-  - the [GitHub](https://github.com/) repository.
+  - [RStudio Community](https://community.rstudio.com/) (if it is about RStudio or packages developed by RStudio)
+  - the [GitHub](https://github.com/) repository of the package maintainer
 
-Probably somebody else has already asked the same questions. 
+The probability is high that somebody else has already asked the same questions and it is already solved. 
 
-If you don't find an answer, you can ask a question yourself, what is harder then it sounds.  
-Most importantly you have to provide a [reproducible example](https://stackoverflow.com/questions/5963269/how-to-make-a-great-r-reproducible-example).
+If you don't find an answer you can ask a question yourself. What sounds easy is harder then on would think. Most importantly you have to provide a [reproducible example](https://stackoverflow.com/questions/5963269/how-to-make-a-great-r-reproducible-example).
+
+---
+## Rstudio
+- RStudio is an integrated development environment (IDE) for R. 
+- It provides some convenience functionality compared to the IDE shipping with R.
+
+#### Rstudio Projects 
+
+- To work in a specific directory the base R way would be to use `setwd()`. This is problematic if you want to 
+  share your code or work from different machines on the same project. 
+- Use projects instead.
+
+Workflow:
+- Instead of openening a new R session and use `setwd()` you open the project. The working path is 
+automatically set to the folder where the `.Rproj` file lives in. 
+
+---
+####Shortcuts
+<br>
+
+```{r echo = FALSE, eval = TRUE}
+knitr::kable(data.frame(Shortcut = c("Alt + Shift + k", "Cmd/Ctrl + Shift + F10", "Cmd/Ctrl + Shift + S", "F1", "Ctrl + l"),
+                        Action   = c("list all shortcuts", "restart R", "rerun current script", "help page", "clears the console"))
+             , format = "html")
+```
+
+
+####Rstudio supports: 
+- package development
+- version control via git and svm 
+- creation and compilation of dynamic documents 
+- connections to external data bases 
+- ... 
+
+We will use some of this later on.  
+
+---
+class: top, left
+
+## R Basics: Data Types and Data Structures
+
+We assume that you know about the basic data structures in R. 
+<br> 
+  
+```{r, echo = FALSE, eval = TRUE}
+knitr::kable(
+data.frame(c("1d", "2d", "nd"), Homogeneous = c("Atomic Vector", "Matrix", "Array"), Heterogeneous = c("List", "Data Frame", "")),
+col.names = c("", "Homogeneous", "Heterogeneous"), format = "html")
+```
+<br> 
+You should also be familiar with the basic data types (character, double, integer, logical).
+
+An in depth treatment of this material can be found in 
+[Advanced R](https://adv-r.hadley.nz/vectors-chap.html#introduction-2) by Hadley Wickham. 
+
+#### Quiz: 
+1. How is a list different from an atomic vector? 
+2. How is a matrix different from a data frame?
+3. How do you find out the type of an object?
+4. How can you check if an object is of type character?
+
+---
+class: top, left
+## R Basics: Subsetting
+
+You should be familiar with the common subsetting operators  `[`, `[[` and `$`. 
+
+Have you ever encounterd `@`? 
+
+<br>
+
+#### Quiz
+
+1. What is the result of subsetting a vector with positive integers, negative integers, a logical vector, or a character vector?
+
+2. What’s the difference between `[`, `[[`, and `$` when applied to a list?
+
+3. When should you use `drop = FALSE`?
+
+---
+## R Basics: Control Flows
+
+The basic control flows are conditionals (choices) and loops.
+
+#### Quiz
+
+1. What is the difference between `if` and `ifelse()`?
+2. In the following code, what will the value of `y` be if `x` is `TRUE`? What if `x` is `FALSE`? What if `x` is `NA`?
+    ```{r, eval = FALSE}
+y <- if (x) 3
+    ```
+3. What is returned by the following code? 
+    ```{r, eval = FALSE}
+switch("x", x = , y = 2, z = 3)
+    ```
+4. Name three kind of loops that can be implemented in R? How do they differ?
+
+???
+
+```{r}
+for(i in 1:3){
+  print(i)
+}
+
+i <- 1
+while(i < 4){
+  print(i)
+  i <- i + 1
+}
+
+i <- 1
+repeat{
+  print(i)
+  i <- i + 1 
+  if(i > 3) break
+  
+}
+
+```
 
 
 
 ---
 class: top, left
+
+## R Basics: Functions
+
+- Write a function that takes a number `x` and returns the square of `x`.  
+
+#### Scoping
+- An important concept and also a source of trouble is scoping, the act of finding the value associated with a name. 
+- R uses lexical scoping:  it looks up the values of names based on how a function is defined, not how it is called.
+- Example for lexical scoping:
+    ```{r}
+f1 <- function() x
+x <- "global"
+f2 <- function(){
+  x <- "f2"
+  f1()
+}
+f2()
+    ```
+
+---
+## Scoping Rules
+
+R’s lexical scoping follows four primary rules:
+- Name masking
+- Functions versus variables
+- A fresh start
+- Dynamic lookup
+
+---
+## Scoping Rules: Name Masking
+
+- What happens here?
+    ```{r, eval = FALSE}
+x <- 3
+square_1 <- function() x^2
+square_1()
+    ```
+--
+- And here?
+    ```{r}
+x <- 3
+square_2 <- function(){ 
+  x   <- 2
+  foo <- function() x^2
+  foo()
+}
+square_2()
+    ```
+--
+- Names defined inside a function mask names defined outside a function.
+
+---
+## Scoping Rules: Functions versus Variables
+
+- Lets make things more confusing. Can you predict the result?   
+    ```{r}
+x <- 3
+
+square_2 <- function(){ 
+  x   <- 2
+  foo <- function() x^2
+  foo()
+}
+
+square_3 <- function(x){
+  square_2 <- 5
+  square_2()
+}
+    ```
+--
+- When a function and a non-function share the same name R ignores non-function objects in a function call.
+
+---
+## Scoping Rules: A Fresh Start
+
+What is the result of the first call two `square_4()`? What will happen the second time?
+```{r}
+x <- 2
+square_4 <- function(){
+  (x <- x^2)
+}
+
+square_4()
+square_4()
+```
+
+--
+- Every time a function is called a new ***environment*** is created to host its execution. 
+- A function has no way to tell what happened the last time it was run; each invocation is completely independent.
+
+---
+## Scoping Rules: Dynamic Lookup
+
+Predict the result of the two calls to `f1()`. Compare it to the main rule of lexical scoping. 
+
+```{r}
+x  <- 1
+f1 <- function() x
+f1()
+
+x <- 2 
+f1()
+```
+
+--
+- R looks for values when the function is run, not when the function is created. 
+
+---
+## Lazy Evaluation
+
+What could cause an error here?
+```{r}
+lazy_function <- function(x){
+  10
+}
+
+lazy_function()
+```
+--
+
+Why doesn't it cause an error?
+
+--
+
+- Function arguments are lazily evaluated; they’re only evaluated if accessed.
+
+---
+## Style Guide
+
+#### Object names
+
+- Variable and function names should be lowercase.
+- Use an underscore (_) to separate words within a name (as an alternative you can use camel case, but be consistent).
+- Variable names should be nouns.
+- Function names should be verbs.
+- Strive for names that are concise and meaningful (this is not easy!).
+- Where possible, avoid using names of existing functions and variables. 
+.pull-left[
+.code70[
+    ```{r, eval = FALSE}
+# Good
+day_one
+day_1
+```
+]]
+.pull-right[
+.code70[
+```{r}
+# Bad
+first_day_of_the_month
+DayOne
+dayone
+djm1
+T <- FALSE
+c <- 10
+mean <- function(x) sum(x)
+```
+]
+]
+
+---
+#### Spacing
+- Place spaces around all infix operators (`=`, `+`, `-`, `<-`, etc.) and `=` in a function call.
+- Always put a space after a comma, and never before.
+    ```{r}
+# Good
+average <- mean(feet / 12 + inches, na.rm = TRUE)
+
+# Bad
+average<-mean(feet/12+inches,na.rm=TRUE)
+    ```
+
+- An exception to this rule are  `:`, `::` and `:::`.
+    ```{r}
+# Good
+x <- 1:10
+base::get
+
+# Bad
+x <- 1 : 10
+base :: get
+    ```
+
+---
+#### Spacing
+- Extra spacing (i.e., more than one space in a row) is ok if it improves alignment of equal signs or assignments (`<-`).
+    ```{r}
+list(
+  total = a + b + c, 
+  mean  = (a + b + c) / n
+)
+    ```
+
+- Do not place spaces around code in parentheses or square brackets (unless there’s a comma, in which case see above).
+    ```{r}
+# Good
+if (debug) do(x)
+diamonds[5, ]
+
+# Bad
+if ( debug ) do(x)  # No spaces around debug
+x[1,]   # Needs a space after the comma
+x[1 ,]  # Space goes after comma not before
+    ```
+
+---
+#### Spacing
+
+- An opening curly brace should never go on its own line and should always be followed by a new line. A closing curly brace should always go on its own line, unless it’s followed by else.
+
+.code70[
+    ```{r}
+# Good
+if (y < 0 && debug) {
+  message("Y is negative")
+}
+
+if (y == 0) {
+  log(x)
+} else {
+  y ^ x
+}
+
+# Bad
+if (y < 0 && debug)
+message("Y is negative")
+
+if (y == 0) {
+  log(x)
+} 
+else {
+  y ^ x
+}
+    ```
+
+
+- It’s ok to leave very short statements on the same line:
+    ```{r}
+if (y < 0 && debug) message("Y is negative")
+    ```
+]
+
+---
+#### Spacing
+
+- Strive to limit your code to 80 characters per line. 
+- If you find yourself running out of room, this is a good indication that you should encapsulate some of the work in a separate function.
+
+#### Indentation
+- When indenting your code, use two spaces and never use tabs or mix tabs and spaces. 
+
+#### Assignment
+- Use `<-`, not `=`, for assignment.
+    ```{r}
+# Good
+x <- 5
+# Bad
+x = 5
+    ```
+
+---
+#### Commenting guidelines
+- Comment your code. 
+- Each line of a comment should begin with the comment symbol and a single space: `#`. 
+- Comments should explain the why, not the what.
+- Use commented lines of `-` and `=` to break up your file into easily readable chunks.
+    ```{r}
+# Load data ---------------------------
+
+# Plot data ---------------------------
+    ```
+
+
+
+
+
 
