@@ -38,14 +38,14 @@ Slides, exercises and announcements will be provided on
 <br>
 The password for the course is **"Hadley"**.  
 <br>
-On Moodle You will find a link to [Datacamp](https://www.datacamp.com) which will give you free access to all their content. 
+On Moodle you will find a link to [Datacamp](https://www.datacamp.com) which will give you free access to all their content. 
 
 ---
 ## Grading
 
 - Over the semester there will be three graded assignments.  
 
-- You will have to work on a final group project which focuses on one or more of the topics discussed in the course. 
+- You will have to work on a final group project which focus on one or more of the topics discussed in the course. 
 
 - The final grade is a weighted average of the grades for the group project (60%), its presentation (20%) and
 the assignments (20%).
@@ -84,14 +84,14 @@ class: top, left
 ## About R
 
 - R is a language and environment for statistical computing and graphics.
-- R is highly extensible. A massive set of packages for statistical modelling, machine learning, visualisation, and importing and manipulating data. Researchers in statistics and machine learning will often publish an R package to accompany their articles.
+- R is highly extensible. A massive set of packages for statistical modelling, machine learning, visualisation, as well as importing and manipulating data. Researchers in statistics and machine learning will often publish an R package to accompany their articles.
 - R is free and open source. 
 - R provides tools for communicating your results. R packages make it easy to produce html or pdf reports, or create interactive websites.
 - R is designed to connect to high-performance programming languages like C, Fortran, and C++.
 
 - R also has some disadvantages: 
   - It is not very fast.
-  - It has an inconsistent Syntax.
+  - It has an inconsistent syntax.
 
 ---
 class: top, left
@@ -110,7 +110,7 @@ class: top, left
 class: top, left
 ## Packages
 
-- In R, the fundamental unit of shareable code is the package.
+- In R the fundamental unit of shareable code is the package.
 - The chances are that someone has already solved a problem that you’re working on, and you can benefit from their work by downloading their package.
 
 The main sources for packages are
@@ -151,14 +151,14 @@ If you have specific questions about your code or an error message look on
   - [RStudio Community](https://community.rstudio.com/) (if it is about RStudio or packages developed by RStudio)
   - the [GitHub](https://github.com/) repository of the package maintainer
 
-The probability is high that somebody else has already asked the same questions and it is already solved. 
+The chances are high that somebody else has already asked the same questions and it has already been solved. 
 
-If you don't find an answer you can ask a question yourself. What sounds easy is harder then on would think. Most importantly you have to provide a [reproducible example](https://stackoverflow.com/questions/5963269/how-to-make-a-great-r-reproducible-example).
+If you don't find an answer you can ask a question yourself. What sounds easy is harder then one would think. Most importantly you have to provide a [reproducible example](https://stackoverflow.com/questions/5963269/how-to-make-a-great-r-reproducible-example).
 
 ---
 ## Rstudio
 - RStudio is an integrated development environment (IDE) for R. 
-- It provides some convenience functionality compared to the IDE shipping with R.
+- It provides some convenient functionality compared to the IDE shipping with R.
 
 #### Rstudio Projects 
 
@@ -229,7 +229,7 @@ Have you ever encounterd `@`?
 
 1. What is the result of subsetting a vector with positive integers, negative integers, a logical vector, or a character vector?
 
-2. What’s the difference between `[`, `[[`, and `$` when applied to a list?
+2. What is the difference between `[`, `[[`, and `$` when applied to a list?
 
 3. When should you use `drop = FALSE`?
 
@@ -241,7 +241,7 @@ The basic control flows are conditionals (choices) and loops.
 #### Quiz
 
 1. What is the difference between `if` and `ifelse()`?
-2. In the following code, what will the value of `y` be if `x` is `TRUE`? What if `x` is `FALSE`? What if `x` is `NA`?
+2. What will be the value of `y` in the following code if `x` is `TRUE`? What if `x` is `FALSE`? What if `x` is `NA`?
     ```{r, eval = FALSE}
 y <- if (x) 3
     ```
@@ -332,7 +332,7 @@ square_2()
 ---
 ## Scoping Rules: Functions versus Variables
 
-- Lets make things more confusing. Can you predict the result?   
+- Let's make things more confusing. Can you predict the result?   
     ```{r}
 x <- 3
 
@@ -348,12 +348,12 @@ square_3 <- function(x){
 }
     ```
 --
-- When a function and a non-function share the same name R ignores non-function objects in a function call.
+- When a function and a non-function share the same name, R ignores non-function objects in a function call.
 
 ---
 ## Scoping Rules: A Fresh Start
 
-What is the result of the first call two `square_4()`? What will happen the second time?
+What is the result of the first call to `square_4()`? What will happen the second time?
 ```{r}
 x <- 2
 square_4 <- function(){
@@ -463,7 +463,7 @@ base :: get
 
 ---
 #### Spacing
-- Extra spacing (i.e., more than one space in a row) is ok if it improves alignment of equal signs or assignments (`<-`).
+- Extra spacing (i.e. more than one space in a row) is ok if it improves alignment of equal signs or assignments (`<-`).
     ```{r}
 list(
   total = a + b + c, 
