@@ -132,14 +132,35 @@ params:
 class: left, top
 ## Text Formatting
 
-.font80[
-
 - R Markdown is built on [Pandoc Markdown](https://rmarkdown.rstudio.com/authoring_pandoc_markdown.html%23raw-tex#pandoc_markdown), which in turn is a flavour of the markup language Markdown.  
 - The advantage of Markdown compared to other markup languages such as HTML and Latex is its simplicity.
+
+---
+
+class: left, top
+## Text Formatting
 
 Some examples:  
 
 .pull-left[
+
+- Headers
+
+    ```markdown
+     #   Header 1     
+     ##  Header 2   
+     ### Header 3 
+    ```
+
+  .scaled[
+  #   Header 1 
+  ##  Header 2
+  ### Header 3
+ ]
+ 
+]
+
+.pull-right[ 
 
 - Inline formatting  
 
@@ -149,31 +170,13 @@ Some examples:
      This ~~is deleted text.~~
      Some verbatim `lm(y ~ x)`.
     ```
-- Headers
-
-    ```markdown
-     #   Header 1     
-     ##  Header 2   
-     ### Header 3 
-    ```
-]
-
-.pull-right[ 
-
-<br style="line-height:62px">
+    
     *italics*  
     **bold**  
     This ~~is deleted text.~~  
     Some verbatim `lm(y ~ x)`. 
-
-.scaled[
-#   Header 1 
-##  Header 2
-### Header 3
- ]
 ]
 
-]
 
 ---
 class: left, top
