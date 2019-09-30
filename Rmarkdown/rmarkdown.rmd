@@ -306,6 +306,8 @@ cat("
 class: left, top
 ## Code Chunks
 
+.font90[
+
 - Press `Ctrl + Alt + I` to insert a new R code chunk.
 - You can write arbitrary R code in a code chunk (e.g. run a regression and produce a plot of the result).  
 - In the top curly braces, chunk options can be set to control how the output is handled.
@@ -320,6 +322,8 @@ Some useful options:
   - `include` (`TRUE`; logical): whether to include the chunk output in the final output document
   
 For a complete list, we refer to the `knitr` documentation: [Chunk options](https://yihui.name/knitr/options#code-evaluation).
+
+]
 
 ---
 class: left, top
