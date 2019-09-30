@@ -65,7 +65,7 @@ class: left, top
 
 ## How it works 
 
-.font80[
+<br> <br>
 
 An R Markdown document is a basic text file, with the conventional extension `.Rmd`.
 
@@ -76,13 +76,18 @@ The example already contains the most important components:
 - Inline R code surrounded by ` `r ` and ` ` `
 - Text mixed with simple text formatting like **bold** and _italics_
 - Mathematical expressions
+---
+
+class: left, top
+
+## How it works 
+
+<br> <br>
 
 When we click **knit** in RStudio then 
 1. the `knitr` package executes the code chunks and creates a markdown document (`.md`) which contains the text we have written and optionally the code and its output 
 2. the `.md` file gets processed by `pandoc` which creates the final file in the desired output format (eg. `html`, `pdf`, `word`, ...)
 ![](rendering_process.PNG)
-
-]
 
 ---
 class: left, top
@@ -379,6 +384,8 @@ The answer is `r answer`.
 class: left, top
 ## Tables 
 
+<br> <br>
+
 Tables can be created in the following way:
 <br> <br>
 .pull-left[ 
@@ -392,7 +399,7 @@ Tables can be created in the following way:
 ]
 
 .pull-right[ 
-<br>
+
 
 | Right | Left | Default | Center |
 |------:|:-----|---------|:------:|
