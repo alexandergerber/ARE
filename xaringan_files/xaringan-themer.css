@@ -175,7 +175,7 @@ table.dataTable tbody {
 
 /* .remark-slide table thead th { border-bottom: 1px solid #ddd; } */
 
-th, td { padding-right: 10px; }
+th, td { padding-right: 1px; }
 
 
 .remark-slide thead, .remark-slide tfoot, .remark-slide tr:nth-child(even) { background: #FFFFFF }

@@ -1,0 +1,25 @@
+.right-column {
+  width: 75%;
+  float: right;
+  padding-top: 0em;
+}
+
+.left-column{
+  margin-bottom: 0.5em;
+  margin-top: 0.5em;
+}
+
+.right-column ~ * {
+  clear: both;
+}
+
+.scaled {
+  LINE-HEIGHT:20px;
+  display: block;
+  margin-left: 0.1em;
+  float:left;
+}
+
+
+
+
