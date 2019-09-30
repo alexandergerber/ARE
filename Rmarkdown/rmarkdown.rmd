@@ -132,6 +132,8 @@ params:
 class: left, top
 ## Text Formatting
 
+.font80[
+
 - R Markdown is built on [Pandoc Markdown](https://rmarkdown.rstudio.com/authoring_pandoc_markdown.html%23raw-tex#pandoc_markdown), which in turn is a flavour of the markup language Markdown.  
 - The advantage of Markdown compared to other markup languages such as HTML and Latex is its simplicity.
 
@@ -169,6 +171,8 @@ Some examples:
 ##  Header 2
 ### Header 3
  ]
+]
+
 ]
 
 ---
