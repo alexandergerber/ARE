@@ -450,20 +450,35 @@ class: left, top
 
 - `stargazer` takes model objects as input and automatically creates an output table   
 
+.pull-left[
+#### Code
+
+
 ````markdown
 `r ''````{r, results='asis', echo = TRUE}
-linear_model <- lm(mpg ~ cyl + wt, data = mtcars)
-stargazer::stargazer(linear_model, type = "html",
-                     out.header = TRUE, omit.table.layout = "sn")
+
+linear_model <- lm(mpg ~ cyl + wt, 
+      data = mtcars)
+      
+stargazer::stargazer(linear_model, 
+      type = "html", 
+      out.header = TRUE, 
+      omit.table.layout = "sn")
+      
 ```
 ````
+]
+.pull-right[
+#### Output
+
+.font80[
 
 ```{r, results='asis'}
 linear_model <- lm(mpg ~ cyl + wt, data = mtcars)
-stargazer::stargazer(linear_model, type = "html", 
-                     out.header = TRUE, omit.table.layout = "sn")
+stargazer::stargazer(linear_model, type = "html", out.header = TRUE, omit.table.layout = "sn")
 ```
 
+]]
 
 ---
 class: left, top
