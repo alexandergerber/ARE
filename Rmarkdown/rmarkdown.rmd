@@ -65,6 +65,8 @@ class: left, top
 
 ## How it works 
 
+.font80[
+
 An R Markdown document is a basic text file, with the conventional extension `.Rmd`.
 
 The example already contains the most important components:
@@ -79,6 +81,8 @@ When we click **knit** in RStudio then
 1. the `knitr` package executes the code chunks and creates a markdown document (`.md`) which contains the text we have written and optionally the code and its output 
 2. the `.md` file gets processed by `pandoc` which creates the final file in the desired output format (eg. `html`, `pdf`, `word`, ...)
 ![](rendering_process.PNG)
+
+]
 
 ---
 class: left, top
