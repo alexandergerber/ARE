@@ -6,7 +6,7 @@ output:
   xaringan::moon_reader:
     css: ["default", "../assets/sydney-fonts.css", "../assets/sydney.css"]
     self_contained: false # if true, fonts will be stored locally
-    seal: false # show a title slide with YAML information
+    seal: true # show a title slide with YAML information
     includes:
       in_header: "../assets/mathjax-equation-numbers.html"
     nature:
