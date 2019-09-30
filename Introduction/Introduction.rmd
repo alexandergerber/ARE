@@ -355,8 +355,8 @@ square_3 <- function(x){
 
 What is the result of the first call two `square_4()`? What will happen the second time?
 ```{r}
-x <- 2
-square_4 <- function(){
+square_4 <- funcx <- 2
+tion(){
   (x <- x^2)
 }
 
