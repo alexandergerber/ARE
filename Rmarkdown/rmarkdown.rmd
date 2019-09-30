@@ -45,8 +45,11 @@ Some interesting links:
 ---
 class: left, top
 ## What’s possible with R Markdown?
-[![IMAGE ALT TEXT](https://i.vimeocdn.com/video/759260889.jpg)](https://player.vimeo.com/video/178485416 "Video Title")
 
+.center[
+<iframe src="https://player.vimeo.com/video/178485416?color=428bca&title=0&byline=0&portrait=0" width="720" height="480" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>
+<p><a href="https://vimeo.com/178485416">What is R Markdown?</a> from <a href="https://vimeo.com/rstudioinc">RStudio, Inc.</a> on <a href="https://vimeo.com">Vimeo</a>.</p>
+]
 ---
 class: left, top
 ## Basic example
