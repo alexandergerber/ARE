@@ -65,7 +65,7 @@ class: left, top
 
 ## How it works 
 
-.font80[
+<br> <br>
 
 An R Markdown document is a basic text file, with the conventional extension `.Rmd`.
 
@@ -76,13 +76,18 @@ The example already contains the most important components:
 - Inline R code surrounded by ` `r ` and ` ` `
 - Text mixed with simple text formatting like **bold** and _italics_
 - Mathematical expressions
+---
+
+class: left, top
+
+## How it works 
+
+<br> <br>
 
 When we click **knit** in RStudio then 
 1. the `knitr` package executes the code chunks and creates a markdown document (`.md`) which contains the text we have written and optionally the code and its output 
 2. the `.md` file gets processed by `pandoc` which creates the final file in the desired output format (eg. `html`, `pdf`, `word`, ...)
 ![](rendering_process.PNG)
-
-]
 
 ---
 class: left, top
@@ -132,14 +137,35 @@ params:
 class: left, top
 ## Text Formatting
 
-.font80[
-
 - R Markdown is built on [Pandoc Markdown](https://rmarkdown.rstudio.com/authoring_pandoc_markdown.html%23raw-tex#pandoc_markdown), which in turn is a flavour of the markup language Markdown.  
 - The advantage of Markdown compared to other markup languages such as HTML and Latex is its simplicity.
+
+---
+
+class: left, top
+## Text Formatting
 
 Some examples:  
 
 .pull-left[
+
+- Headers
+
+    ```markdown
+     #   Header 1     
+     ##  Header 2   
+     ### Header 3 
+    ```
+
+  .scaled[
+  #   Header 1 
+  ##  Header 2
+  ### Header 3
+ ]
+ 
+]
+
+.pull-right[ 
 
 - Inline formatting  
 
@@ -149,31 +175,13 @@ Some examples:
      This ~~is deleted text.~~
      Some verbatim `lm(y ~ x)`.
     ```
-- Headers
-
-    ```markdown
-     #   Header 1     
-     ##  Header 2   
-     ### Header 3 
-    ```
-]
-
-.pull-right[ 
-
-<br style="line-height:62px">
+    
     *italics*  
     **bold**  
     This ~~is deleted text.~~  
     Some verbatim `lm(y ~ x)`. 
-
-.scaled[
-#   Header 1 
-##  Header 2
-### Header 3
- ]
 ]
 
-]
 
 ---
 class: left, top
@@ -191,6 +199,16 @@ class: left, top
   * Item
 ```
 
+* Item
+  - Item belonging to item
+  - Another item belonging to item
+* Item
+* Item  
+
+]
+
+.pull-right[ 
+
 - Ordered Lists
 
 ```markdown
@@ -199,26 +217,13 @@ class: left, top
     - Second subitem 
   2. Second item
   3. Third item
-  4. Fourth item
 ```
-]
-
-.pull-right[ 
-<br>
-* Item
-  - Item belonging to item
-  - Another item belonging to item
-* Item
-* Item  
-
-<br style="line-height:50px">
 
 1. First item  
     - First subitem
     - Second subitem
 2. Second item
 3. Third item
-4. Fourth item
 
 ]
 
@@ -228,35 +233,44 @@ Note that Markdown does not support nested ordered lists with numbering 1.1, 1.2
 class: left, top
 ## Text Formatting
 
+<br>
+
 .pull-left[ 
-- Paragraphs
-```markdown
-  First paragraph
-
-  Second paragraph
-```
-
-A new paragraph is started by a blank line.
-
 
 - linebreaks
+
 ```markdown
   First line  
   Second line
 ```
+  First line  
+  Second line
+
+<br> <br>
+
+A new line is started by two whitespaces at the end of the previous line (which you cannot see here).
+
 ]
 
 .pull-right[ 
-<br style="line-height:54px">
+
+- Paragraphs
+
+```markdown
   First paragraph
 
   Second paragraph
-<br style="line-height:140px">
-  First line  
-  Second line
-]
+```
 
-A new line is started by two whitespaces at the end of the previous line (which you cannot see here).
+  First paragraph
+
+  Second paragraph
+
+<br>
+
+A new paragraph is started by a blank line.
+
+]
 
 
 
@@ -373,6 +387,8 @@ The answer is `r answer`.
 class: left, top
 ## Tables 
 
+<br> <br>
+
 Tables can be created in the following way:
 <br> <br>
 .pull-left[ 
@@ -386,7 +402,7 @@ Tables can be created in the following way:
 ]
 
 .pull-right[ 
-<br>
+
 
 | Right | Left | Default | Center |
 |------:|:-----|---------|:------:|
