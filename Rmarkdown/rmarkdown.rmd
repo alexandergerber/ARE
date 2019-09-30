@@ -191,6 +191,16 @@ class: left, top
   * Item
 ```
 
+* Item
+  - Item belonging to item
+  - Another item belonging to item
+* Item
+* Item  
+
+]
+
+.pull-right[ 
+
 - Ordered Lists
 
 ```markdown
@@ -199,26 +209,13 @@ class: left, top
     - Second subitem 
   2. Second item
   3. Third item
-  4. Fourth item
 ```
-]
-
-.pull-right[ 
-<br>
-* Item
-  - Item belonging to item
-  - Another item belonging to item
-* Item
-* Item  
-
-<br style="line-height:50px">
 
 1. First item  
     - First subitem
     - Second subitem
 2. Second item
 3. Third item
-4. Fourth item
 
 ]
 
@@ -247,16 +244,22 @@ A new paragraph is started by a blank line.
 ]
 
 .pull-right[ 
-<br style="line-height:54px">
+<br>
+<br>
   First paragraph
 
   Second paragraph
-<br style="line-height:140px">
+  <br>
+  <br>
+  <br>
+  <br>
+  <br>
+
   First line  
   Second line
 ]
 
-A new line is started by two whitespaces at the end of the previous line (which you cannot see here).
+<br>A new line is started by two whitespaces at the end of the previous line (which you cannot see here).
 
 
 
