@@ -233,41 +233,44 @@ Note that Markdown does not support nested ordered lists with numbering 1.1, 1.2
 class: left, top
 ## Text Formatting
 
+<br>
+
 .pull-left[ 
-- Paragraphs
-```markdown
-  First paragraph
-
-  Second paragraph
-```
-
-A new paragraph is started by a blank line.
-
 
 - linebreaks
+
 ```markdown
   First line  
   Second line
 ```
+  First line  
+  Second line
+
+<br> <br>
+
+A new line is started by two whitespaces at the end of the previous line (which you cannot see here).
+
 ]
 
 .pull-right[ 
-<br>
-<br>
+
+- Paragraphs
+
+```markdown
   First paragraph
 
   Second paragraph
-  <br>
-  <br>
-  <br>
-  <br>
-  <br>
+```
 
-  First line  
-  Second line
+  First paragraph
+
+  Second paragraph
+
+<br>
+
+A new paragraph is started by a blank line.
+
 ]
-
-<br>A new line is started by two whitespaces at the end of the previous line (which you cannot see here).
 
 
 
