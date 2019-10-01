@@ -342,28 +342,28 @@ slides > slide {
 /*~~~~~~~~~~~~~~~~*/
 
 /* Title slide */
-/* Add image and change bg color
-.title-slide {
+/*Add image and change bg color*/
+/*.title-slide {
   background-image: url(USydLogo-black.svg), url("title-image.jpg");
-  /* background-image: url(https://sydney.edu.au/etc/designs/corporate-commons/bower_components/corporate-frontend/dist/assets/img/USydLogo.svg); */
-  /*
+  background-image: url(https://sydney.edu.au/etc/designs/corporate-commons/bower_components/corporate-frontend/dist/assets/img/USydLogo.svg); 
   background-position: 10% 90%, 100% 50%;
   background-size: 160px, 50% 100%;
   background-color: #e64626;
-  /*padding-left: 100px;   delete this for 4:3 aspect ratio */
-/*
-}
-*/
+  padding-left: 100px;   delete this for 4:3 aspect ratio
+
+} */
+
  
 .title-slide {
-   background-image: url(../img/polar1.jpg);
-   background-size: cover;
+    background-color: #e64626;
+/* background-image: url(../img/polar1.jpg);
+   background-size: cover; */
 /* background-image: url(https://images.pexels.com/photos/1054289/pexels-photo-1054289.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260); */
   /*background-position: 10% 90%;
    background-size: 160px;
   background-color: #e64626;
   text-align:left;
-  vertical-align: top;*/
+  vertical-align: top;
   text-shadow: none;*/
   /*text-shadow: 0 0 5px #333;*/
   /*padding-left: 100px;   delete this for 4:3 aspect ratio */
@@ -382,7 +382,7 @@ slides > slide {
 
 /* H2 fonts */
 .title-slide h2 {
-  color: black !important; /* first of type is master brand red */
+  color: #ffffff !important;
   font-size: 35px;
   padding-left: 20px;
   padding-bottom: 10px;
