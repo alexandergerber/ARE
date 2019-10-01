@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+  <head>
+    <title>Advanced R for Econometricians</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Martin Arnold" />
+    <meta name="author" content="Alexander Gerber" />
+    <meta name="date" content="2019-10-01" />
+    <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
+    <link rel="stylesheet" href="..\assets\sydney-fonts.css" type="text/css" />
+    <link rel="stylesheet" href="..\assets\sydney.css" type="text/css" />
+    <link rel="stylesheet" href="..\assets\custom.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+
+
+
+
+class: title-slide center middle
+
+# Advanced R for Econometricians
+## Introduction
+
+---
+
+## Preliminaries
+.left-column[Contact Information:  ]
+
+.right-column[
+Alexander Gerber  
+Alexander.Gerber@vwl.uni-due.de
+    
+Martin Arnold  
+Martin Arnold@vwl.uni-due.de]
+
+&lt;br&gt;
+Slides, exercises and announcements will be provided on 
+.center[
+  https://moodle.uni-due.de/course/view.php?id=17174  
+]
+&lt;br&gt;
+The password for the course is **"Hadley"**.  
+&lt;br&gt;
+On Moodle you will find a link to [Datacamp](https://www.datacamp.com) which will give you free access to all their content. 
+
+---
+## Grading
+
+- Over the semester there will be three graded assignments.  
+
+- You will have to work on a final group project which focuses on one or more of the topics discussed in the course. 
+
+- The final grade is a weighted average of the grades for the group project (60%), its presentation (20%) and
+the assignments (20%).
+
+- You have to pass each part (assignments, project and presentation) separately to pass the course. 
+---
+## Outline
+.pull-left[
+1. Introduction 
+2. Prerequisites
+   - Rmarkdown
+   - Git and Github
+3. Data Visualisation with ggplot 
+3. Data Wrangling and Transformation
+   - dplyr
+   - data.table
+4. Advanced R Programming 
+  - Functional Programming
+  - Object Oriented Programming 
+]
+.pull-right[
+&lt;ol start = "6"&gt;
+&lt;li&gt;  Performance &lt;/li&gt; 
+&lt;ul&gt;
+  &lt;li&gt; Profiling and Benchmarking &lt;/li&gt; 
+  &lt;li&gt; Parallelisation &lt;/li&gt;
+  &lt;li&gt; Rcpp &lt;/li&gt;
+&lt;/ul&gt;
+&lt;li&gt; Web Scraping  &lt;/li&gt;
+&lt;li&gt; Shiny &lt;/li&gt;
+&lt;li&gt; Writing Packages &lt;/li&gt;
+&lt;li&gt;Text Mining  &lt;/li&gt;
+&lt;/ol&gt;
+]
+---
+
+class: top, left
+## About R
+
+- R is a language and environment for statistical computing and graphics.
+- R is highly extensible. A massive set of packages for statistical modelling, machine learning, visualisation, as well as importing and manipulating data. Researchers in statistics and machine learning will often publish an R package to accompany their articles.
+- R is free and open source. 
+- R provides tools for communicating your results. R packages make it easy to produce html or pdf reports, or create interactive websites.
+- R is designed to connect to high-performance programming languages like C, Fortran, and C++.
+
+- R also has some disadvantages: 
+  - It is not very fast.
+  - It has an inconsistent syntax.
+
+---
+class: top, left
+## Sources
+
+- [Advanced R](http://adv-r.had.co.nz/) by Hadley Wickham
+- [R for Data Science](https://r4ds.had.co.nz) by Hadley Wickham and Garrett Grolemund
+- The Art of R Programming by Norman Matloff
+- The [Use R!](https://www.springer.com/series/6991) Series by Springer
+- The [R Series](https://www.crcpress.com/go/the-r-series) by CRC Press
+
+
+
+
+---
+class: top, left
+## Packages
+
+- In R the fundamental unit of shareable code is the package.
+- The chances are that someone has already solved a problem that you’re working on, and you can benefit from their work by downloading their package.
+
+The main sources for packages are
+  - CRAN (Comprehensive R Archive Network) with as of now ca. 15.000 available packages
+  - GitHub (that is the place were packages are developed before getting published on CRAN) 
+  - Bioconductor
+
+---
+class: top, left
+## Installing Packages
+
+How to install packages from CRAN?
+
+- Use `install.packages("MASS")` to install the package `MASS` from CRAN.
+- Or using RStudio: Tools &amp;rarr; Install Packages &amp;rarr; `MASS`
+
+How to install packages from Github?
+
+- Install the package `devtools` from CRAN.
+- Use `devtools::install_github("tidymodels/broom")` to install the `broom` package from Github.
+
+- If you want to find out how a package works, search for
+.code70[
+  - a vignette by the package authors 
+    
+    ```r
+    library(broom)
+    vignette("broom")
+    ```
+  ]
+  - a blog post about the package, e.g. on [R Bloggers](https://www.r-bloggers.com)
+---
+class: top, left
+
+## Getting Help
+
+If you have specific questions about your code or an error message look on 
+  - [StackOverflow](https://stackoverflow.com/)  
+  - [RStudio Community](https://community.rstudio.com/) (if it is about RStudio or packages developed by RStudio)
+  - the [GitHub](https://github.com/) repository of the package maintainer
+
+The chances are high that somebody else has already asked the same questions and it has already been solved. 
+
+If you don't find an answer you can ask a question yourself. What sounds easy is harder then one would think. Most importantly you have to provide a [reproducible example](https://stackoverflow.com/questions/5963269/how-to-make-a-great-r-reproducible-example).
+
+---
+## Rstudio
+- RStudio is an integrated development environment (IDE) for R. 
+- It provides some convenient functionality compared to the IDE shipping with R.
+
+#### Rstudio Projects 
+
+- To work in a specific directory the base R way would be to use `setwd()`. This is problematic if you want to 
+  share your code or work from different machines on the same project. 
+- Use projects instead.
+
+Workflow:
+- Instead of openening a new R session and use `setwd()` you open the project. The working path is 
+automatically set to the folder where the `.Rproj` file lives in. 
+
+---
+####Shortcuts
+&lt;br&gt;
+
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; Shortcut &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Action &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Alt + Shift + k &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; list all shortcuts &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Cmd/Ctrl + Shift + F10 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; restart R &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Cmd/Ctrl + Shift + S &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; rerun current script &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; F1 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; help page &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Ctrl + l &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; clears the console &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+
+####Rstudio supports: 
+- package development
+- version control via git and svm 
+- creation and compilation of dynamic documents 
+- connections to external data bases 
+- ... 
+
+We will use some of this later on.  
+
+---
+class: top, left
+
+## R Basics
+
+- We start by recapitulating some Basics you should be familiar with when working with R. 
+- An in depth treatment of this material can be found in the first chapter of
+[Advanced R](https://adv-r.hadley.nz/vectors-chap.html#introduction) by Hadley Wickham. 
+
+
+---
+class: top, left
+
+## R Basics: Data Types and Data Structures
+
+We assume that you know about the basic data structures in R. 
+&lt;br&gt; 
+  
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt;  &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Homogeneous &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Heterogeneous &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 1d &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Atomic Vector &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; List &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 2d &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Matrix &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Data Frame &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; nd &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Array &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt;  &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;br&gt; 
+You should also be familiar with the basic data types (character, double, integer, logical).
+
+#### Quiz: 
+1. How is a list different from an atomic vector? 
+2. How is a matrix different from a data frame?
+3. How do you find out the type of an object?
+4. How can you check if an object is of type character?
+
+---
+class: top, left
+## R Basics: Subsetting
+
+You should know how to use the common subsetting operators  `[`, `[[` and `$`. 
+
+Have you ever encounterd `@`? 
+
+&lt;br&gt;
+
+#### Quiz
+
+1. What is the result of subsetting a vector with positive integers, negative integers, a logical vector, or a character vector?
+
+2. What is the difference between `[`, `[[`, and `$` when applied to a list?
+
+3. When should you use `drop = FALSE`?
+
+---
+## R Basics: Control Flows
+
+The basic control flows are conditionals (choices) and loops.
+
+#### Quiz
+
+1. What is the difference between `if` and `ifelse()`?
+2. What will be the value of `y` in the following code if `x` is `TRUE`? What if `x` is `FALSE`? What if `x` is `NA`?
+    
+    ```r
+    y &lt;- if (x) 3
+    ```
+3. What is returned by the following code? 
+    
+    ```r
+    switch("x", x = , y = 2, z = 3)
+    ```
+4. Name three kind of loops that can be implemented in R? How do they differ?
+
+???
+
+
+```r
+for(i in 1:3){
+  print(i)
+}
+
+i &lt;- 1
+while(i &lt; 4){
+  print(i)
+  i &lt;- i + 1
+}
+
+i &lt;- 1
+repeat{
+  print(i)
+  i &lt;- i + 1 
+  if(i &gt; 3) break
+  
+}
+```
+
+
+
+---
+class: top, left
+
+## R Basics: Functions
+
+- Write a function that takes a number `x` and returns the square of `x`.  
+
+#### Scoping
+- An important concept and also a source of trouble is scoping, the act of finding the value associated with a name. 
+- R uses lexical scoping:  it looks up the values of names based on how a function is defined, not how it is called.
+- Example for lexical scoping:
+    
+    ```r
+    f1 &lt;- function() x
+    x &lt;- "global"
+    f2 &lt;- function(){
+      x &lt;- "f2"
+      f1()
+    }
+    f2()
+    ```
+
+---
+## Scoping Rules
+
+R’s lexical scoping follows four primary rules:
+- Name masking
+- Functions versus variables
+- A fresh start
+- Dynamic lookup
+
+---
+## Scoping Rules: Name Masking
+
+- What happens here?
+    
+    ```r
+    x &lt;- 3
+    square_1 &lt;- function() x^2
+    square_1()
+    ```
+--
+- And here?
+    
+    ```r
+    x &lt;- 3
+    square_2 &lt;- function(){ 
+      x   &lt;- 2
+      foo &lt;- function() x^2
+      foo()
+    }
+    square_2()
+    ```
+--
+- Names defined inside a function mask names defined outside a function.
+
+---
+## Scoping Rules: Functions versus Variables
+
+- Let's make things more confusing. Can you predict the result?   
+    
+    ```r
+    x &lt;- 3
+    
+    square_2 &lt;- function(){ 
+      x   &lt;- 2
+      foo &lt;- function() x^2
+      foo()
+    }
+    
+    square_3 &lt;- function(x){
+      square_2 &lt;- 5
+      square_2()
+    }
+    
+    square_3()
+    ```
+--
+- When a function and a non-function share the same name, R ignores non-function objects in a function call.
+
+---
+## Scoping Rules: A Fresh Start
+
+What is the result of the first call to `square_4()`? What will happen the second time?
+
+```r
+square_4 &lt;- funcx &lt;- 2
+tion(){
+  (x &lt;- x^2)
+}
+
+square_4()
+square_4()
+```
+
+--
+- Every time a function is called a new ***environment*** is created to host its execution. 
+- A function has no way to tell what happened the last time it was run; each invocation is completely independent.
+
+---
+## Scoping Rules: Dynamic Lookup
+
+Predict the result of the two calls to `f1()`. Compare it to the main rule of lexical scoping. 
+
+
+```r
+x  &lt;- 1
+f1 &lt;- function() x
+f1()
+
+x &lt;- 2 
+f1()
+```
+
+--
+- R looks for values when the function is run, not when the function is created. 
+
+---
+## Lazy Evaluation
+
+What could cause an error here?
+
+```r
+lazy_function &lt;- function(x){
+  10
+}
+
+lazy_function()
+```
+--
+
+Why doesn't it cause an error?
+
+--
+
+- Function arguments are lazily evaluated; they’re only evaluated if accessed.
+
+
+```r
+lazy_function &lt;- function(x){
+  x
+}
+
+lazy_function()
+```
+
+
+
+
+---
+## Style Guide
+
+#### Object names
+
+- Variable and function names should be lowercase.
+- Use an underscore (_) to separate words within a name (as an alternative you can use camel case, but be consistent).
+- Variable names should be nouns.
+- Function names should be verbs.
+- Strive for names that are concise and meaningful (this is not easy!).
+- Where possible, avoid using names of existing functions and variables. 
+.pull-left[
+.code70[
+    
+    ```r
+    # Good
+    day_one
+    day_1
+    ```
+]]
+.pull-right[
+.code70[
+
+```r
+# Bad
+first_day_of_the_month
+DayOne
+dayone
+djm1
+T &lt;- FALSE
+c &lt;- 10
+mean &lt;- function(x) sum(x)
+```
+]
+]
+
+---
+#### Spacing
+- Place spaces around all infix operators (`=`, `+`, `-`, `&lt;-`, etc.) and `=` in a function call.
+- Always put a space after a comma, and never before.
+    
+    ```r
+    # Good
+    average &lt;- mean(feet / 12 + inches, na.rm = TRUE)
+    
+    # Bad
+    average&lt;-mean(feet/12+inches,na.rm=TRUE)
+    ```
+
+- An exception to this rule are  `:`, `::` and `:::`.
+    
+    ```r
+    # Good
+    x &lt;- 1:10
+    base::get
+    
+    # Bad
+    x &lt;- 1 : 10
+    base :: get
+    ```
+
+---
+#### Spacing
+- Extra spacing (i.e. more than one space in a row) is ok if it improves alignment of equal signs or assignments (`&lt;-`).
+    
+    ```r
+    list(
+      total = a + b + c, 
+      mean  = (a + b + c) / n
+    )
+    ```
+
+- Do not place spaces around code in parentheses or square brackets (unless there’s a comma, in which case see above).
+    
+    ```r
+    # Good
+    if (debug) do(x)
+    diamonds[5, ]
+    
+    # Bad
+    if ( debug ) do(x)  # No spaces around debug
+    x[1,]   # Needs a space after the comma
+    x[1 ,]  # Space goes after comma not before
+    ```
+
+---
+#### Spacing
+
+- An opening curly brace should never go on its own line and should always be followed by a new line. A closing curly brace should always go on its own line, unless it’s followed by else.
+
+.code70[
+    
+    ```r
+    # Good
+    if (y &lt; 0 &amp;&amp; debug) {
+      message("Y is negative")
+    }
+    
+    if (y == 0) {
+      log(x)
+    } else {
+      y ^ x
+    }
+    
+    # Bad
+    if (y &lt; 0 &amp;&amp; debug)
+    message("Y is negative")
+    
+    if (y == 0) {
+      log(x)
+    } 
+    else {
+      y ^ x
+    }
+    ```
+
+
+- It’s ok to leave very short statements on the same line:
+    
+    ```r
+    if (y &lt; 0 &amp;&amp; debug) message("Y is negative")
+    ```
+]
+
+---
+#### Spacing
+
+- Strive to limit your code to 80 characters per line. 
+- If you find yourself running out of room, this is a good indication that you should encapsulate some of the work in a separate function.
+
+#### Indentation
+- When indenting your code, use two spaces and never use tabs or mix tabs and spaces. 
+
+#### Assignment
+- Use `&lt;-`, not `=`, for assignment.
+    
+    ```r
+    # Good
+    x &lt;- 5
+    # Bad
+    x = 5
+    ```
+
+---
+#### Commenting guidelines
+- Comment your code. 
+- Each line of a comment should begin with the comment symbol and a single space: `#`. 
+- Comments should explain the why, not the what.
+- Use commented lines of `-` and `=` to break up your file into easily readable chunks.
+    
+    ```r
+    # Load data ---------------------------
+    
+    # Plot data ---------------------------
+    ```
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false,
+"ratio": "16:9"
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();</script>
+
+<script>
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
