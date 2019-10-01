@@ -616,7 +616,7 @@ DT::datatable(
 
 ---
 class: left, top
-## Problems
+## Exercise
 
 1. Create an R Markdown document that is compiled to an HTML document. 
    The document should consist of 2 sections 

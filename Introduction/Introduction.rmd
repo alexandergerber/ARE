@@ -1,11 +1,13 @@
 ---
-title: "Introduction"
+title: "Advanced R for Econometricians"
+subtitle: "Introduction"
 author: 
   - "Martin Arnold"
   - "Alexander Gerber"
 date: '`r Sys.Date()`'
 output:
   xaringan::moon_reader:
+    seal: false
     lib_dir: libs
     css: ["default", "../assets/sydney-fonts.css", "../assets/sydney.css", "../assets/custom.css"]
     nature:
@@ -13,13 +15,19 @@ output:
       highlightLines: true
       countIncrementalSlides: false
       ratio: "16:9"
-    #includes:
-     # after_body: ../xaringan_files/terminal_highlight.html
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 ```
+
+class: title-slide center middle
+
+# `r rmarkdown::metadata$title`
+## `r rmarkdown::metadata$subtitle`
+
+---
+
 ## Preliminaries
 .left-column[Contact Information:  ]
 
@@ -45,7 +53,7 @@ On Moodle you will find a link to [Datacamp](https://www.datacamp.com) which wil
 
 - Over the semester there will be three graded assignments.  
 
-- You will have to work on a final group project which focus on one or more of the topics discussed in the course. 
+- You will have to work on a final group project which focuses on one or more of the topics discussed in the course. 
 
 - The final grade is a weighted average of the grades for the group project (60%), its presentation (20%) and
 the assignments (20%).
@@ -59,7 +67,9 @@ the assignments (20%).
    - Rmarkdown
    - Git and Github
 3. Data Visualisation with ggplot 
-3. Data Wrangling  
+3. Data Wrangling and Transformation
+   - dplyr
+   - data.table
 4. Advanced R Programming 
   - Functional Programming
   - Object Oriented Programming 
@@ -193,6 +203,16 @@ We will use some of this later on.
 ---
 class: top, left
 
+## R Basics
+
+- We start by recapitulating some Basics you should be familiar with when working with R. 
+- An in depth treatment of this material can be found in the first chapter of
+[Advanced R](https://adv-r.hadley.nz/vectors-chap.html#introduction) by Hadley Wickham. 
+
+
+---
+class: top, left
+
 ## R Basics: Data Types and Data Structures
 
 We assume that you know about the basic data structures in R. 
@@ -206,9 +226,6 @@ col.names = c("", "Homogeneous", "Heterogeneous"), format = "html")
 <br> 
 You should also be familiar with the basic data types (character, double, integer, logical).
 
-An in depth treatment of this material can be found in 
-[Advanced R](https://adv-r.hadley.nz/vectors-chap.html#introduction-2) by Hadley Wickham. 
-
 #### Quiz: 
 1. How is a list different from an atomic vector? 
 2. How is a matrix different from a data frame?
@@ -219,7 +236,7 @@ An in depth treatment of this material can be found in
 class: top, left
 ## R Basics: Subsetting
 
-You should be familiar with the common subsetting operators  `[`, `[[` and `$`. 
+You should know how to use the common subsetting operators  `[`, `[[` and `$`. 
 
 Have you ever encounterd `@`? 
 
@@ -346,6 +363,8 @@ square_3 <- function(x){
   square_2 <- 5
   square_2()
 }
+
+square_3()
     ```
 --
 - When a function and a non-function share the same name, R ignores non-function objects in a function call.
@@ -403,6 +422,17 @@ Why doesn't it cause an error?
 --
 
 - Function arguments are lazily evaluated; they’re only evaluated if accessed.
+
+```{r, eval = FALSE}
+lazy_function <- function(x){
+  x
+}
+
+lazy_function()
+```
+
+
+
 
 ---
 ## Style Guide
