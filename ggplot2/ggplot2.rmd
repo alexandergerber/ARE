@@ -60,7 +60,7 @@ Some interesting links:
 
 - [R for Data Science](http://r4ds.had.co.nz/) 
 - [ggplot2: Elegant graphics for data Analysis](http://moderngraphics11.pbworks.com/f/ggplot2-Book09hWickham.pdf)
-- [Cookbook](http://www.cookbook-r.com/Graphs/)
+- [R Graphics Cookbook](http://www.cookbook-r.com/Graphs/)
 - [R Graph Gallery](https://www.r-graph-gallery.com/)
 - [DataCamp](https://www.datacamp.com/courses/data-visualization-with-ggplot2-1)
 
@@ -72,7 +72,7 @@ The grammar consists of
 - data
 - aesthetic mappings (e.g. mapping of data to x and y coordinates, size, color, shape, ...)
 - geometric objects (e.g. points, lines, bars, ...)
-- scales (controls mapping from data to aesthetics  e.g. which colors to use )
+- scales (controls mapping from data to aesthetics  e.g. which colors should be used)
 - facets (splitting data to create plots for subgroups)
 - statistical transformation (summarize data before plotting)
 - coordinate systems (e.g. Cartesian, semi-log, polar, ...)
@@ -93,14 +93,14 @@ ggplot(data = diamonds) +
 
 `ggplot()`
 
-- creates a coordinate system that you can add layers to
-- takes as arguments the default for all added layers
+- Creates a coordinate system that you can add layers to.
+- Everything you provide as an argument will be the default for all added layers.
 
 `geom_point()`
 
-- adds a layer of points
-- each geom function takes a mapping argument, which paired with `aes()`
-defines how variables in your dataset are mapped to visual properties
+- Adds a layer of points.
+- Each geom function takes a mapping argument, which paired with `aes()`
+defines how variables in your data are mapped to visual properties.
 
 ---
 class: left, top
@@ -236,7 +236,7 @@ class: left, top
 ---
 class: left, top
 ## Bar Plot
-`geom_bar()` counts the number of observations with within each group
+`geom_bar()` counts the number of observations within each group and produces a bar plot. 
 ```{r, echo = TRUE, eval = TRUE, fig.width=10, fig.height=5}
 ggplot(data = diamonds) + 
   geom_bar(mapping = aes(x = cut)) # x should be discreate
@@ -333,27 +333,25 @@ ggplot(data = diamonds, mapping = aes(carat, price))  +
 
 ---
 class: left, top
-## Position adjustments
-- each geometric object has a parameter responsible for position adjustment
-- in the following example, we divided  the bar plot into groups defined by the variable clarity
-- we can stack the bars of each group on top of each other
-```{r, echo = TRUE, eval = FALSE, fig.width=10}
+## Position Adjustments
+- Each geometric object has a parameter responsible for position adjustment.
+- In the following example, we divided  the bar plot into groups defined by the variable `clarity`.
+    ```{r, echo = TRUE, eval = FALSE, fig.width=10}
 ggplot(data = diamonds) + 
   geom_bar(mapping = aes(x = cut, fill = clarity), position = "stack") # the default
-```
-- we can put the bars for each group next to each other 
-```{r, echo = TRUE, eval = FALSE, fig.width=10}
+    ```
+- Instead of stacking the bars, we can put the bars for each group next to each other with `dodge`. 
+    ```{r, echo = TRUE, eval = FALSE, fig.width=10}
   geom_bar(., position = "dodge") 
-```
-- we can compare relative proportions at each x by stacking the bars and  standardising each bar to have the same height
-
-```{r, echo = TRUE, eval = FALSE, fig.width=10}
-geom_bar(., position = "dodge") 
-```
+    ```
+- We can compare relative proportions at each x by stacking the bars and  standardising each bar to have the same height with `fill`.
+    ```{r, echo = TRUE, eval = FALSE, fig.width=10}
+geom_bar(., position = "fill") 
+    ```
 
 ---
 class: left, top
-## Stacked bar plot 
+## Stacked Bar Plot 
 ```{r, echo = FALSE, eval = TRUE, fig.width=10}
 ggplot(data = diamonds) + 
   geom_bar(mapping = aes(x = cut, fill = clarity), position = "stack") # the default
@@ -361,7 +359,7 @@ ggplot(data = diamonds) +
 
 ---
 class: left, top
-## Dodged bar plot 
+## Dodged Bar Plot 
 ```{r, echo = FALSE, eval = TRUE, fig.width=10}
 ggplot(data = diamonds) + 
   geom_bar(mapping = aes(x = cut, fill = clarity), position = "dodge") 
@@ -369,7 +367,7 @@ ggplot(data = diamonds) +
 
 ---
 class: left, top
-## Filled bar plot
+## Filled Bar Plot
 ```{r, echo = FALSE, eval = TRUE, fig.width=10}
 ggplot(data = diamonds) + 
   geom_bar(mapping = aes(x = cut, fill = clarity), position = "fill") 

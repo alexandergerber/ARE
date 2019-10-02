@@ -1,12 +1,13 @@
 ---
-title: "Data Wrangling with dplyr and tidyr "
+title: "Advanced R for Econometricians"
+subtitle: "Data Wrangling with `dplyr` and `tidyr`"
 author: "Alexander Gerber"
 date: "5 November 2018"
 output:
   xaringan::moon_reader:
     css: ["default", "../assets/sydney-fonts.css", "../assets/sydney.css"]
     self_contained: false # if true, fonts will be stored locally
-    seal: true # show a title slide with YAML information
+    seal: false # show a title slide with YAML information
     includes:
       in_header: "../assets/mathjax-equation-numbers.html"
     nature:
@@ -22,9 +23,14 @@ output:
 options(htmltools.dir.version = FALSE)
 knitr::opts_chunk$set(echo = FALSE, warning=FALSE, message=FALSE)
 ```
+class: title-slide center middle
 
+# `r rmarkdown::metadata$title`
+## `r rmarkdown::metadata$subtitle`
+
+---
 class: top, left
-### Tibble
+## Tibble
 - Tibbles are the main data structure used in the tidyverse and can be viewed as a modern version of the data frame. 
 
 - `tibble()` creates a new tibble from scratch.
@@ -39,30 +45,30 @@ class: top, left
     a_tibble     <- as_tibble(a_data.frame)
     ```
 
-- everything that works for data frames also works with tibbles because
+- Everything that works for data frames also works with tibbles because
     ```{r, echo = TRUE, eval = TRUE}
     class(a_tibble)
     ```
 
-- Why should we use tibbles instead of data frames? See the following comparison.  
+
 
 ---
 class: top, left
 
-### Tibble vs. data.frame
-
-```{r, echo = TRUE}
+## Tibble vs. data.frame
+- Why should we use tibbles instead of data frames? See the following comparison.  
+    ```{r, echo = TRUE}
 data(mtcars) 
 mtcars_tibble <- as_tibble(mtcars)
-```
+    ```
 
-- Different print method
+- different print method
     ```{r, echo = TRUE, eval = FALSE}
     print(mtcars)
     print(mtcars_tibble)
     ```
 
-- More consistent subsetting behaviour
+- more consistent subsetting behaviour
     ```{r, echo = TRUE, eval = FALSE}
 mtcars[ ,1:2] # Return a data.frame
 mtcars[ ,1]   # Returns a vector 
@@ -71,14 +77,14 @@ mtcars_tibble[ ,1]   # Returns a tibble
     ```
 
 ---
-### Tibble vs. data.frame
-- Lazy and sequential evaluation 
+## Tibble vs. data.frame
+- lazy and sequential evaluation 
     ```{r, echo = TRUE, eval = FALSE}
 data.frame(x = 1:3, y = x^2) # not working
 tibble(x = 1:3, y = x^2)
     ```
 
-- Does not change input types
+- does not change input types
     ```{r, echo = TRUE, results='hold'}
 text <- letters[1:3]
 class(text)
@@ -92,7 +98,7 @@ class(tib$text)
 
 ---
 class: top, left
-### dplyr 
+## dplyr 
 
 The `dplyr` package is the most important package of the `tidyverse` when it comes to data manipulation and transformation. 
 
@@ -103,9 +109,7 @@ The core characteristics of the package:
 - consistent syntax. 
 
 You can compare the functionality to that of a  relational database which provides methods to work with
- 
-- single tables
-- multiple tables. 
+single tables and multiple tables. 
 
 
 
@@ -114,7 +118,7 @@ You can compare the functionality to that of a  relational database which provid
 
 ---
 class: top, left
-### Single Table Functions
+## Single Table Functions
 
 First, we look at functions that work on a single table. 
  
@@ -134,7 +138,7 @@ select(mtcars_tibble, cyl, hp)
 
 ---
 class: top, left
-### Single Table Functions
+## Single Table Functions
 
 - `arrange()` to reorder rows.
     ```{r, echo = TRUE, eval = FALSE}
@@ -155,7 +159,7 @@ arrange(mtcars_tibble, desc(cyl))
 
 ---
 class: top, left
-### Single Table Functions
+## Single Table Functions
 - `sample_n()` and `sample_frac()` to take random samples.
     ```{r, echo = TRUE, eval = FALSE}
     sample_n(mtcars_tibble, 10)
@@ -179,7 +183,7 @@ class: top, left
 ---
 class: top, left
 
-### Filter 
+## Filter 
 
 The function `filter()` selects rows based on their values. 
 
@@ -206,7 +210,7 @@ filter(mtcars_tibble, between(hp, 90, 110)
     ```
 
 ---
-### Select
+## Select
 
 The function `select()` selects columns based on their name. 
 
@@ -232,7 +236,7 @@ The function `select()` selects columns based on their name.
 ---
 class: top, left
 
-### Helper Functions for `select()`
+## Helper Functions for `select()`
 
 - Select columns whose name contains a character string.
     ```{r, echo=TRUE, eval = FALSE}
@@ -262,7 +266,7 @@ select(iris, Sepal.Width:Petal.Width)
 
 ---
 class: top, left
-### Helper Functions for `select()`
+## Helper Functions for `select()`
 - Select columns whose names are in a group of names.
     ```{r, echo=TRUE, eval = FALSE}
 select(iris, one_of(c("Species", "Genus")))
@@ -289,7 +293,7 @@ select(iris, everything())
     ```
 
 ---
-### Mutate
+## Mutate
 
 The function `mutate()` adds new columns or replaces old columns based on existing columns. 
 ```{r, echo=TRUE, eval = FALSE}
@@ -314,7 +318,7 @@ mutate(mtcars_tibble,
     ```
 
 ---
-### Summarise
+## Summarise
 
 `summarise()` can be used to collapse columns to a single row used with e.g.: 
 - base R functions such as `mean()`, `sd()`, `max()`
@@ -337,7 +341,7 @@ my_variance <- function(x) 1/(n()-1) * sum((x - mean(x))^2)
 summarise(by_cyl, my_variance(mpg))
     ```
 ---
-### Summarise
+## Summarise
 
 - You cannot use `summarise()` with functions that return more than one value per group. 
     ```{r, eval = FALSE, echo = TRUE}
@@ -354,7 +358,7 @@ summarise(by_cyl, two_input_vaules(hp, trim = 0.1)) # fixed input
 
 ---
 class: top, left
-### Exercises
+## Exercises
 
 1. Load the `nycflights13::flights` data set. Does it come formated as a tibble? 
 2. Find all flights that 
@@ -379,7 +383,7 @@ filter(flights, day == 1)
 
 ---
 class: top, left
-### Grouping
+## Grouping
 
 To exploit the full potential of `summarise()` we need to pair it with `group_by()`. 
 
@@ -392,7 +396,7 @@ Use `ungroup()` remove the grouping, when you want to work on the whole data set
 
 ---
 class: top, left
-### Grouping
+## Grouping
 
 It is also possible to use `group_by()` together with a lot of other single table operations.
 
@@ -417,7 +421,7 @@ arrange(by_cyl, disp)
 ```
 ---
 class: top, left
-### The Pipe
+## The Pipe
 
 Usually, we combine multiple operations, e.g. first we filter, then we mutate, group and finally summarise. 
 To do this we could save an intermediate result after each step like this:
@@ -434,7 +438,7 @@ summarized <- summarise(grouped, count = n(),
 This code has the disadvantage that we need to save intermediate results that we do not care about. 
 ---
 class: top, left
-### The Pipe
+## The Pipe
 
 We could nest all those functions to get rid of the intermediate result.
 
@@ -448,7 +452,7 @@ summarise(group_by(mutate(filter(mtcars_tibble, cyl <= 8), gpm = 1/mpg)),
 However, readability gets worse and debugging will become much harder. 
 ---
 class: top, left
-### The Pipe
+## The Pipe
 
 That is where the pipe operator `%>%` from the `magrittr` comes in handy.
 The value on the left side of the operator becomes the input to the function on the right side. 
@@ -492,7 +496,7 @@ points(table(crime$DISTRICT)/sum(table(crime$DISTRICT)), col = alpha("red", 0.4)
 
 ---
 class: top, left
-### Scoped Functions 
+## Scoped Functions 
 
 Often operations on all or several columns at once should be done. In this case, the standard 
 functions are pedestrian. Most helpful are the scoped versions of  `summarise()` and `mutate()`.
@@ -516,7 +520,7 @@ iris %>% summarise_at(c("Sepal.Length", "Sepal.Width"), mean)
 
 ---
 class: top, left
-### Advanced Subjects 
+## Advanced Subjects 
 
 If `summarise()` is to limited, because it can only handle functions that have a single 
 return value one can use 
@@ -545,7 +549,7 @@ mtcars %>%
 ---
 class: top, left
 
-### Exercises
+## Exercises
 
 Use dplyr on the Boston crime data to:
 
@@ -559,7 +563,7 @@ shooting was involved for each district. Now take a random sample of size 10.000
 
 ---
 class: top, left
-### Functions for 2 Tables
+## Functions for 2 Tables
 
 ```{r, echo = TRUE, results='markup'}
 band_members   
@@ -567,7 +571,7 @@ band_instruments
 ```
 ---
 class: top, left
-### Left Join
+## Left Join
 
 A left join keeps all observations of the left table
 ```{r, echo = TRUE, results='markup'}
@@ -575,7 +579,7 @@ band_members %>% left_join(band_instruments, by = "name")
 ```
 ---
 class: top, left
-### Inner Join
+## Inner Join
 
 An inner join keeps only observations if there are matches in both tables
 ```{r, echo = TRUE, results='markup'}
@@ -583,7 +587,7 @@ band_members %>% inner_join(band_instruments, by = "name")
 ```
 ---
 class: top, left
-### Full Join
+## Full Join
 
 A full (outer) join keeps all observations
 ```{r, echo = TRUE, results='markup'}
@@ -591,7 +595,7 @@ band_members %>% inner_join(band_instruments, by = "name")
 ```
 ---
 class: top, left
-### Semi-Join
+## Semi-Join
 
 A semi-join keeps all observations of the left table where there are matching values in the right table.
 It keeps only tables from the left. 
@@ -600,7 +604,7 @@ band_members %>% semi_join(band_instruments, by = "name")
 ```
 ---
 class: top, left
-### Anti Join
+## Anti Join
 
 ```{r, echo = TRUE, results='markup'}
 band_members %>% anti_join(band_instruments, by = "name")
@@ -608,7 +612,7 @@ band_members %>% anti_join(band_instruments, by = "name")
 
 ---
 class: top, left
-### Reshaping Data with tidy R
+## Reshaping Data with tidy R
 
 The goal of tidyr is to help you create tidy data. Tidy data is data where:
 
@@ -625,7 +629,7 @@ We will talk about
 
 ---
 class: top, left
-### Tidy Data
+## Tidy Data
 
 ```{r, echo = TRUE}
 tidyr::table1
@@ -635,7 +639,7 @@ Each observation is in one row and each variable is one column.
 
 ---
 class: top, left
-### Untidy data
+## Untidy data
 
 ```{r, echo = TRUE}
 tidyr::table2
@@ -646,7 +650,7 @@ Observations are scattered across multiple rows
 
 ---
 class: top, left
-### Spreading
+## Spreading
 
 The function `tidyr::spread()` takes as arguments 
 
@@ -659,7 +663,7 @@ table2 %>%
 ```
 
 ---
-### Untidy Data
+## Untidy Data
 
 ```{r, echo = TRUE}
 tidyr::table4b
@@ -668,7 +672,7 @@ tidyr::table4b
 - Columns do not cointain variables and column names are values. 
 
 ---
-### Gathering
+## Gathering
 
 The function `gather()` takes as arguments
 
@@ -682,7 +686,7 @@ table4a %>%
 ```
 
 ---
-### Untidy Data
+## Untidy Data
 
 ```{r, echo = TRUE}
 tidyr::table3 
@@ -691,7 +695,7 @@ tidyr::table3
 - One column contains two variables. 
 
 ---
-### Separating 
+## Separating 
 
 The function `sparate()` can split one column into multiple columns. 
 As input it takes: 
@@ -706,7 +710,7 @@ table3 %>%
 ```
 
 ---
-### Untidy Data
+## Untidy Data
 
 ```{r, echo = TRUE}
 tidyr::table5 
@@ -715,7 +719,7 @@ tidyr::table5
 - One variable is spread over multiple columns.  
 
 ---
-### Unite
+## Unite
 
 The function `unite()` pastes multiple columns together. 
 As input it takes: 
@@ -729,7 +733,7 @@ table5 %>%
 ```
 
 ---
-### Exercises
+## Exercises
 1. Compute the rate for `table2`, and `table4a` + `table4b`.
 2. Recreate the plot given below using `table2` instead of `table1`. 
     ```{r, echo = TRUE, eval = FALSE}
@@ -740,7 +744,7 @@ ggplot(table1, aes(year, cases)) +
     ```
 
 ---
-### Case Study
+## Case Study
 Prepare the trade data set which contains multiple tables for analysis. 
 Use the techniques you learnt so far to get some insight into the trading relationship between the USA and Germany. 
 
