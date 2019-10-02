@@ -1,12 +1,13 @@
 ---
-title: "Data Visualization with ggplot2"
+title: "Advanced R for Econometricians"
+subtitle: "Data Visualization with ggplot2"
 author: "Alexander Gerber"
 date: "5 November 2018"
 output:
   xaringan::moon_reader:
     css: ["default", "../assets/sydney-fonts.css", "../assets/sydney.css"]
     self_contained: false # if true, fonts will be stored locally
-    seal: true # show a title slide with YAML information
+    seal: false # show a title slide with YAML information
     includes:
       in_header: "../assets/mathjax-equation-numbers.html"
     nature:
@@ -22,25 +23,12 @@ output:
 knitr::opts_chunk$set(echo = FALSE, warning=FALSE, message=FALSE)
 options(htmltools.dir.version = FALSE)
 ```
+class: title-slide center middle
 
-```{r xaringan-themer, include=FALSE}
-# # solarized_dark(
-# #   code_font_family = "Fira Code",
-# #   code_font_url    = "https://cdn.rawgit.com/tonsky/FiraCode/1.204/distr/fira_code.css"
-# # )
-# library(xaringanthemer)
-# 
-# mono_accent(
-#     base_color           = "#09017F",
-#     header_font_google   = google_font("Roboto", "700"),
-#     text_font_google     = google_font("Roboto Condensed"),
-#     code_highlight_color = "#D2B6E8",
-#     code_font_family     = "Fira Code",
-#     code_font_url        = "https://cdn.rawgit.com/tonsky/FiraCode/1.204/distr/fira_code.css"
-#     )
+# `r rmarkdown::metadata$title`
+## `r rmarkdown::metadata$subtitle`
 
-```
-
+---
 class: left, top
 ## Data Visualization 
 
@@ -213,20 +201,18 @@ ggplot(diamonds, aes(x = carat, y = price, color = color, shape =  cut)) +
 class: left, top
 ## Statitic Transformations and Aesthetics
 - If this is not desired simply move color and shape as additional aesthetics to `geom_point()`
-```{r, echo = TRUE, eval = FALSE}
+    ```{r, echo = TRUE, eval = FALSE}
 ggplot(diamonds, aes(x = carat, y = price)) + 
   geom_point(aes(color = color, shape = cut)) +
   geom_smooth()
-```
-
-- in some circumstances, it might also be convenient to leave all aesthetics in `ggplot()` (e.g. if there are many layers) and overwrite the created groups by an arbitrary constant value
-
-```{r, echo = TRUE, eval = FALSE}
+    ```
+- In some circumstances it might also be convenient to leave all aesthetics in `ggplot()` (e.g. if there are many layers) and overwrite the created groups by an arbitrary constant value.
+    ```{r, echo = TRUE, eval = FALSE}
 ggplot(diamonds, aes(x = carat, y = price, 
                      color = color, shape = cut)) + 
   geom_point() +  
   geom_smooth(aes(group = 1))
-```
+    ```
 
 ---
 class: left, top

@@ -1,5 +1,6 @@
 ---
-title: "Git"
+title: "Advanced R for Econometricians"
+subtitle: "Version Control with Git"
 author: "Alexander Gerber"
 date: "5 November 2018"
 output:
@@ -24,13 +25,11 @@ options(crayon.enabled = TRUE)
 #.remark-code, .hljs, terminal { background: #272822;}
 ```
 
-class: center, middle
 
-<font size="7">Git and Github</font>
+class: title-slide center middle
 
-![](images/git_logo.svg)
-
-<font size="6">Alexander Gerber & Martin Arnold</font>
+# `r rmarkdown::metadata$title`
+## `r rmarkdown::metadata$subtitle`
 
 ---
 ## What is Git?
@@ -73,22 +72,19 @@ On the Git hompage ([Git documentation](https://git-scm.com/doc)) you find
 
 Before we can use Git we need to install it:
 - look for current releases on https://git-scm.com/downloads. <br>  
-
 --
-To check if Git was successfully installed open the terminal and run the command `git --version`.
- 
-```terminal
+- To check if Git was successfully installed open the terminal and run the command `git --version`.
+    ```terminal
 $ git --version
 git version 2.11.0.windows.1
-```
+    ```
 --
-After we made sure git is working set your user name and email address.
-
-```terminal
+- After we made sure git is working set your user name and email address.
+    ```terminal
 git config --global user.name "John Doe"
 git config --global user.email johndoe@example.com
-```
-You need to do this once on each computer. 
+    ```
+  You need to do this once on each computer. 
 
 ---
 ## Setup a Git Repository 
@@ -100,7 +96,7 @@ There are two ways to get a Git repository:
 
 We start by creating a Git repository from scratch:
 
-- Create a new directory e.g. on windows `C:\myProject`. 
+- Create a new directory e.g. on Windows `C:\myProject`. 
 - Use your terminal to navigate to that directory.
 ```terminal
 c:
@@ -150,13 +146,13 @@ nothing added to commit but untracked files present (use "git add" to track)
 ```
  
 
-The nice thing about `git status` is that it also tells us what to do next to 
+The nice thing about `git status` is that it tells you what to do next to 
 commit changes to the Git repository. 
 
 ---
 ## `git add`
 
-As `git status` tells us we now need to `add` the files that we want to commit. 
+The first step to commit changes to the repository is to  use `git add <files_to_add>`. 
 
 ```terminal
 git add HelloGit.txt
@@ -191,23 +187,20 @@ git config --global core.editor notepad
 ---
 ## Commit Message
 
-The first line of what you type in the editor should have less than 50 characters. It is used as the title of the commit.
+- The first line of what you type in the editor should have less than 50 characters. It is used as the title of the commit.
 
-After a blank line you can give a more thorough description of what you have done. 
+- After a blank line you can give a more thorough description of what you have done. 
 
-If you don't want to give a long description than you can also use 
-
-```terminal
+- If you don't want to give a long description than you can also use 
+    ```terminal
 git commit - m "A short commit message"
-```
+    ```
+    to commit the files in the staging area without opening an editor.  
 
-to commit the files in the staging area without open an editor.  
-
-For the first commit in our example we could do something like 
-
-```terminal
+- For the first commit in our example we could do something like 
+    ```terminal
 git commit - m "initial commit"
-```
+    ```
 ---
 ## The lifecycle of the status of your files
 <br>
@@ -224,12 +217,13 @@ Source: [Pro Git](https://git-scm.com/book/en/v2/Git-Basics-Recording-Changes-to
 
 1. Change the `HelloGit.txt` by replacing `Hello World!` with `Hello Git!`
 2. Add the changed file to the staging area. 
-3. Commit the file. 
+3. Commit your changes to the repository. 
 
 ---
 ## `git log`
 
-The command `git log` returns the commit history of your project. We see by whom and when a commit was made together with a short commit message. Furthermore, each commit has a SHA value which can be used to address this commit. 
+- The command `git log` returns the commit history of your project. We see by whom and when a commit was made together with a short commit message. 
+- Each commit has a SHA value which can be used to address this commit. 
 
 ```terminal
 C:\MyProject>git log
@@ -251,8 +245,8 @@ Learn more about `git log` [here](https://git-scm.com/book/en/v2/Git-Basics-View
 ---
 ## `git diff`
 
-With `git diff` we can compare files before and after a commit. If we want to 
-know what exactly changed with our last commit we compare it to our first commit:  
+- With `git diff` we can compare files before and after a commit. If we want to 
+know what exactly changed in our last commit we compare it to our first commit:
 
 ```terminal
 C:\MyProject>git diff 2f17..dfc8
@@ -265,8 +259,7 @@ index 4f6866b..71e6eca 100644
 -Hello World!
 +Hello Git!
 ```
-
-Note that we don't need the full SHA. Usually it is enough to provide the first 4 signs. If it would happen that 2 or more SHA values started with the same 4 signs then git would tell us to provide more signs until the result gets unambiguous.  
+- Note that we don't need the full SHA. Usually it is enough to provide the first 4 signs. If it would happen that 2 or more SHA values started with the same 4 signs then git would tell us to provide more signs until the result gets unambiguous.  
 
 ---
 ## `git diff`
@@ -281,20 +274,27 @@ you see all unstaged (everything that is not added yet) changes since the last c
 ---
 ## `git rm`
 
-Use `git rm` to remove files from git. The command does 2 things: 
-- deletes a file from your working directory
-- removes the file from your tracked files. 
+- Use `git rm` to remove files from git. The command does 2 things: 
+    - deletes a file from your working directory
+    - removes the file from your tracked files. 
 
-After using `git rm` you have to commit the removal doing a standard commit. 
+- After using `git rm` you have to commit the removal doing a standard commit. 
 
-```terminal
+    ```terminal
 git rm HelloGit.txt
 git commit -m "remove HelloGit.txt"
+    ```
+- If you only want to remove a file from the tracked files but keep it in your working directory run 
+
+```terminal
+git rm --cached HelloGit.txt
 ```
+
+
 ---
 ## `git checkout`
 
-Consider the following commit history: 
+- Consider the following commit history: 
 
 ```terminal 
 C:\MyProject>git log --pretty=oneline
@@ -306,29 +306,29 @@ c3ed28cbdf6f7419242ad0747806d309954211f9 important change
 27d048c3bebda441db44b9506080b4784dcc728b initial commit
 ```
 
-Lets say you regret deleting `HelloGit.txt` and you want it back. 
+- Lets say you regret deleting `HelloGit.txt` and you want it back. 
 With the command `git checkout <SHA><path>` files can be brought back to their state of the specified commit. 
 
-```terminal
+    ```terminal
 git checkout 27d048 newFile.txt
-```
+    ```
 
 ---
 ## `git reset`
 
-If you want the whole project back at the state of a past commit you can do
+- If you want the whole project back at the state of a past commit you can do
 
 ```terminal
 git reset --hard 27d048 
 ```
-However, all changes after that commit will be discarded. 
+- However, all changes after that commit will be discarded. 
 
-If you want to keep changes in the directory of your computer use 
+- If you want to keep changes in the directory of your computer use 
 
 ```terminal
 git reset 27d048 
 ```
-After running this you can decide which changes after commit `27d048` you want to keep or discard since they 
+- After running this you can decide which changes after commit `27d048` you want to keep or discard since they 
 are now all in the modified files stage. 
 
 ---
@@ -343,10 +343,10 @@ are now all in the modified files stage.
 ---
 ## Remote Repository
 
-Until now our repository only lives on our loval machine. If you want 
+- Until now our repository only lives on our loval machine. If you want 
 to collaborate with others you want too use a remote repository which everybody has access to. 
 
-[Github](https://github.com) provides a platform where you can host your remote repository for free. 
+- [Github](https://github.com) provides a platform where you can host your remote repository for free. 
 
 Setup a remote repository: 
 
@@ -359,8 +359,8 @@ knitr::include_graphics(here::here("img/git4.PNG"))
 
 ---
 ## Remote Repository
-3. Give your repository a name and click Create repository
-4. Copy and paste the lines below ***…or push an existing repository from the command line*** in the terminal of your local project to connect it with the repository on Github. For me it is 
+3. Give your repository a name and click `Create repository`
+4. Copy and paste the lines below ***"…or push an existing repository from the command line"*** in the terminal of your local project to connect it with the repository on Github. For me it is 
 ```terminal
 git remote add origin https://github.com/alexandergerber/test.git
 git push -u origin master
@@ -406,10 +406,11 @@ Now both can work on the same project.
 ---
 ## `git fetch` and `git merge`
 
-If more than one person works on a project it will happen that you are locally behind the remote repository. 
-To update your local repository to the newest status you 
-1. Download everything that happened since you last updated with `git fetch`. 
-2. Merge the new changes to your repository with `git merge`. 
+- If more than one person works on a project it will happen that you are locally behind the remote repository. 
+
+- To update your local repository to the newest status: 
+    1. Download everything that happened since you last synchronized with the remote repository using `git fetch`. 
+    2. Merge the new changes to your repository with `git merge`. 
 
 This should run smoothly if you didn't work on the project in the meantime. 
 
@@ -422,15 +423,13 @@ This should run smoothly if you didn't work on the project in the meantime.
 ---
 ## Solving conflicts
 
-If both of you changed the same file (or more specifically the same part of a file), merging changes results in a confilct. 
-
-The original `HelloGit.txt` file looked like this
+- The original `HelloGit.txt` file looked like this
 
 ```terminal
 Hello Git
 How are you?
 ```
-Two people working on the project didn't like this and changed it independently from each other. 
+- Two people working on the project didn't like this and changed it independently from each other. 
 
 Change of Person A
 
@@ -449,13 +448,13 @@ How are you? I hope you don't run into too many conflicts.
 ---
 ## Solving conflicts
 
-Person B pushed his changes first to the remote server. There was no problem because she worked with 
+- Person B pushed her changes first to the remote server. There was no problem because she worked with 
 the most recent status. 
 
-However, Person A is now behind by one commit. If she tries to push a new commit, Git will tell her that 
+- However, Person A is now behind by one commit. If she tries to push a new commit, Git will tell her that 
 she first needs to `git pull` which is short for `git fetch` and `git merge`.  
 
-If Person A does this git will try to solve the confilict automatically. 
+- If Person A does this git will try to solve the confilict automatically. 
 However, in our case git won't be able to do so because the exactly same parts of a file were changed and you don't
 want a machine to decide what to keep and what to discard. 
 
@@ -468,8 +467,7 @@ Automatic merge failed; fix conflicts and then commit the result.
 ---
 ## Solving conflicts
 
-Instead of solving the conflict, Git will parepare the file in a way what you can easily solve the conflict yourself. 
-Look for something starting with`<<<<<<< HEAD`. 
+- Instead of solving the conflict, Git will parepare the file in a way that makes it easy for you to solve the conflict yourself. Look for everything starting with`<<<<<<< HEAD` and ending with `>>>>>>> refs/...`. 
 
 ```terminal
 <<<<<<< HEAD
@@ -481,22 +479,40 @@ Hello Git!
 How are you? I hope you don't run into too many conflicts. 
 >>>>>>> refs/remotes/origin/master
 ```
-Decide what to keep and remove everything Git included as helper for you to solve the conflict. 
-Then the final results can be commited and pushed to the remote repository.  
+- Decide what to keep and then remove everything Git included as helper for you to solve the conflict. 
+- The final results can be commited and pushed to the remote repository.  
 
 ---
 ## Exercise
-1. Create in your group merge conficts and try to solve them.  
+1. Produce a merge confilict in your project. Then solve it.   
+
+
+---
+## .gitignore
+
+- Not everything in our working directory should be tracked by Git. 
+- As a rule of thumb one could say we only want to track source files (e.g. only the `.rmd` but not the generated `.html` file)
+- Git ignores all files which are specified in the file `.gitignore`.
+- Since it would be cumbersome to specify each file that shouldn't be tracked seperatly Git allows the usage of patterns.
+- Learn more about it in the (gitignore documentation)[https://git-scm.com/docs/gitignore].
+
+#### Example `.gitignore` file
+```terminal
+ .Rhistory
+ *.html
+ Packages/example/
+```
+
 
 
 ---
 ## Branching
 
-There is a pretty important concept which we didn't cover at all named **Branching**.
+- There is a pretty important concept which we didn't cover at all named **Branching**.
 
-It allows you to diverge form the linear development of your project to having multiple parallel versions at the same time. 
+- It allows you to diverge form the linear development of your project to having multiple parallel versions at the same time. 
 
-If you want to dig deeper into Git this would be one of the key features you should learn about after you digested the basics (which should be enough for this course.)
+- If you want to dig deeper into Git this would be one of the key features you should learn about after you digested the basics (which should be enough for this course.)
 
 
 

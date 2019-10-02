@@ -1,12 +1,13 @@
 ---
-title: "Reproducible Research with R Markdown"
+title: "Advanced R for Econometricians"
+subtitle: "Reproducible Research with R Markdown"
 author: "Alexander Gerber"
 date: "5 November 2018"
 output:
   xaringan::moon_reader:
     css: ["default", "../assets/sydney-fonts.css", "../assets/sydney.css"]
     self_contained: false # if true, fonts will be stored locally
-    seal: true # show a title slide with YAML information
+    seal: false # show a title slide with YAML information
     includes:
       in_header: "../assets/mathjax-equation-numbers.html"
     nature:
@@ -25,6 +26,12 @@ options(htmltools.dir.version = FALSE)
 def.chunk.hook  <- knitr::knit_hooks$get("chunk")
 ```
 
+class: title-slide center middle
+
+# `r rmarkdown::metadata$title`
+## `r rmarkdown::metadata$subtitle`
+
+---
 class: left, top
 ## R Markdown
 
@@ -32,7 +39,7 @@ R Markdown provides a framework for combining  code, results, and commentary.
 
 You can use R Markdown 
 
-- to generate reports.
+- to generate reports, articles, books ...
 - as an environment in which to do data science, as a lab notebook where 
   you can capture not only what you did, but also what you were thinking. 
 
@@ -53,13 +60,15 @@ class: left, top
 ---
 class: left, top
 ## Basic example
-.small[
+.code70[
 
 ```{r echo = FALSE, comment = "", size="tiny"}
 cat(htmltools::includeText("diamond-sizes.Rmd"))
 ```
 
 ]
+
+- If this is stored as `example.rmd` in your working directory run `knitr::render(example.rmd)` to create an output document. Alternatively, hit the `r knitr::include_graphics("../img/knit.PNG")` button in Rstudio. 
 ---
 class: left, top
 
@@ -86,9 +95,10 @@ class: left, top
 
 When we click **knit** in RStudio then 
 1. the `knitr` package executes the code chunks and creates a markdown document (`.md`) which contains the text we have written and optionally the code and its output 
-2. the `.md` file gets processed by `pandoc` which creates the final file in the desired output format (eg. `html`, `pdf`, `word`, ...)
+2. the `.md` file gets processed by `pandoc` which creates the final file in the desired output format (eg. `html`, `pdf`, `word`, ...)  
+.center[
 ![](rendering_process.PNG)
-
+]
 ---
 class: left, top
 
@@ -237,12 +247,11 @@ class: left, top
 
 .pull-left[ 
 
-- linebreaks
-
-```markdown
-  First line  
-  Second line
-```
+- linebreaks  
+    ```markdown
+First line  
+Second line
+    ```
   First line  
   Second line
 
@@ -255,13 +264,11 @@ A new line is started by two whitespaces at the end of the previous line (which 
 .pull-right[ 
 
 - Paragraphs
-
-```markdown
+    ```markdown
   First paragraph
-
+  
   Second paragraph
-```
-
+    ```
   First paragraph
 
   Second paragraph
@@ -419,9 +426,9 @@ The following slides show some examples.
 
 ---
 class: left, top
-## Tables using kable
+## `kable`
 
-- `knitr::kable` is probably the easiest to transform a matrix or a data frame into a simple Table.
+- `knitr::kable` is probably the easiest way to transform a matrix or a data frame into a table.
 
 ````markdown
 `r ''````{r}
@@ -440,10 +447,10 @@ knitr::kable(result, align = c("r", "l", "l", "c"), format = "markdown")
 
 ---
 class: left, top
-## Tables using xtable
+## `xtable`
 
-- `xtable` provides more functionality than kable but is a bit more difficult to use
-- If your code produces raw HTML or $\LaTeX{}$ e.g. for a table then you usually have to set in the  chunk options `results='asis'`, otherwise it gets formatted and will not work as intended
+- `xtable` provides more functionality than kable but is a bit more difficult to use.
+- If your code produces raw HTML or $\LaTeX{}$ e.g. for a table then you have to set `results='asis'`  in the  chunk options, otherwise it gets formatted and will not work as intended.
 
 ````markdown
 `r ''````{r, echo = FALSE, results='asis'}
@@ -462,14 +469,12 @@ print.xtable(my_xtable, type  = "html", include.rownames = FALSE)
 
 ---
 class: left, top
-## Tables using stargazer
+## `stargazer`
 
 - `stargazer` takes model objects as input and automatically creates an output table   
 
 .pull-left[
-#### Code
-
-
+<br>
 ````markdown
 `r ''````{r, results='asis', echo = TRUE}
 
@@ -485,8 +490,8 @@ stargazer::stargazer(linear_model,
 ````
 ]
 .pull-right[
-#### Output
-
+<br> 
+.left[
 .font80[
 
 ```{r, results='asis'}
@@ -494,7 +499,7 @@ linear_model <- lm(mpg ~ cyl + wt, data = mtcars)
 stargazer::stargazer(linear_model, type = "html", out.header = TRUE, omit.table.layout = "sn")
 ```
 
-]]
+]]]
 
 ---
 class: left, top
@@ -556,6 +561,11 @@ class: left, top
 ## Interactive documents
 ```{r, out.width='90%', out.height='70%'}
 library(plotly)
+# Prepare Data
+mtcars$am[which(mtcars$am == 0)] <- 'Automatic'
+mtcars$am[which(mtcars$am == 1)] <- 'Manual'
+mtcars$am <- as.factor(mtcars$am)
+# Interactive Plot
 plot_ly(mtcars, x = ~wt, y = ~hp, z = ~qsec, color = ~am, colors = c('#BF382A', '#0C4B8E')) %>%
   add_markers() %>%
   layout(scene = list(xaxis = list(title = 'Weight'),
@@ -563,13 +573,13 @@ plot_ly(mtcars, x = ~wt, y = ~hp, z = ~qsec, color = ~am, colors = c('#BF382A', 
                      zaxis = list(title = '1/4 mile time')))
 ```
 
-- For many more examples see [plot.ly](https://plot.ly/r/)
+- For more examples see [plot.ly](https://plot.ly/r/).
 
 ---
 class: left, top
 ## Interactive documents
 
-- An interactive map with a focus on the University of Essen 
+- An interactive map. 
 
 ````markdown
 `r ''````{r, out.width='100%'}
@@ -581,7 +591,7 @@ leaflet() %>% addTiles() %>%
   )
 ```
 ````
-- If you want to learn more about it go to [Leaflet for R](https://rstudio.github.io/leaflet)
+- If you want to learn more about it go to [Leaflet for R](https://rstudio.github.io/leaflet).
 ---
 class: left, top
 ## Interactive documents
@@ -619,22 +629,23 @@ class: left, top
 ## Exercise
 
 1. Create an R Markdown document that is compiled to an HTML document. 
-   The document should consist of 2 sections 
+   The document should consist of 2 sections:
    
     - Getting Data
-    - Explorative Data Analysis
+    - Explorative Data Analysis.
 
 2. Use the first section to read in the data available under 
-   [Boston crime](https://data.boston.gov/dataset/6220d948-eae2-4e4b-8723-2dc8e67722a3/resource/12cb3883-56f5-47de-afa5-3b1cf61b257b/download/tmppj4rb047.csv).
-   Try to avoid saving the data on your hard drive first. Add also some information about the source of the data and list all available columns. 
+   [Boston crime](https://data.boston.gov/dataset/6220d948-eae2-4e4b-8723-2dc8e67722a3/resource/12cb3883-56f5-47de-afa5-3b1cf61b257b/download/tmppj4rb047.csv). Add some information about the source of the data and list all available columns. 
 
 3. Use the second section to summarize the data. You are free to do whatever you like but produce at least one table and one plot. 
 
 4. Optimize your code chunks so that the document doesn't load the data ever time you compile. Also let us see what you did by making the code visible. 
 
-5. Create a PDF document.
+5. Create a PDF document containing what you did.
 
-6. Build some slides using the code you have written. 
+6. Remember that we said nested ordered list are not supported by Rmarkdown. Produce one nontheless in your HTML and your PDF document. 
+
+7. Build some slides using the code you have written. 
 
 
 
