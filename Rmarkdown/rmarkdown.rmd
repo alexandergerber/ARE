@@ -35,13 +35,12 @@ class: title-slide center middle
 class: left, top
 ## R Markdown
 
-R Markdown provides a framework for combining  code, results, and commentary.
+R Markdown provides a framework for combining code, results, and commentary.
 
 You can use R Markdown 
 
-- to generate reports, articles, books ...
-- as an environment in which to do data science, as a lab notebook where 
-  you can capture not only what you did, but also what you were thinking. 
+- to generate reproducible reports, articles, books ...
+- as an environment for data science, as a lab notebook where you can capture not only what you did but also what you were thinking. 
 
 Some interesting links: 
 - [R Markdown: The Definitive Guide](https://bookdown.org/yihui/rmarkdown/xaringan-format.html) 
@@ -68,7 +67,9 @@ cat(htmltools::includeText("diamond-sizes.Rmd"))
 
 ]
 
-- If this is stored as `example.rmd` in your working directory run `knitr::render(example.rmd)` to create an output document. Alternatively, hit the `r knitr::include_graphics("../img/knit.PNG")` button in Rstudio. 
+<br>
+
+If this is stored as `example.rmd` in your working directory, running `knitr::render("example.rmd")` will outut an html document. Alternatively, hit the `r knitr::include_graphics("../img/knit.PNG")` button in RStudio. 
 ---
 class: left, top
 
@@ -76,9 +77,9 @@ class: left, top
 
 <br> <br>
 
-An R Markdown document is a basic text file, with the conventional extension `.Rmd`.
+An R Markdown document basically is a text file with extension `.Rmd`.
 
-The example already contains the most important components:
+The example already contains the most important components of an `.Rmd` file:
 
 - An (optional) YAML header surrounded by ---
 - Chunks of R code surrounded by ` ```{r, ...} ` and ` ``` `
@@ -93,7 +94,7 @@ class: left, top
 
 <br> <br>
 
-When we click **knit** in RStudio then 
+What happens when we click **knit** in RStudio? 
 1. the `knitr` package executes the code chunks and creates a markdown document (`.md`) which contains the text we have written and optionally the code and its output 
 2. the `.md` file gets processed by `pandoc` which creates the final file in the desired output format (eg. `html`, `pdf`, `word`, ...)  
 .center[
@@ -103,14 +104,17 @@ When we click **knit** in RStudio then
 class: left, top
 
 ## The YAML header
-The YAML header contains settings passed to pandoc and the rendering functions.
-Here you can: 
-- provide information for the title page such as title, name, and date
-- specify the output format with optional output specific options 
-- include external files (e.g. `.css`) or additional packages for $\LaTeX$
-- define parameters. 
+(BTW: **Y**AML **A**in't **M**arkup 
+**L**anguage 😸)
 
-Basic YAML header using mostly defaults
+The YAML header contains settings passed to pandoc and the rendering functions.
+Here you can 
+- provide information for the title page such as title, name, and date.
+- specify the output format with optional output specific options. 
+- include external files (e.g. `.css`) or additional packages for $\LaTeX$.
+- define custom parameters. 
+
+A Basic YAML header using mostly defaults:
 ```yaml
 ---
 title: Habits
@@ -119,7 +123,6 @@ date: March 22, 2005
 output: html_document
 ---
 ```
-
 ---
 class: left, top
 
@@ -148,7 +151,7 @@ class: left, top
 ## Text Formatting
 
 - R Markdown is built on [Pandoc Markdown](https://rmarkdown.rstudio.com/authoring_pandoc_markdown.html%23raw-tex#pandoc_markdown), which in turn is a flavour of the markup language Markdown.  
-- The advantage of Markdown compared to other markup languages such as HTML and Latex is its simplicity.
+- The advantage of Markdown compared to other markup languages such as HTML and $\LaTeX{}$ is its simplicity.
 
 ---
 
@@ -237,7 +240,7 @@ class: left, top
 
 ]
 
-Note that Markdown does not support nested ordered lists with numbering 1.1, 1.2.1 and so on. For this, you would have to fall back to HTML or $\LaTeX$. 
+Note that Markdown does not support nested ordered lists with numbering 1.1, 1.2.1 and so on. For this, you would have to step up to HTML or $\LaTeX$. 
 
 ---
 class: left, top
@@ -247,7 +250,7 @@ class: left, top
 
 .pull-left[ 
 
-- linebreaks  
+- Linebreaks  
     ```markdown
 First line  
 Second line
@@ -286,11 +289,10 @@ A new paragraph is started by a blank line.
 class: left, top
 ## Math Expressions
 
-When rendering to a pdf then $\LaTeX{}$ can be used throughout the document.  
-Through `MathJax` the $\LaTeX{}$ math mode can also be used for HTML output as follows: 
+When rendering to PDF, $\LaTeX{}$ can be used throughout the document. `MathJax` allows using $\LaTeX{}$ math mode for HTML output as follows: 
 - Inline $\LaTeX{}$ equations can be written within dollar signs.  
     ```{r, comment = ""}
-cat("This is an inline equation $f(x)=\\frac{1}{2\\pi}e^{-\\frac{1}{2}x^2}$.")
+  cat("This is an inline equation $f(x)=\\frac{1}{2\\pi}e^{-\\frac{1}{2}x^2}$.")
     ```
   
   This is an inline equation $f(x)=\frac{1}{2\pi}e^{-\frac{1}{2}x^2}$.
@@ -304,7 +306,7 @@ This is display style $$f(x)=\frac{1}{2\pi}e^{-\frac{1}{2}x^2}.$$
 ---
 class: left, top
 ## Math Expressions
-- Even more complex math environments such as `align` can be used 
+- Even more complex math environments such as `align` can be used. 
     ```{r echo = FALSE, comment = ""}
 cat("
 \\begin{align}
@@ -358,7 +360,7 @@ lm(y ~ x)
 ```
 ````
 
-If mainly chunk options are used which are not the default, then it saves time to change the default for the document with ``knitr::opts_chunk$set()`.  
+If a chunk options is frequently used it may save time to change the default for the document using  `knitr::opts_chunk$set()`.  
 
 ````markdown
 `r ''````{r setup, include=FALSE}
@@ -370,7 +372,7 @@ knitr::opts_chunk$set(echo = FALSE, warning=FALSE, message=FALSE)
 class: left, top
 ## Inline R Code
 
-You can also use R in your running text. When something changes (e.g. the input data) the numbers in the text adjust accordingly as well. 
+You can also use R inline. This is handy because it ensures that computed results which you refer to adjust if you update your code. &rarr; Less error prone and less time consuming than manual typing.
 
 ````markdown
 `r ''````{r, echo = FALSE}
@@ -396,7 +398,7 @@ class: left, top
 
 <br> <br>
 
-Tables can be created in the following way:
+Simple tables can be created as follows:
 <br> <br>
 .pull-left[ 
 ```markdown
@@ -419,8 +421,7 @@ Tables can be created in the following way:
 
 ]
 <br> <br>
-In general, however, tables should be produced by your code.
-The following slides show some examples. 
+In general, however, tables should be produced by code. The following slides show some examples. 
 
 
 
@@ -471,7 +472,7 @@ print.xtable(my_xtable, type  = "html", include.rownames = FALSE)
 class: left, top
 ## `stargazer`
 
-- `stargazer` takes model objects as input and automatically creates an output table   
+`stargazer` takes model objects as input and automatically creates an output table.   
 
 .pull-left[
 <br>
@@ -520,16 +521,14 @@ hist(rnorm(1000))
 class: left, top
 ## Using HTML and Latex
 
-- If only R Markdown is used the document can be compiled without problems
-to all supported output formats. 
+- If the content of an `.Rmd` is only Markdown the document can be compiled to all supported output formats without trouble. 
 
-- Sometimes R Markdown is too limited and one would like to use the more powerful 
-tools provided by HTML or Latex. 
+- However, R Markdown sometimes is too limited and we would like to use more complex functions or typesetting as available in HTML or $\LaTeX{}$ libraries. 
 
-- If the output format is HTML, you can also use HTML instead of R Markdown 
+  - If the output format is HTML you can also use HTML instead of R Markdown 
   or mix both.
 
-- If the output format is PDF, the same can be said about Latex.
+  - If the output format is PDF mixing $\LaTeX{}$ and HTML is fine.
 
 
 ---
@@ -581,17 +580,17 @@ class: left, top
 
 - An interactive map. 
 
-````markdown
-`r ''````{r, out.width='100%'}
-library(leaflet)
-leaflet() %>% addTiles() %>%
-  setView(7.005070, 51.463675,zoom = 17) %>%
-  addMarkers(
-    7.005070, 51.463675
-  )
-```
-````
-- If you want to learn more about it go to [Leaflet for R](https://rstudio.github.io/leaflet).
+    ````markdown
+    `r ''````{r, out.width='100%'}
+    library(leaflet)
+    leaflet() %>% addTiles() %>%
+      setView(7.005070, 51.463675, zoom = 17) %>%
+      addMarkers(
+        7.005070, 51.463675
+      )
+    ```
+    ````
+- If you want to learn more go to [Leaflet for R](https://rstudio.github.io/leaflet).
 ---
 class: left, top
 ## Interactive documents
@@ -626,9 +625,9 @@ DT::datatable(
 
 ---
 class: left, top
-## Exercise
+## Exercises
 
-1. Create an R Markdown document that is compiled to an HTML document. 
+1. Create an R Markdown document that compiles to an HTML document. 
    The document should consist of 2 sections:
    
     - Getting Data
@@ -639,11 +638,11 @@ class: left, top
 
 3. Use the second section to summarize the data. You are free to do whatever you like but produce at least one table and one plot. 
 
-4. Optimize your code chunks so that the document doesn't load the data ever time you compile. Also let us see what you did by making the code visible. 
+4. Optimize your code chunks so that the document doesn't load the data everytime you compile. Also let other see your approach by making the code visible. 
 
-5. Create a PDF document containing what you did.
+5. Create a PDF document containing the results.
 
-6. Remember that we said nested ordered list are not supported by Rmarkdown. Produce one nontheless in your HTML and your PDF document. 
+6. Remember that nested ordered list are not supported by R Markdown. Nonetheless, generate a nested ordered list in both HTML and PDF output. 
 
 7. Build some slides using the code you have written. 
 
