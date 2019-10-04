@@ -177,7 +177,7 @@ If you don't find an answer you can ask a question yourself. What sounds easy is
 - Use projects instead.
 
 Workflow:
-- Instead of openening a new R session and use `setwd()` you open the project. The working path is 
+- Instead of opening a new R session and use `setwd()` you open the project. The working path is 
 automatically set to the folder where the `.Rproj` file lives in. 
 
 ---
