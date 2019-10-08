@@ -353,20 +353,15 @@ slides > slide {
 
 } */
 
- 
 .title-slide {
     background-color: #e64626;
-/* background-image: url(../img/polar1.jpg);
-   background-size: cover; */
-/* background-image: url(https://images.pexels.com/photos/1054289/pexels-photo-1054289.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260); */
-  /*background-position: 10% 90%;
-   background-size: 160px;
-  background-color: #e64626;
-  text-align:left;
-  vertical-align: top;
-  text-shadow: none;*/
-  /*text-shadow: 0 0 5px #333;*/
-  /*padding-left: 100px;   delete this for 4:3 aspect ratio */
+    background-image: url(../assets/ude_logo.png);
+    background-position: 7% 10%;
+    background-size: 220px;
+  /*text-align:left; */
+  /*text-shadow: none;
+  text-shadow: 0 0 5px #333;
+  padding-left: 100px;   delete this for 4:3 aspect ratio */
 }
 
 /* H1 fonts  */
@@ -395,7 +390,7 @@ slides > slide {
 .title-slide h3 {
   font-size: 28px;
   font-weight: normal;
-  color: black;
+  color: white;
   padding-left: 20px;
   margin: 0px;
   line-height: 1;

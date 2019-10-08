@@ -9,7 +9,7 @@ output:
   xaringan::moon_reader:
     seal: false
     lib_dir: libs
-    css: ["default", "../assets/sydney-fonts.css", "../assets/sydney.css", "../assets/custom.css"]
+    css: ["default", "../assets/sydney-fonts.css", "../assets/sydney.css", "../assets/custom.css", "../assets/title_slides.css"]
     nature:
       highlightStyle: github
       highlightLines: true
@@ -21,10 +21,11 @@ output:
 knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 ```
 
-class: title-slide center middle
+class: title-slide title-rintro center middle
 
 # `r rmarkdown::metadata$title`
 ## `r rmarkdown::metadata$subtitle`
+### `r rmarkdown::metadata$author`
 
 ---
 

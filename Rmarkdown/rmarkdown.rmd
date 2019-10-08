@@ -5,7 +5,7 @@ author: "Alexander Gerber"
 date: "5 November 2018"
 output:
   xaringan::moon_reader:
-    css: ["default", "../assets/sydney-fonts.css", "../assets/sydney.css"]
+    css: ["default", "../assets/sydney-fonts.css", "../assets/sydney.css", "../assets/title_slides.css"]
     self_contained: false # if true, fonts will be stored locally
     seal: false # show a title slide with YAML information
     includes:
@@ -26,10 +26,11 @@ options(htmltools.dir.version = FALSE)
 def.chunk.hook  <- knitr::knit_hooks$get("chunk")
 ```
 
-class: title-slide center middle
+class: title-slide title-rmarkdown center middle
 
 # `r rmarkdown::metadata$title`
 ## `r rmarkdown::metadata$subtitle`
+### `r rmarkdown::metadata$author`
 
 ---
 class: left, top

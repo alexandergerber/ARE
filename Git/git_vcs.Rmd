@@ -5,7 +5,7 @@ author: "Alexander Gerber"
 date: "5 November 2018"
 output:
   xaringan::moon_reader:
-    css: ["default", "../assets/sydney-fonts.css", "../assets/sydney.css"]
+    css: ["default", "../assets/sydney-fonts.css", "../assets/sydney.css", "../assets/title_slides.css"]
     self_contained: false # if true, fonts will be stored locally
     seal: false # show a title slide with YAML information
     includes:
@@ -26,17 +26,17 @@ options(crayon.enabled = TRUE)
 ```
 
 
-class: title-slide center middle
+class: title-slide title-git center middle
 
 # `r rmarkdown::metadata$title`
 ## `r rmarkdown::metadata$subtitle`
+### `r rmarkdown::metadata$author`
 
 ---
 ## What is Git?
 
 - Git is an extremly popular version control system. 
-- A version control system keeps track of changes to your project and stores 
-all versions in a data base. 
+- A version control system keeps track of changes to your project and stores all versions in a data base. 
 <br>
 ```{r, eval = TRUE, echo = FALSE, out.width = "500px", fig.align='center'}
 knitr::include_graphics(here::here("img/git1.PNG"))
@@ -45,26 +45,26 @@ knitr::include_graphics(here::here("img/git1.PNG"))
 ---
 ## What is Git?
 
-- Git allows to move back to previous versions of your project if necessary. 
-- You could achieve something similar with:
+- Git allows to move back to previous versions of your project, if necessary. 
+- You could achieve something similar by making copies of your project at specific stages:
 <br>
 ```{r, eval = TRUE, echo = FALSE, out.width = "200px", fig.align='left'}
 knitr::include_graphics(here::here("img/git2.PNG"))
 ```
 
-Why you should use Git instead of a simple folder structure?
+Why you should use Git instead of such a simple folder structure?
 
 - Git can tell you what changed in each version.
-- Git helps to synchronize different variants of a version. 
-- Git makes collaborating saver since it prevents overwriting each other and helps to solve conflicts (you might know the problem from e.g. Dropbox).
-- Git reminds you to document your changes so others or your future you knows why you did something.   
+- Git helps to synchronise different variants of a version. 
+- Git makes collaborating very save since it reduces the risk of overwriting when synchronising with others and helps to solve conflicts (you might know the problem from e.g. Dropbox).
+- Git reminds you to document your changes so that others and your future you know why you did something.   
 
 ---
 ## Where can I get help? 
 
 On the Git hompage ([Git documentation](https://git-scm.com/doc)) you find
 - a comprehensive Documentation.
-- the well written book Pro Git, which served as the main source of the slides.
+- the well written book *Pro Git*, which served as the main source of the slides.
 - tutorial videos. 
 
 ---
@@ -79,17 +79,17 @@ $ git --version
 git version 2.11.0.windows.1
     ```
 --
-- After we made sure git is working set your user name and email address.
+- After ensuring Git is working you may set your user name and email address.
     ```terminal
 git config --global user.name "John Doe"
 git config --global user.email johndoe@example.com
     ```
-  You need to do this once on each computer. 
+  You need to do this once on each computer you want to work on. 
 
 ---
 ## Setup a Git Repository 
 
-There are two ways to get a Git repository: 
+There are two ways to start a Git repository: 
 
 1. Turn a directory on your PC into a Git repository. 
 2. `clone` an existing repository. 
@@ -102,7 +102,7 @@ We start by creating a Git repository from scratch:
 c:
 cd myProject
 ```
-- Initialize a new git repository in this folder with 
+- Initialize a new Git repository in this folder.
 ```terminal
 git init
 ```
@@ -112,11 +112,9 @@ git init
 
 - `git init` creates a new subdirectory named `.git` that contains all repository files.
 
-- Git dosen't keep track of all you changes automatically. You have to tell 
-Git when you want to save (`commit`) a new status. 
+- Git dosen't automatically track changes to files in the repository. We have to tell Git if we want to save (`commit`) a new status. 
 
-- Before we can `commit` anything we need to create some files e.g. `HelloGit.txt`
-file with the content 
+- Before we can `commit` anything we need to create some files e.g. `HelloGit.txt` file with the content. 
 ```
 Hello World!
 How are you?
@@ -125,7 +123,7 @@ How are you?
 ---
 ## `git status`
 
-`git status` is the first git command you will constantly use. 
+`git status` is the first Git command you will constantly use. 
 It gives you a short overview about what changed since your last
 `commit`.
 
@@ -171,9 +169,9 @@ The files are now in the so called **staging area**.
 ---
 ## `git commit`
 
-With the basic command `git commit` all files in the **staging area** are commited to the git repository. There are some things to note: 
+With the basic command `git commit` all files in the **staging area** are commited to the Git repository. There are some things to note: 
 - Git wants you to document your commit by writing a so called commit message.
-- Running ` git commit` in the terminal will by default open the hardcore text editor VIM.  
+- Running `git commit` in the terminal will by default open the hardcore text editor VIM.  
 
     ```{r, eval = TRUE, echo = FALSE, out.width = "300px", fig.align='left'}
 knitr::include_graphics(here::here("img/git3.PNG"))
@@ -197,7 +195,7 @@ git commit - m "A short commit message"
     ```
     to commit the files in the staging area without opening an editor.  
 
-- For the first commit in our example we could do something like 
+- In our example, for the first commit we could do something like 
     ```terminal
 git commit - m "initial commit"
     ```
@@ -213,7 +211,7 @@ knitr::include_graphics(here::here("img/git5.PNG"))
 Source: [Pro Git](https://git-scm.com/book/en/v2/Git-Basics-Recording-Changes-to-the-Repository)
 ]
 ---
-## Exersice
+## Exercises
 
 1. Change the `HelloGit.txt` by replacing `Hello World!` with `Hello Git!`
 2. Add the changed file to the staging area. 
@@ -223,7 +221,7 @@ Source: [Pro Git](https://git-scm.com/book/en/v2/Git-Basics-Recording-Changes-to
 ## `git log`
 
 - The command `git log` returns the commit history of your project. We see by whom and when a commit was made together with a short commit message. 
-- Each commit has a SHA value which can be used to address this commit. 
+- Each commit has a SHA value which is a unique identifier. 
 
 ```terminal
 C:\MyProject>git log
@@ -245,40 +243,41 @@ Learn more about `git log` [here](https://git-scm.com/book/en/v2/Git-Basics-View
 ---
 ## `git diff`
 
-- With `git diff` we can compare files before and after a commit. If we want to 
-know what exactly changed in our last commit we compare it to our first commit:
+- With `git diff` we can compare files before and after a commit. 
 
-```terminal
-C:\MyProject>git diff 2f17..dfc8
+    Suppose we want to know what exactly changed in our last commit. For this we have to compare to the first commit:
 
-diff --git a/HelloGit.txt b/HelloGit.txt
-index 4f6866b..71e6eca 100644
---- a/HelloGit.txt
-+++ b/HelloGit.txt
-@@ -1,2 +1,2 @@
--Hello World!
-+Hello Git!
-```
-- Note that we don't need the full SHA. Usually it is enough to provide the first 4 signs. If it would happen that 2 or more SHA values started with the same 4 signs then git would tell us to provide more signs until the result gets unambiguous.  
+    ```terminal
+    C:\MyProject>git diff 2f17..dfc8
+    
+    diff --git a/HelloGit.txt b/HelloGit.txt
+    index 4f6866b..71e6eca 100644
+    --- a/HelloGit.txt
+    +++ b/HelloGit.txt
+    @@ -1,2 +1,2 @@
+    -Hello World!
+    +Hello Git!
+    ```
+- Note that we don't need the full SHA. It is usually enough to provide the first 4 signs. If it would happen that 2 or more SHA values started with the same 4 signs then Git would tell us to provide more signs until the result gets unambiguous.  
 
 ---
 ## `git diff`
 
-Change again something in the `HelloGit.txt` file. If you now run 
+Modify the `HelloGit.txt` file again. If you now run 
 
 ```terminal
 git diff
 ```
-you see all unstaged (everything that is not added yet) changes since the last commit. 
+all unstaged (everything that is not added yet) changes since the last commit are listed. 
 
 ---
 ## `git rm`
 
-- Use `git rm` to remove files from git. The command does 2 things: 
-    - deletes a file from your working directory
+- Use `git rm` to remove files from Git. The command does 2 things: 
+    - deletes the file from your working directory
     - removes the file from your tracked files. 
 
-- After using `git rm` you have to commit the removal doing a standard commit. 
+- After using `git rm` you have to commit the removal by doing a standard commit. 
 
     ```terminal
 git rm HelloGit.txt
@@ -286,9 +285,9 @@ git commit -m "remove HelloGit.txt"
     ```
 - If you only want to remove a file from the tracked files but keep it in your working directory run 
 
-```terminal
-git rm --cached HelloGit.txt
-```
+    ```terminal
+    git rm --cached HelloGit.txt
+    ```
 
 
 ---
@@ -296,15 +295,15 @@ git rm --cached HelloGit.txt
 
 - Consider the following commit history: 
 
-```terminal 
-C:\MyProject>git log --pretty=oneline
-
-332fa3c6ea743a8d9ac34f3c5db94ed6c9e9ed20 add important file
-c3ed28cbdf6f7419242ad0747806d309954211f9 important change
-5d3eb1b76baf5921b0b8babc2ba7c3fffb82666a added newFile.txt
-86214741766959936c09b1ecaf213dd6d749ef60 deleted HelloGit.txt
-27d048c3bebda441db44b9506080b4784dcc728b initial commit
-```
+    ```terminal 
+    C:\MyProject>git log --pretty=oneline
+    
+    332fa3c6ea743a8d9ac34f3c5db94ed6c9e9ed20 add important file
+    c3ed28cbdf6f7419242ad0747806d309954211f9 important change
+    5d3eb1b76baf5921b0b8babc2ba7c3fffb82666a added newFile.txt
+    86214741766959936c09b1ecaf213dd6d749ef60 deleted HelloGit.txt
+    27d048c3bebda441db44b9506080b4784dcc728b initial commit
+    ```
 
 - Lets say you regret deleting `HelloGit.txt` and you want it back. 
 With the command `git checkout <SHA><path>` files can be brought back to their state of the specified commit. 
@@ -316,42 +315,41 @@ git checkout 27d048 newFile.txt
 ---
 ## `git reset`
 
-- If you want the whole project back at the state of a past commit you can do
+- If you want the whole project back at the state of a previous commit you can do
 
-```terminal
-git reset --hard 27d048 
-```
+  ```terminal
+  git reset --hard 27d048 
+  ```
 - However, all changes after that commit will be discarded. 
 
-- If you want to keep changes in the directory of your computer use 
+- If you want to keep changes locally (in the directory on your computer) use 
 
-```terminal
-git reset 27d048 
-```
+  ```terminal
+  git reset 27d048 
+  ```
 - After running this you can decide which changes after commit `27d048` you want to keep or discard since they 
 are now all in the modified files stage. 
 
 ---
-## Exercise
+## Exercises
 1. Make some changes to `HelloGit.txt` in your repository and add it to the staging area. 
-2. Now, you remember that you forgot some important changes and you want to unstage `HelloGit.txt`. For this, remove first `HelloGit.txt` from the staging area (`git status` will help you). Now make some changes and commit them. 
-3. Restore the initial state of the `HelloGit.txt` file (i.e. the state after your initial commit).  
-4. Create a new text file with arbitrary content. Add and commit your changes. 5. Remove the file but do not commit. 
-6. Try to restore the file. 
-
+2. Assume that you forgot some important changes and you want to unstage `HelloGit.txt`. For this, first remove `HelloGit.txt` from the staging area (`git status` will help you). Then make some changes and commit them. 
+3. Restore the initial state of the `HelloGit.txt` file (i.e. the state after the initial commit).  
+4. Create a new text file with arbitrary content. Add and commit your changes. 
+5. Remove the text file but do not commit. 
+6. Try to restore the text file. 
 
 ---
 ## Remote Repository
 
-- Until now our repository only lives on our loval machine. If you want 
-to collaborate with others you want too use a remote repository which everybody has access to. 
+- Until now our repository only lives on our local machine. In order to collaborate with others we need too use a remote repository which everybody can access.
 
-- [Github](https://github.com) provides a platform where you can host your remote repository for free. 
+- [Github](https://github.com) is platform where one can host remote repositories for free. 
 
 Setup a remote repository: 
 
 1. Go to Github.com and create a new account.
-2. Login to your Github account and go to + 	&rarr; New repository
+2. Login to your Github account and go to + &rarr; New repository.
 
     ```{r, eval = TRUE, echo = FALSE, out.width = "300px", fig.align='left'}
 knitr::include_graphics(here::here("img/git4.PNG"))
@@ -359,8 +357,8 @@ knitr::include_graphics(here::here("img/git4.PNG"))
 
 ---
 ## Remote Repository
-3. Give your repository a name and click `Create repository`
-4. Copy and paste the lines below ***"…or push an existing repository from the command line"*** in the terminal of your local project to connect it with the repository on Github. For me it is 
+3. Give your repository a name and click `Create repository`.
+4. Copy and paste the lines below ***"…or push an existing repository from the command line"*** in the terminal of your local project to connect it with the repository on Github. For me this is 
 ```terminal
 git remote add origin https://github.com/alexandergerber/test.git
 git push -u origin master
@@ -392,94 +390,92 @@ One adds the other to his Github repository.
 
 --
 
-The one who was added to the repository clones the repository on his local machine: 
+The one who was added to the repository clones the repository to his local machine: 
 1. Use the terminal to navigate to the folder where you want to have the repository. 
 2. Use `git clone` like below (change the repository url to that of your collaborator). 
 
-```terminal 
-git clone https://github.com/alexandergerber/HelloGit.git
-```
+    ```terminal 
+    git clone https://github.com/alexandergerber/HelloGit.git
+    ```
 
 --
-Now both can work on the same project. 
+    Now the both of you can work on the same project. 
 
 ---
 ## `git fetch` and `git merge`
 
-- If more than one person works on a project it will happen that you are locally behind the remote repository. 
+- If more than one person work on a project it will happen that you are locally behind the remote repository. 
 
-- To update your local repository to the newest status: 
-    1. Download everything that happened since you last synchronized with the remote repository using `git fetch`. 
+- To update your local repository to the current status of the remote: 
+    1. Download everything that happened since you last synchronised with the remote repository using `git fetch`. 
     2. Merge the new changes to your repository with `git merge`. 
 
-This should run smoothly if you didn't work on the project in the meantime. 
+    This should run smoothly if you didn't work on the project in the meantime. 
 
 ---
 ## Exercise
 
 1. One makes a change to the shared repository (add, commit, push). Afterwards the other one fetches the changes, runs `git status`
-(inspect the result) and merges the changes into his repository. Then do the same thing the other way arround. 
+(inspect the result) and merges the changes into his repository. Then do the same thing the other way around. 
 
 ---
 ## Solving conflicts
 
-- The original `HelloGit.txt` file looked like this
+- The original `HelloGit.txt` file looked like this:
 
-```terminal
-Hello Git
-How are you?
-```
-- Two people working on the project didn't like this and changed it independently from each other. 
+    ```terminal
+    Hello Git
+    How are you?
+    ```
+- Two other people working on the same project didn't like this and changed it independently from each other. 
 
-Change of Person A
-
-```terminal
-Hello Git,
-
-How are you? I think I shoudld work on this file.  
-```
-Change of Person B
-
-```terminal
-Hello Git!
-How are you? I hope you don't run into too many conflicts. 
-```
+    Change of Person A
+    
+    ```terminal
+    Hello Git,
+    
+    How are you? I think I should work on this file.  
+    ```
+    Change of Person B
+    
+    ```terminal
+    Hello Git!
+    How are you? I hope you don't run into too many conflicts. 
+    ```
 
 ---
 ## Solving conflicts
 
-- Person B pushed her changes first to the remote server. There was no problem because she worked with 
-the most recent status. 
+- Person B pushed her changes first to the remote server. There was no problem because she worked with the most recent commit. 
 
 - However, Person A is now behind by one commit. If she tries to push a new commit, Git will tell her that 
 she first needs to `git pull` which is short for `git fetch` and `git merge`.  
 
-- If Person A does this git will try to solve the confilict automatically. 
-However, in our case git won't be able to do so because the exactly same parts of a file were changed and you don't
-want a machine to decide what to keep and what to discard. 
+- If Person A does this, Git will try to solve the confilict automatically. 
+However, in this example case Git won't be able to do so because the exact same parts of the file were changed and we don't want a machine to decide what to keep and what to discard. 😀
 
-```terminal
-C:\Users\AlexanderGerber\myProject>git merge
-Auto-merging HelloGit.txt
-CONFLICT (content): Merge conflict in HelloGit.txt
-Automatic merge failed; fix conflicts and then commit the result.
-```
+    ```terminal
+    C:\Users\AlexanderGerber\myProject>git merge
+    Auto-merging HelloGit.txt
+    CONFLICT (content): Merge conflict in HelloGit.txt
+    Automatic merge failed; fix conflicts and then commit the result.
+    ```
 ---
 ## Solving conflicts
 
-- Instead of solving the conflict, Git will parepare the file in a way that makes it easy for you to solve the conflict yourself. Look for everything starting with`<<<<<<< HEAD` and ending with `>>>>>>> refs/...`. 
+- Instead of solving the conflict, Git will parepare the file in a way that makes it easy for you to solve the conflict yourself. Look for sections starting with`<<<<<<< HEAD` and ending with `>>>>>>> refs/...`. 
 
-```terminal
-<<<<<<< HEAD
-Hello Git,
-
-How are you? I think I shoudld work on this file.  
-=======
-Hello Git!
-How are you? I hope you don't run into too many conflicts. 
->>>>>>> refs/remotes/origin/master
-```
-- Decide what to keep and then remove everything Git included as helper for you to solve the conflict. 
+    ```terminal
+    <<<<<<< HEAD
+    Hello Git,
+    
+    How are you? I think I shoudld work on this file.  
+    =======
+    Hello Git!
+    How are you? I hope you don't run into too many conflicts. 
+    >>>>>>> refs/remotes/origin/master
+    ```
+- Decide what to keep and then remove everything Git included for helping you to solve the conflict. 
 - The final results can be commited and pushed to the remote repository.  
 
 ---
@@ -491,9 +487,9 @@ How are you? I hope you don't run into too many conflicts.
 ## .gitignore
 
 - Not everything in our working directory should be tracked by Git. 
-- As a rule of thumb one could say we only want to track source files (e.g. only the `.rmd` but not the generated `.html` file)
+- A a rule of thumb is to track source files only (e.g. only the `.rmd` but not the generated `.html` file).
 - Git ignores all files which are specified in the file `.gitignore`.
-- Since it would be cumbersome to specify each file that shouldn't be tracked seperatly Git allows the usage of patterns.
+- Since it would be cumbersome to list individually list each file that shouldn't be tracked Git allows the usage of patterns.
 - Learn more about it in the (gitignore documentation)[https://git-scm.com/docs/gitignore].
 
 #### Example `.gitignore` file
@@ -508,11 +504,11 @@ How are you? I hope you don't run into too many conflicts.
 ---
 ## Branching
 
-- There is a pretty important concept which we didn't cover at all named **Branching**.
+- There is a pretty important concept which we didn't cover at all named **branching**.
 
 - It allows you to diverge form the linear development of your project to having multiple parallel versions at the same time. 
 
-- If you want to dig deeper into Git this would be one of the key features you should learn about after you digested the basics (which should be enough for this course.)
+- If you want to dig deeper into Git this would be one of the key features you should learn about after you digested the basics discussed so far (which should be enough for this course).
 
 
 

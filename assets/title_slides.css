@@ -1,0 +1,23 @@
+.title-rintro {
+    background-image: url(../assets/ude_logo.png), url(../assets/rlogo.png);
+    background-position: 7% 10%, 90% 90%;
+    background-size: 220px, 180px;
+}
+
+.title-git {
+    background-image: url(../assets/ude_logo.png), url(../assets/gitlogo.png);
+    background-position: 7% 10%, 90% 90%;
+    background-size: 220px, 180px;
+}
+
+.title-ggplot2 {
+    background-image: url(../assets/ude_logo.png), url(../assets/ggplot2.png);
+    background-position: 7% 10%, 90% 90%;
+    background-size: 220px, 180px;
+}
+
+.title-rmarkdown {
+    background-image: url(../assets/ude_logo.png), url(../assets/rmarkdown.png);
+    background-position: 7% 10%, 90% 90%;
+    background-size: 220px, 180px;
+}
