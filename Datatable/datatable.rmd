@@ -1,7 +1,6 @@
 ---
-title: "data.table"
-author: "Alexander Gerber"
-date: "5 November 2018"
+title: "Advanced R for Econometricians"
+subtitle: "`data.table`"
 output:
   xaringan::moon_reader:
     css: ["default", "../assets/sydney-fonts.css", "../assets/sydney.css"]
@@ -31,11 +30,9 @@ class: title-slide center middle
 background-image: url(`r params$background_img`)
 background-size: cover
 
-## `r rmarkdown::metadata$title`
+# `r rmarkdown::metadata$title`
 
-## `r rmarkdown::metadata$author`
-
-### `r rmarkdown::metadata$date`
+## `r rmarkdown::metadata$subtitle`
 
 
 ---

@@ -1,0 +1,44 @@
+---
+title: "Advanced R for Econometricians"
+subtitle: "Databases using R"
+author: 
+  - "Martin Arnold"
+  - "Alexander Gerber"
+date: '`r Sys.Date()`'
+output:
+  xaringan::moon_reader:
+    seal: false
+    self: true
+    lib_dir: libs
+    css: ["default", "../assets/sydney-fonts.css", "../assets/sydney.css", "../assets/custom.css"]
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+      ratio: "16:9"
+---
+
+## Why should we use Databases?
+
+- The amount of data you can work with in R is constraint by your memory. 
+- In times where data sets with several 100 GB or even TB are become more and more common
+  loading all data into memory is often not feasable. 
+- Often only a subset or an aggregation of the data is required for the analysis which requires much less memory space.
+- How to subset or aggregate data? &rarr; Use a database!
+
+
+
+```{r, eval = FALSE}
+library(dplyr)
+con <- DBI::dbConnect(RSQLite::SQLite(), dbname  = here::here("databases", "mtcars.sqlite3"))
+DBI::dbWriteTable(con, "mtcars", mtcars)
+copy_to(con, mtcars, "mtcars")
+
+tbl(con, "mtcars")
+DBI::dbDisconnect(con)
+
+con <- DBI::dbConnect(RSQLite::SQLite(), path = here::here("databases", "mtcars.sqlite3"))
+
+
+```
+

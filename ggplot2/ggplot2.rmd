@@ -377,8 +377,8 @@ ggplot(data = diamonds) +
 class: left, top
 ## Scales
 
-- scales determine how the data are mapped to the aesthetics (e.g. which value takes which color)
-- scales are defined by functions of the form `scale_aestheticname_scalename()`
+- Scales determine how the data are mapped to the aesthetics (e.g. which value takes which color).
+- Scales are defined by functions of the form `scale_aestheticname_scalename()`.
 
 ```{r, echo = TRUE, eval = TRUE, fig.width=10, fig.height=4}
 ggplot(diamonds, aes(carat, price, color = cut)) + geom_point() + scale_color_grey()
@@ -387,7 +387,7 @@ ggplot(diamonds, aes(carat, price, color = cut)) + geom_point() + scale_color_gr
 ---
 class: left, top
 ## Scales
-- you can also use your own scales
+- You can also use your own scales.
 
 ```{r, echo = TRUE, eval = TRUE, fig.width=10, fig.height=4}
 ggplot(diamonds, aes(carat, price, color = cut)) + 
@@ -404,7 +404,7 @@ With the function `labs()` you can
 - add a caption
 - add a tag
 - change the axis labels
-- change the legend title
+- change the legend title.
 
 ```{r, echo = TRUE, eval = FALSE}
 ggplot(diamonds, aes(x = carat, y = price, fill = cut)) + 

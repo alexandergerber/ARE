@@ -639,7 +639,7 @@ class: left, top
 
 3. Use the second section to summarize the data. You are free to do whatever you like but produce at least one table and one plot. 
 
-4. Optimize your code chunks so that the document doesn't load the data ever time you compile. Also let us see what you did by making the code visible. 
+4. Optimize your code chunks so that the document doesn't load the data every time you compile. Also let us see what you did by making the code visible. 
 
 5. Create a PDF document containing what you did.
 

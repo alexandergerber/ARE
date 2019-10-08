@@ -6,7 +6,7 @@ date: "5 November 2018"
 output:
   xaringan::moon_reader:
     css: ["default", "../assets/sydney-fonts.css", "../assets/sydney.css"]
-    self_contained: false # if true, fonts will be stored locally
+    self_contained: true # if true, fonts will be stored locally
     seal: false # show a title slide with YAML information
     includes:
       in_header: "../assets/mathjax-equation-numbers.html"
@@ -112,10 +112,6 @@ You can compare the functionality to that of a  relational database which provid
 single tables and multiple tables. 
 
 
-
-
-
-
 ---
 class: top, left
 ## Single Table Functions
@@ -198,6 +194,7 @@ filter(mtcars_tibble, hp > 100 & cyl == 4)
 filter(mtcars_tibble, hp > 100 | cyl == 4)
     ```
 
+---
 - Additional arguments to `filter()` are combined with `&` which is the same as the above. 
     ```{r, echo = TRUE, eval = FALSE}
 filter(mtcars_tibble, hp > 100, cyl == 4)
@@ -595,7 +592,7 @@ band_members %>% inner_join(band_instruments, by = "name")
 ```
 ---
 class: top, left
-## Semi-Join
+## Semi Join
 
 A semi-join keeps all observations of the left table where there are matching values in the right table.
 It keeps only tables from the left. 
@@ -742,12 +739,6 @@ ggplot(table1, aes(year, cases)) +
   geom_line(aes(group = country), colour = "grey50") + 
   geom_point(aes(colour = country))
     ```
-
----
-## Case Study
-Prepare the trade data set which contains multiple tables for analysis. 
-Use the techniques you learnt so far to get some insight into the trading relationship between the USA and Germany. 
-
 
 
 
