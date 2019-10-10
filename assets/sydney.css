@@ -353,7 +353,6 @@ slides > slide {
 
 } */
 
- 
 .title-slide {
     background-color: #e64626;
     background-image: url(../assets/ude_logo.png);
@@ -391,7 +390,7 @@ slides > slide {
 .title-slide h3 {
   font-size: 28px;
   font-weight: normal;
-  color: black;
+  color: white;
   padding-left: 20px;
   margin: 0px;
   line-height: 1;
