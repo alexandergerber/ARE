@@ -5,7 +5,7 @@ author: "Alexander Gerber"
 date: "5 November 2018"
 output:
   xaringan::moon_reader:
-    css: ["default", "../assets/sydney-fonts.css", "../assets/sydney.css"]
+    css: ["default", "../assets/sydney-fonts.css", "../assets/sydney.css", "../assets/custom.css", "../assets/title_slides.css"]
     self_contained: false # if true, fonts will be stored locally
     seal: false # show a title slide with YAML information
     includes:
@@ -26,7 +26,7 @@ options(htmltools.dir.version = FALSE)
 def.chunk.hook  <- knitr::knit_hooks$get("chunk")
 ```
 
-class: title-slide center middle
+class: title-slide title-rmarkdown center middle
 
 # `r rmarkdown::metadata$title`
 ## `r rmarkdown::metadata$subtitle`
@@ -48,6 +48,8 @@ Some interesting links:
 - [Introduction to R Markdown](https://rmarkdown.rstudio.com/lesson-1.html)
 - [Cheatsheet](https://www.rstudio.com/wp-content/uploads/2016/03/rmarkdown-cheatsheet-2.0.pdf)
 
+Example:
+- [Introduction to Econometrics with R](https://www.econometrics-with-r.org)
 
 ---
 class: left, top
@@ -76,7 +78,7 @@ class: left, top
 
 <br> <br>
 
-An R Markdown document is a basic text file, with the conventional extension `.Rmd`.
+An R Markdown document is a basic text file, with the (conventional) extension `.Rmd`.
 
 The example already contains the most important components:
 
@@ -95,7 +97,7 @@ class: left, top
 
 When we click **knit** in RStudio then 
 1. the `knitr` package executes the code chunks and creates a markdown document (`.md`) which contains the text we have written and optionally the code and its output 
-2. the `.md` file gets processed by `pandoc` which creates the final file in the desired output format (eg. `html`, `pdf`, `word`, ...)  
+2. the `.md` file gets processed by `pandoc` which creates the final file in the desired output format (e.g. `html`, `pdf`, `word`, ...)  
 .center[
 ![](rendering_process.PNG)
 ]
@@ -286,20 +288,20 @@ A new paragraph is started by a blank line.
 class: left, top
 ## Math Expressions
 
-When rendering to a pdf then $\LaTeX{}$ can be used throughout the document.  
+When rendering to a pdf $\LaTeX{}$ can be used throughout the document.  
 Through `MathJax` the $\LaTeX{}$ math mode can also be used for HTML output as follows: 
 - Inline $\LaTeX{}$ equations can be written within dollar signs.  
     ```{r, comment = ""}
-cat("This is an inline equation $f(x)=\\frac{1}{2\\pi}e^{-\\frac{1}{2}x^2}$.")
+cat("This is an inline equation $f(x)=\\frac{1}{\\sqrt{2\\pi}}\\exp{\\left(-\\frac{1}{2}x^2\\right)}$.")
     ```
   
-  This is an inline equation $f(x)=\frac{1}{2\pi}e^{-\frac{1}{2}x^2}$.
+  This is an inline equation $f(x)=\frac{1}{\sqrt{2\pi}}\exp{\left(-\frac{1}{2}x^2\right)}$.
   
 - Display style $\LaTeX{}$ equations can be written within double dollar signs.  
     ```{r, comment = ""}
-cat("This is display style $$f(x)=\\frac{1}{2\\pi}e^{-\\frac{1}{2}x^2}$$.")
+cat("This is display style $$f(x)=\\frac{1}{\\sqrt{2\\pi}}\\exp{\\left(-\\frac{1}{2}x^2\\right)}$$.")
     ```
-This is display style $$f(x)=\frac{1}{2\pi}e^{-\frac{1}{2}x^2}.$$
+This is display style $$f(x)=\frac{1}{\sqrt{2\pi}}\exp{\left(-\frac{1}{2}x^2\right)}$$
 
 ---
 class: left, top
@@ -335,7 +337,7 @@ class: left, top
 
 Some useful options: 
   - `eval`(`TRUE`; logical): whether to evaluate the code chunk  
-  - `echo` (`TRUE`; logical or numeric): whether to include R source code in the output file
+  - `echo`(`TRUE`; logical or numeric): whether to include R source code in the output file
   - `cache`(`FALSE`; logical): whether to cache a code chunk 
   - `fig.height` and `fig.width`  control plot size in the final document
   - `warning` (`TRUE`; logical): whether to preserve warnings 
@@ -358,7 +360,7 @@ lm(y ~ x)
 ```
 ````
 
-If mainly chunk options are used which are not the default, then it saves time to change the default for the document with ``knitr::opts_chunk$set()`.  
+If you mainly use chunk options which are not the default, then it saves time to change the default for the document with ``knitr::opts_chunk$set()`.  
 
 ````markdown
 `r ''````{r setup, include=FALSE}
@@ -396,7 +398,7 @@ class: left, top
 
 <br> <br>
 
-Tables can be created in the following way:
+Tables can be created as follows:
 <br> <br>
 .pull-left[ 
 ```markdown
@@ -428,7 +430,7 @@ The following slides show some examples.
 class: left, top
 ## `kable`
 
-- `knitr::kable` is probably the easiest way to transform a matrix or a data frame into a table.
+- `knitr::kable()` is probably the easiest way to transform a matrix or a data frame into a table.
 
 ````markdown
 `r ''````{r}
@@ -518,13 +520,13 @@ hist(rnorm(1000))
 
 ---
 class: left, top
-## Using HTML and Latex
+## Using HTML and $\LaTeX{}
 
 - If only R Markdown is used the document can be compiled without problems
 to all supported output formats. 
 
 - Sometimes R Markdown is too limited and one would like to use the more powerful 
-tools provided by HTML or Latex. 
+tools provided by HTML or $\LaTeX{}$. 
 
 - If the output format is HTML, you can also use HTML instead of R Markdown 
   or mix both.
@@ -537,7 +539,7 @@ class: left, top
 ## Interactive documents
 
 - If the output is HTML, interactive elements (usually some JavaScript) can be included. 
-- There are R packages producing interactive output e.g. `Plotly` for interactive plots or
+- There are R packages producing interactive output e.g. `plotly` for interactive plots or
 `leaflet` for interactive maps. 
 
 
@@ -591,7 +593,7 @@ leaflet() %>% addTiles() %>%
   )
 ```
 ````
-- If you want to learn more about it go to [Leaflet for R](https://rstudio.github.io/leaflet).
+- Learn more at [Leaflet for R](https://rstudio.github.io/leaflet).
 ---
 class: left, top
 ## Interactive documents
@@ -626,10 +628,10 @@ DT::datatable(
 
 ---
 class: left, top
-## Exercise
+## Exercises
 
 1. Create an R Markdown document that is compiled to an HTML document. 
-   The document should consist of 2 sections:
+   The document should consist of two sections:
    
     - Getting Data
     - Explorative Data Analysis.
@@ -643,7 +645,7 @@ class: left, top
 
 5. Create a PDF document containing what you did.
 
-6. Remember that we said nested ordered list are not supported by Rmarkdown. Produce one nontheless in your HTML and your PDF document. 
+6. Remember that nested ordered lists are not supported by Rmarkdown. Produce one nonetheless in your HTML and your PDF document. 
 
 7. Build some slides using the code you have written. 
 
