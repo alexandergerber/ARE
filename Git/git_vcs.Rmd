@@ -5,7 +5,7 @@ author: "Alexander Gerber"
 date: "5 November 2018"
 output:
   xaringan::moon_reader:
-    css: ["default", "../assets/sydney-fonts.css", "../assets/sydney.css"]
+    css: ["default", "../assets/sydney-fonts.css", "../assets/sydney.css", "../assets/title_slides.css"]
     self_contained: false # if true, fonts will be stored locally
     seal: false # show a title slide with YAML information
     includes:
@@ -26,7 +26,7 @@ options(crayon.enabled = TRUE)
 ```
 
 
-class: title-slide center middle
+class: title-slide title-git center middle
 
 # `r rmarkdown::metadata$title`
 ## `r rmarkdown::metadata$subtitle`
@@ -56,14 +56,14 @@ Why you should use Git instead of a simple folder structure?
 
 - Git can tell you what changed in each version.
 - Git helps to synchronize different variants of a version. 
-- Git makes collaborating saver since it prevents overwriting each other and helps to solve conflicts (you might know the problem from e.g. Dropbox).
+- Git makes collaborating safer since it prevents overwriting each other and helps to solve conflicts (you might know the problem from e.g. Dropbox).
 - Git reminds you to document your changes so others or your future you knows why you did something.   
 
 ---
 ## Where can I get help? 
 
 On the Git hompage ([Git documentation](https://git-scm.com/doc)) you find
-- a comprehensive Documentation.
+- a comprehensive documentation.
 - the well written book Pro Git, which served as the main source of the slides.
 - tutorial videos. 
 
@@ -79,7 +79,7 @@ $ git --version
 git version 2.11.0.windows.1
     ```
 --
-- After we made sure git is working set your user name and email address.
+- Next, set your user name and email address.
     ```terminal
 git config --global user.name "John Doe"
 git config --global user.email johndoe@example.com
@@ -112,11 +112,11 @@ git init
 
 - `git init` creates a new subdirectory named `.git` that contains all repository files.
 
-- Git dosen't keep track of all you changes automatically. You have to tell 
+- Git dosen't keep track of all your changes automatically. You have to tell 
 Git when you want to save (`commit`) a new status. 
 
-- Before we can `commit` anything we need to create some files e.g. `HelloGit.txt`
-file with the content 
+- Before we can `commit` anything we need to create some files. E.g., a `HelloGit.txt` file with the content
+
 ```
 Hello World!
 How are you?
@@ -157,7 +157,7 @@ The first step to commit changes to the repository is to  use `git add <files_to
 ```terminal
 git add HelloGit.txt
 ```
-If we run again `git status` we see 
+Running `git status` again gives
 
 ```terminal
 Changes to be committed:
@@ -165,7 +165,7 @@ Changes to be committed:
 
         new file:   HelloGit.txt
 ```
-The listed files (in our case there is only one) are ready to be commited. 
+The listed files (in our case there is only one) are ready to be committed. 
 The files are now in the so called **staging area**.
 
 ---
@@ -173,13 +173,13 @@ The files are now in the so called **staging area**.
 
 With the basic command `git commit` all files in the **staging area** are commited to the git repository. There are some things to note: 
 - Git wants you to document your commit by writing a so called commit message.
-- Running ` git commit` in the terminal will by default open the hardcore text editor VIM.  
+- Running ` git commit` in the terminal by default opens the text editor VIM.  
 
     ```{r, eval = TRUE, echo = FALSE, out.width = "300px", fig.align='left'}
 knitr::include_graphics(here::here("img/git3.PNG"))
     ```
 
-- If you don't want to spend time on learning VIM in order to write commit messages you best change the default editor. On windows you might switch to 
+- If you don't want to spend time on learning VIM in order to write commit messages you should change the default editor. On windows you might switch to 
 Notepad. 
 ```terminal
 git config --global core.editor notepad
@@ -213,7 +213,7 @@ knitr::include_graphics(here::here("img/git5.PNG"))
 Source: [Pro Git](https://git-scm.com/book/en/v2/Git-Basics-Recording-Changes-to-the-Repository)
 ]
 ---
-## Exersice
+## Exercises
 
 1. Change the `HelloGit.txt` by replacing `Hello World!` with `Hello Git!`
 2. Add the changed file to the staging area. 
@@ -245,7 +245,7 @@ Learn more about `git log` [here](https://git-scm.com/book/en/v2/Git-Basics-View
 ---
 ## `git diff`
 
-- With `git diff` we can compare files before and after a commit. If we want to 
+- With `git diff` we can compare files before and after a commit. To 
 know what exactly changed in our last commit we compare it to our first commit:
 
 ```terminal
@@ -259,7 +259,7 @@ index 4f6866b..71e6eca 100644
 -Hello World!
 +Hello Git!
 ```
-- Note that we don't need the full SHA. Usually it is enough to provide the first 4 signs. If it would happen that 2 or more SHA values started with the same 4 signs then git would tell us to provide more signs until the result gets unambiguous.  
+- Note that we don't need the full SHA. Usually it is enough to provide the first 4 signs. If two or more SHA values started with the same 4 signs then git would tell us to provide more signs until the result gets unambiguous.  
 
 ---
 ## `git diff`
@@ -306,7 +306,7 @@ c3ed28cbdf6f7419242ad0747806d309954211f9 important change
 27d048c3bebda441db44b9506080b4784dcc728b initial commit
 ```
 
-- Lets say you regret deleting `HelloGit.txt` and you want it back. 
+- Let's say you regret deleting `HelloGit.txt` and you want it back. 
 With the command `git checkout <SHA><path>` files can be brought back to their state of the specified commit. 
 
     ```terminal
@@ -323,7 +323,7 @@ git reset --hard 27d048
 ```
 - However, all changes after that commit will be discarded. 
 
-- If you want to keep changes in the directory of your computer use 
+- To keep changes in the directory of your computer use 
 
 ```terminal
 git reset 27d048 
@@ -332,23 +332,24 @@ git reset 27d048
 are now all in the modified files stage. 
 
 ---
-## Exercise
+## Exercises
 1. Make some changes to `HelloGit.txt` in your repository and add it to the staging area. 
 2. Now, you remember that you forgot some important changes and you want to unstage `HelloGit.txt`. For this, remove first `HelloGit.txt` from the staging area (`git status` will help you). Now make some changes and commit them. 
 3. Restore the initial state of the `HelloGit.txt` file (i.e. the state after your initial commit).  
-4. Create a new text file with arbitrary content. Add and commit your changes. 5. Remove the file but do not commit. 
+4. Create a new text file with arbitrary content. Add and commit your changes. 
+5. Remove the file but do not commit. 
 6. Try to restore the file. 
 
 
 ---
 ## Remote Repository
 
-- Until now our repository only lives on our loval machine. If you want 
-to collaborate with others you want too use a remote repository which everybody has access to. 
+- Until now our repository only lives on our local machine.
+To collaborate with others you want to use a remote repository which everybody has access to. 
 
 - [Github](https://github.com) provides a platform where you can host your remote repository for free. 
 
-Setup a remote repository: 
+Set up a remote repository: 
 
 1. Go to Github.com and create a new account.
 2. Login to your Github account and go to + 	&rarr; New repository
@@ -371,7 +372,7 @@ git push -u origin master
 ---
 ## `git push`
 
-Every `commit` changes the Git repository on your local machine. If you want to update 
+Every `commit` changes the Git repository on your local machine. To update 
 the remote repository on Github you also need to `push` your local commits. 
 
 Add a new file to your repository. Then add, commit and push the new file.   
@@ -387,7 +388,7 @@ Find somebody in the classroom to collaborate with.
 <br>
 
 --
-One adds the other to his Github repository.
+Person A adds the other to his Github repository.
 - Settings &rarr; Collaborators  
 
 --
@@ -417,7 +418,7 @@ This should run smoothly if you didn't work on the project in the meantime.
 ---
 ## Exercise
 
-1. One makes a change to the shared repository (add, commit, push). Afterwards the other one fetches the changes, runs `git status`
+1. Person A makes a change to the shared repository (add, commit, push). Afterwards Person B fetches the changes, runs `git status`
 (inspect the result) and merges the changes into his repository. Then do the same thing the other way arround. 
 
 ---
@@ -454,7 +455,7 @@ the most recent status.
 - However, Person A is now behind by one commit. If she tries to push a new commit, Git will tell her that 
 she first needs to `git pull` which is short for `git fetch` and `git merge`.  
 
-- If Person A does this git will try to solve the confilict automatically. 
+- If Person A does this Git will try to solve the confilict automatically. 
 However, in our case git won't be able to do so because the exactly same parts of a file were changed and you don't
 want a machine to decide what to keep and what to discard. 
 
@@ -491,10 +492,10 @@ How are you? I hope you don't run into too many conflicts.
 ## .gitignore
 
 - Not everything in our working directory should be tracked by Git. 
-- As a rule of thumb one could say we only want to track source files (e.g. only the `.rmd` but not the generated `.html` file)
+- As a rule of thumb only track source files (e.g. only the `.rmd` but not the generated `.html` file)
 - Git ignores all files which are specified in the file `.gitignore`.
-- Since it would be cumbersome to specify each file that shouldn't be tracked seperatly Git allows the usage of patterns.
-- Learn more about it in the (gitignore documentation)[https://git-scm.com/docs/gitignore].
+- Since it would be cumbersome to specify each file that shouldn't be tracked separately Git allows the usage of patterns.
+- Learn more about it in the [[gitignore documentation](https://git-scm.com/docs/gitignore).
 
 #### Example `.gitignore` file
 ```terminal
