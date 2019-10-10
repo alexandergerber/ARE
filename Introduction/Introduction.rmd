@@ -9,7 +9,7 @@ output:
   xaringan::moon_reader:
     seal: false
     lib_dir: libs
-    css: ["default", "../assets/sydney-fonts.css", "../assets/sydney.css", "../assets/custom.css"]
+    css: ["default", "../assets/sydney-fonts.css", "../assets/sydney.css", "../assets/custom.css", "../assets/title_slides.css"]
     nature:
       highlightStyle: github
       highlightLines: true
@@ -21,9 +21,9 @@ output:
 knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 ```
 
-class: title-slide center middle
+class: class: title-slide title-rintro center middle
 
-# `r rmarkdown::metadata$title`
+#  `r rmarkdown::metadata$title`
 ## `r rmarkdown::metadata$subtitle`
 
 ---
@@ -51,12 +51,12 @@ On Moodle you will find a link to [Datacamp](https://www.datacamp.com) which wil
 ---
 ## Grading
 
-- Over the semester there will be three graded assignments.  
+- There will be three graded assignments.  
 
 - You will have to work on a final group project which focuses on one or more of the topics discussed in the course. 
 
-- The final grade is a weighted average of the grades for the group project (60%), its presentation (20%) and
-the assignments (20%).
+- The final grade is a weighted average of the grades for the group project (50%), its presentation (20%) and
+the assignments (30%).
 
 - You have to pass each part (assignments, project and presentation) separately to pass the course. 
 ---
@@ -70,6 +70,7 @@ the assignments (20%).
 3. Data Wrangling and Transformation
    - dplyr
    - data.table
+   - databases
 4. Advanced R Programming 
   - Functional Programming
   - Object Oriented Programming 
@@ -94,7 +95,7 @@ class: top, left
 ## About R
 
 - R is a language and environment for statistical computing and graphics.
-- R is highly extensible. A massive set of packages for statistical modelling, machine learning, visualisation, as well as importing and manipulating data. Researchers in statistics and machine learning will often publish an R package to accompany their articles.
+- R is highly extensible. There is a massive set of packages for statistical modelling, machine learning, visualisation, as well as importing and manipulating data. Researchers in statistics and machine learning often publish an R package to accompany their articles.
 - R is free and open source. 
 - R provides tools for communicating your results. R packages make it easy to produce html or pdf reports, or create interactive websites.
 - R is designed to connect to high-performance programming languages like C, Fortran, and C++.
@@ -108,7 +109,7 @@ class: top, left
 ## Sources
 
 - [Advanced R](http://adv-r.had.co.nz/) by Hadley Wickham
-- [R for Data Science](https://r4ds.had.co.nz) by Hadley Wickham and Garrett Grolemund
+- [R for Data Science](https://adv-r.hadley.nz/) by Hadley Wickham and Garrett Grolemund
 - The Art of R Programming by Norman Matloff
 - The [Use R!](https://www.springer.com/series/6991) Series by Springer
 - The [R Series](https://www.crcpress.com/go/the-r-series) by CRC Press
@@ -121,11 +122,11 @@ class: top, left
 ## Packages
 
 - In R the fundamental unit of shareable code is the package.
-- The chances are that someone has already solved a problem that you’re working on, and you can benefit from their work by downloading their package.
+- Chances are that someone has already solved a problem that you’re working on, and you can benefit from their work by downloading their package.
 
 The main sources for packages are
   - CRAN (Comprehensive R Archive Network) with as of now ca. 15.000 available packages
-  - GitHub (that is the place were packages are developed before getting published on CRAN) 
+  - GitHub (that is the place where packages are developed before getting published on CRAN) 
   - Bioconductor
 
 ---
@@ -140,7 +141,7 @@ How to install packages from CRAN?
 How to install packages from Github?
 
 - Install the package `devtools` from CRAN.
-- Use `devtools::install_github("tidymodels/broom")` to install the `broom` package from Github.
+- E.g., use `devtools::install_github("tidymodels/broom")` to install the `broom` package from Github.
 
 - If you want to find out how a package works, search for
 .code70[
@@ -161,10 +162,18 @@ If you have specific questions about your code or an error message look on
   - [RStudio Community](https://community.rstudio.com/) (if it is about RStudio or packages developed by RStudio)
   - the [GitHub](https://github.com/) repository of the package maintainer
 
-The chances are high that somebody else has already asked the same questions and it has already been solved. 
+The chances are high that somebody else has already asked the same question and it has already been solved. 
 
 If you don't find an answer you can ask a question yourself. What sounds easy is harder then one would think. Most importantly you have to provide a [reproducible example](https://stackoverflow.com/questions/5963269/how-to-make-a-great-r-reproducible-example).
 
+???
+Bad questions: 
+https://stackoverflow.com/questions/58302656/how-can-i-set-equals-function-in-objective-of-solver-in-r-python
+https://stackoverflow.com/questions/58121493/update-a-coordinate-dataframe-in-shiny 
+
+Good questions:  
+https://stackoverflow.com/questions/38777337/ggplot-ribbon-cut-off-at-y-limits/38777929#38777929 
+https://stackoverflow.com/questions/53241120/how-to-use-openblas-lapacke-together-with-rcpp
 ---
 ## Rstudio
 - RStudio is an integrated development environment (IDE) for R. 
@@ -181,7 +190,7 @@ Workflow:
 automatically set to the folder where the `.Rproj` file lives in. 
 
 ---
-####Shortcuts
+#### Some Shortcuts
 <br>
 
 ```{r echo = FALSE, eval = TRUE}
@@ -205,8 +214,8 @@ class: top, left
 
 ## R Basics
 
-- We start by recapitulating some Basics you should be familiar with when working with R. 
-- An in depth treatment of this material can be found in the first chapter of
+- We start by recapitulating some basics you should be familiar with when working with R. 
+- An in-depth treatment of this material can be found in the first chapter of
 [Advanced R](https://adv-r.hadley.nz/vectors-chap.html#introduction) by Hadley Wickham. 
 
 
@@ -224,13 +233,36 @@ data.frame(c("1d", "2d", "nd"), Homogeneous = c("Atomic Vector", "Matrix", "Arra
 col.names = c("", "Homogeneous", "Heterogeneous"), format = "html")
 ```
 <br> 
-You should also be familiar with the basic data types (character, double, integer, logical).
-
+You should also be familiar with the basic data types (character, double, integer, logical).  
+<br>
 #### Quiz: 
 1. How is a list different from an atomic vector? 
 2. How is a matrix different from a data frame?
 3. How do you find out the type of an object?
 4. How can you check if an object is of type character?
+
+???
+```{r}
+char_vector <- c("Hi", "there")
+typeof(char_vector)
+class(char_vector)
+
+num_matrix <- matrix(rnorm(4), ncol = 2)
+typeof(num_matrix)
+class(num_matrix)
+is.numeric(num_matrix)
+
+
+plus <- function(a, b){
+  if(!is.numeric(a)) stop("a is not numeric")
+  if(!is.numeric(b)) stop("b is not numeric")
+  a + b
+}
+
+plus(1, "a")
+```
+
+
 
 ---
 class: top, left
@@ -250,6 +282,31 @@ Have you ever encounterd `@`?
 
 3. When should you use `drop = FALSE`?
 
+
+???
+```{r}
+
+## Drop
+m1 <- matrix(1:4, nrow = 2)
+m2 <- matrix(1:4, nrow = 2)
+
+matrix_prod <- function(A, B){
+  B %*% t(A)
+}
+
+matrix_prod(m1[1, ], m2)
+matrix_prod(m1[1, , drop = FALSE], m2)
+
+## Example for S4 class
+N <- 200
+x.vec <- as.vector(fGarch::garchSim(fGarch::garchSpec(rseed = 1985), n = N)[,1])
+garch11 <- fGarch::garchFit(~ garch(1,1), data = x.vec, trace = FALSE)
+
+isS4(garch11)
+
+```
+
+
 ---
 ## R Basics: Control Flows
 
@@ -266,7 +323,7 @@ y <- if (x) 3
     ```{r, eval = FALSE}
 switch("x", x = , y = 2, z = 3)
     ```
-4. Name three kind of loops that can be implemented in R? How do they differ?
+4. Name three kind of loops that can be implemented in R! How do they differ?
 
 ???
 
@@ -308,7 +365,7 @@ class: top, left
 f1 <- function() x
 x <- "global"
 f2 <- function(){
-  x <- "f2"
+  x <- "local_f2"
   f1()
 }
 f2()
@@ -374,8 +431,8 @@ square_3()
 
 What is the result of the first call to `square_4()`? What will happen the second time?
 ```{r}
-square_4 <- funcx <- 2
-tion(){
+x <- 2
+square_4 <- function(){
   (x <- x^2)
 }
 
@@ -516,7 +573,7 @@ x[1 ,]  # Space goes after comma not before
 ---
 #### Spacing
 
-- An opening curly brace should never go on its own line and should always be followed by a new line. A closing curly brace should always go on its own line, unless it’s followed by else.
+- An opening curly brace should never go on its own line and should always be followed by a new line. A closing curly brace should always go on its own line, unless it’s followed by else. Always indent the code inside curly braces.
 
 .code70[
     ```{r}
@@ -532,8 +589,8 @@ if (y == 0) {
 }
 
 # Bad
-if (y < 0 && debug)
-message("Y is negative")
+if (y < 0 && debug) {
+message("Y is negative") }
 
 if (y == 0) {
   log(x)
@@ -542,16 +599,15 @@ else {
   y ^ x
 }
     ```
-
+]
+---
+#### Spacing
 
 - It’s ok to leave very short statements on the same line:
     ```{r}
 if (y < 0 && debug) message("Y is negative")
     ```
 ]
-
----
-#### Spacing
 
 - Strive to limit your code to 80 characters per line. 
 - If you find yourself running out of room, this is a good indication that you should encapsulate some of the work in a separate function.
@@ -579,6 +635,86 @@ x = 5
 
 # Plot data ---------------------------
     ```
+
+---
+## Exercises
+1. Combine all elements of `df_list` to one data frame. The result should be only a single line of code.   
+```{r}
+df_list <- lapply(0:4, function(j) data.frame(c1 = (1:5) + 5 * j,
+                                              c2 = letters[(1:5) + 5 * j]
+                                              )
+                  )
+```
+
+2. Fix each of the following common data frame subsetting errors:
+    ```{r}
+    mtcars[mtcars$cyl = 4, ]
+    mtcars[-1:4, ]
+    mtcars[mtcars$cyl <= 5]
+    mtcars[mtcars$cyl == 4 | 6, ]
+    ```
+
+3. What does `df[is.na(df)] <- 0` do?
+
+4. How would you randomly permute the columns of a data frame? 
+
+---
+## Exercises
+<ol start = "5" >
+<li>Write a <TT>while</TT> and a <TT>repeat</TT> loop doing the same as 
+</ol>
+```{r}
+for(i in LETTERS[1:10]){
+  print(i)
+}
+```
+<ol start = "6" >
+<li> Write a <TT>for</TT> loop doing the same as</li>
+</ol>
+```{r}
+count <- 0
+repeat{
+  x     <- sample(1:6, 1)
+  count <- count + 1 
+  if(x == 6) break
+}
+print(count)
+```
+
+---
+## Exercises
+
+<ol start = "7" >
+<li> What is the problem here? </li>
+</ol>
+```{r}
+# Number of apples
+i <- 100
+for (i in 1:3) {} 
+paste("The number of apples is", i)
+```
+
+<ol start = "8" >
+<li> What is the problem here? Can you debug it? </li>
+</ol>
+```{r}
+df <- mtcars
+
+lin_mod <- function(){
+  lm(y ~ . ,data = df)
+}
+
+simple_lin_mod <- function(data, y, x){
+  df <- data[ ,c(y, x)]
+  names(df) <- c("y", "x")
+  fast_lm()
+}
+
+simple_lin_mod(df, "mpg", "cyl")
+
+```
+
+
 
 
 
