@@ -17,28 +17,258 @@ output:
       countIncrementalSlides: false
       ratio: "16:9"
 ---
+```{r, include = FALSE, cache = FALSE}
+library(knitr)
+knitr::opts_chunk$set(eval = TRUE)
 
-## Why should we use Databases?
+default_source_hook <- knit_hooks$get("source")
+knit_hooks$set(
+  source = function(x, options) {
+    if(is.null(options$table))
+      default_source_hook(x, options)
+    else {
+      eval(parse(text = x)) %>%
+        kable("html") %>%
+        kable_styling("hover", full_width = F)
+    }
+  }
+)
+```
 
-- The amount of data you can work with in R is constraint by your memory. 
+
+---
+## Memory Limitations of R
+
+- The amount of data you can work with in R is mainly constraint by your computers memory. 
 - In times where data sets with several 100 GB or even TB are become more and more common
-  loading all data into memory is often not feasable. 
+  loading all data into memory is usually not feasable. 
 - Often only a subset or an aggregation of the data is required for the analysis which requires much less memory space.
 - How to subset or aggregate data? &rarr; Use a database!
 
+---
+## (Relational) Databases
+- A database is a place to store, manipulate and retreat data.
+- A relational database aims to reduce redundancies by spreading the data over multiple tables and
+  relate them to each other. 
 
+#### Example of Redundent Data
 
-```{r, eval = FALSE}
+.font90[
+```{r, echo = FALSE, eval = TRUE, results = 'asis', message = FALSE}
 library(dplyr)
-con <- DBI::dbConnect(RSQLite::SQLite(), dbname  = here::here("databases", "mtcars.sqlite3"))
-DBI::dbWriteTable(con, "mtcars", mtcars)
-copy_to(con, mtcars, "mtcars")
+set.seed(123)
+cust_names<- c("17" = "Peter", "34" = "Kelly", "108" = "Aleta")
+cust_address<- c("17" = "Carnaby  St.", "34" = "Downing Rd.", "108" = "Berwick St.")
+sells <- tibble(store_id = rep(1:2, each = 4), 
+                    store_location   = rep(c("Baker St.", "Abbey Road"), each = 4),
+                    store_mngr   = rep(c("John", "George"), each = 4),
+                    cust_id      = sample(c(34, 17, 108, 17, 108, 17, 34, 17), 8, replace = TRUE),
+                    cust_address = cust_address[as.character(cust_id)],
+                    cust_name    = cust_names[as.character(cust_id)],
+                    date = sample(seq(as.Date("2019/1/1"), as.Date("2019/3/1"), 
+                               by = "day"), 8),
+                    total = sample(10:20, 8, replace = TRUE)
+                )
 
-tbl(con, "mtcars")
-DBI::dbDisconnect(con)
+knitr::kable(sells, format = "html")
+```
+]
+---
+#### Example of Non-Redundent Data 
 
-con <- DBI::dbConnect(RSQLite::SQLite(), path = here::here("databases", "mtcars.sqlite3"))
+- The same information would be stored in a relational database like this: 
 
+```{r, eval = TRUE, echo = FALSE}
+store <- tibble(store_id =  1:2, 
+                store_location = c("Baker St.", "Abbey Road"),
+                store_mngr   = c("John", "George")
+                )
+customer <- tibble(cust_id = names(cust_names),
+                   cust_names = cust_names,
+                   cust_address = cust_address)
+
+sells_rel <- sells %>% select(-store_location, -store_mngr, -cust_address, -cust_name) 
+```
+
+.pull-left[
+```{r, echo = FALSE, eval = TRUE}
+knitr::kable(sells_rel, format = "html", caption = "Sell Records")
+```
+]
+.pull-right[
+```{r, echo = FALSE, eval = TRUE}
+knitr::kable(store, format = "html", caption = "Store")
+```
+<br>
+```{r, echo = FALSE, eval = TRUE}
+knitr::kable(customer, format = "html", caption = "Customer")
+```
+]
+
+<br>
+- The relationship between the tables is defined by the `id` columns (called keys).
+
+
+
+---
+## R and Databases
+
+- `dplyr` also works with remote on-disk data stored in relational databases.
+- For this to work you need 
+    ```{r, eval = FALSE}
+install.packages("dbplyr")
+    ```
+- You’ll also need to install a `DBI` backend package. The `DBI` package provides a common interface that allows `dplyr` to work with many different databases using the same code. 
+
+- Some commonly used backends are:
+    - `RMySQL` connects to MySQL and MariaDB.
+    - `RPostgreSQL` connects to Postgres and Redshift.
+    - `RSQLite` embeds a SQLite database.
+    - `bigrquery` connects to Google’s BigQuery.
+
+---
+## Connect to a Database
+
+- To connect to a database authentication information such as 
+  username and password are required (the database admin should provide those). 
+- You also need to specify a driver that makes communication with the database possible.
+- There is a remote MySQL database hosted on the web which we have access to:
+    ```{r, eval = FALSE}
+library(dplyr)
+con <- DBI::dbConnect(
+               drv = RMariaDB::MariaDB(), # MariaDB driver works for MySQL as well
+               username = "sql7308621",
+               dbname   = "sql7308621", 
+               host     = "sql7.freesqldatabase.com",
+               password = rstudioapi::askForPassword("Database password"),
+               port     = "3306"
+               )
+    ```
+
+```{r, eval = TRUE, echo = FALSE}
+library(dplyr)
+con <- DBI::dbConnect(
+               drv = RMariaDB::MariaDB(), # MariaDB driver works for MySQL as well
+               username = "sql7308621",
+               dbname   = "sql7308621", 
+               host     = "sql7.freesqldatabase.com",
+               password = "MH1M64RSY4",
+               port     = "3306"
+               )
+```
+
+```{r, echo = FALSE, eval = FALSE}
+DBI::dbWriteTable(con, "gapminder", gapminder::gapminder)
+DBI::dbWriteTable(con, "country_codes", gapminder::country_codes)
+```
+
+---
+## Access Data
+
+- When the connection is established we can use the object `con` to communicate with the database.
+- The function `DBI::dbListTables()` tells us which tables are in the database 
+```{r}
+DBI::dbListTables(con)
+```
+- With `dplyr::tbl()` we can create an object which is a reference to a table in the database. Most `dplyr` functions work on this object as it was as a data frame (or `tibble`).
+```{r}
+gap_db <- tbl(con, "gapminder")
+class(gap_db)
+```
+
+---
+## Use Standard `dplyr`  Functions on the Database
+
+```{r, message=FALSE, warning=FALSE}
+gap_avg_db <- gap_db %>% 
+                group_by(continent) %>% 
+                select_if(is.numeric) %>% 
+                select(-year) %>%
+                summarise_all(mean)
 
 ```
+
+- Even if it seems as if `gap_avg_db` is a data frame it still is only a set of instructions to be performed by the data base. 
+- `show_query()` tells us which instructions are sent to the database. 
+```{r, warning=FALSE}
+show_query(gap_avg_db)
+```
+
+
+---
+## Use Standard `dplyr`  functions on the Database
+
+
+When working with databases, dplyr tries to be as lazy as possible:
+
+- It never pulls data into R unless you explicitly ask for it.
+- It delays doing any work until the last possible moment: it collects everything you want to do and then sends it to the database in one step.
+
+`collect()` actually pulls the data into R.  
+
+```{r}
+gap_avg <- gap_avg_db %>% collect()
+print(gap_avg)
+```
+
+---
+## Disconnect
+
+- After the connection to the database is no longer needed you should disconnect. 
+
+```{r}
+DBI::dbDisconnect(con)
+rm(con)
+```
+
+
+
+---
+## Set up an SQLite Database
+
+- SQLite is very light weighted Database Management System 
+- An SQLite database is contained in a single file. There is no need for a server. 
+- Everything you need is installed if the package `RSQLite` is installed. 
+
+#### Create an SQLite Database
+- A new SQLite database is automatically created if you call `DBI::dbConnect()`
+with argument `dbname = "path_to_database"` where `"path_to_database"` is a path to 
+a non-existing file. 
+- In case `"path_to_database"` is an existing SQLite database it 
+connects to that database. 
+
+```{r, echo = TRUE, eval = FALSE}
+library(dplyr)
+con <- DBI::dbConnect(
+               drv = RSQLite::SQLite(),
+               dbname = here::here("databases","gapminder.sqlite3"), 
+               )
+```
+
+---
+## Write Data to the Database
+
+- With 
+    ```{r, eval = FALSE}
+DBI::dbWriteTable(con, 
+                  name = "mtcars_db", 
+                  value = mtcars)
+    ```
+we add the data frame `mtcars` as a new table with name `mtcars_db` to the database.
+
+- To add data to an existing table we use the additional argument `append = TRUE`.
+    ```{r, eval = FALSE}
+new_car <- data.frame(mpg = 1, cyl = 16, disp = 800, hp = 210, 
+                      drat = 5, wt = 6, qsec = 2, vs = 1, am = 0)
+rownames(new_car) <- "Super Car 500"
+
+DBI::dbWriteTable(con, 
+                  name = "mtcars_db", 
+                  value = new_car, 
+                  append = TRUE)
+    ```
+
+
+
+
 
