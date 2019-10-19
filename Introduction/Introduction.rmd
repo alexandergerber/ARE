@@ -7,6 +7,7 @@ author:
 date: '`r Sys.Date()`'
 output:
   xaringan::moon_reader:
+    self_contained: true
     seal: false
     lib_dir: libs
     css: ["default", "../assets/sydney-fonts.css", "../assets/sydney.css", "../assets/custom.css", "../assets/title_slides.css"]
@@ -47,6 +48,12 @@ Slides, exercises and announcements will be provided on
 The password for the course is **"Hadley"**.  
 <br>
 On Moodle you will find a link to [Datacamp](https://www.datacamp.com) which will give you free access to all their content. 
+
+???
+Background? 
+R and Rstudio installed? 
+What do you know about R? 
+
 
 ---
 ## Grading
@@ -108,8 +115,8 @@ class: top, left
 class: top, left
 ## Sources
 
-- [Advanced R](http://adv-r.had.co.nz/) by Hadley Wickham
-- [R for Data Science](https://adv-r.hadley.nz/) by Hadley Wickham and Garrett Grolemund
+- [Advanced R](https://adv-r.hadley.nz/) by Hadley Wickham
+- [R for Data Science](https://r4ds.had.co.nz) by Hadley Wickham and Garrett Grolemund
 - The Art of R Programming by Norman Matloff
 - The [Use R!](https://www.springer.com/series/6991) Series by Springer
 - The [R Series](https://www.crcpress.com/go/the-r-series) by CRC Press
@@ -243,6 +250,9 @@ You should also be familiar with the basic data types (character, double, intege
 
 ???
 ```{r}
+object.size(1:1000)
+object.size(as.numeric(1:1000))
+
 char_vector <- c("Hi", "there")
 typeof(char_vector)
 class(char_vector)
@@ -261,7 +271,6 @@ plus <- function(a, b){
 
 plus(1, "a")
 ```
-
 
 
 ---
@@ -317,7 +326,7 @@ The basic control flows are conditionals (choices) and loops.
 1. What is the difference between `if` and `ifelse()`?
 2. What will be the value of `y` in the following code if `x` is `TRUE`? What if `x` is `FALSE`? What if `x` is `NA`?
     ```{r, eval = FALSE}
-y <- if (x) 3
+y <- if(x) 3
     ```
 3. What is returned by the following code? 
     ```{r, eval = FALSE}
@@ -328,6 +337,10 @@ switch("x", x = , y = 2, z = 3)
 ???
 
 ```{r}
+if("2") 3
+if(2) 3
+
+
 for(i in 1:3){
   print(i)
 }
@@ -363,7 +376,7 @@ class: top, left
 - Example for lexical scoping:
     ```{r}
 f1 <- function() x
-x <- "global"
+x  <- "global"
 f2 <- function(){
   x <- "local_f2"
   f1()
@@ -638,7 +651,10 @@ x = 5
 
 ---
 ## Exercises
-1. Combine all elements of `df_list` to one data frame. The result should be only a single line of code.   
+
+<ol start = "1" >
+<li> Combine all elements of <TT>df_list</TT> to one data frame. The result should be only a single line of code. </li>
+</ol>
 ```{r}
 df_list <- lapply(0:4, function(j) data.frame(c1 = (1:5) + 5 * j,
                                               c2 = letters[(1:5) + 5 * j]
@@ -646,22 +662,28 @@ df_list <- lapply(0:4, function(j) data.frame(c1 = (1:5) + 5 * j,
                   )
 ```
 
-2. Fix each of the following common data frame subsetting errors:
-    ```{r}
+<ol start = "2" >
+<li> Fix each of the following common data frame subsetting errors: </li>
+</ol>
+```{r}
     mtcars[mtcars$cyl = 4, ]
     mtcars[-1:4, ]
     mtcars[mtcars$cyl <= 5]
     mtcars[mtcars$cyl == 4 | 6, ]
-    ```
+```
 
-3. What does `df[is.na(df)] <- 0` do?
+<ol start = "3" >
+<li>  What does <TT>df[is.na(df)] <- 0</TT> do? </li>
+</ol>
 
-4. How would you randomly permute the columns of a data frame? 
+<ol start = "4" >
+<li>How would you randomly permute the columns of a data frame?</li>
+</ol>
 
 ---
 ## Exercises
 <ol start = "5" >
-<li>Write a <TT>while</TT> and a <TT>repeat</TT> loop doing the same as 
+<li>Write a <TT>while</TT> and a <TT>repeat</TT> loop doing the same as </li> 
 </ol>
 ```{r}
 for(i in LETTERS[1:10]){

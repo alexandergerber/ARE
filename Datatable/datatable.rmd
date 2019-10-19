@@ -94,7 +94,7 @@ obj_addr(X$a)
 ```
 
 ---
-### Why using data.table
+### Why to use data.table
 
 Compared to base R and the tidyvere the advantages of `data.table` are
 
@@ -189,11 +189,11 @@ DT[LU, on=c("color","clarity")]
 
 - Returning a single vector.
     ```{r, eval = FALSE}
-DT[ ,price]
+DT[ , price]
     ```
 - Returning a `data.table` with only one column. 
     ```{r, eval = FALSE}
-DT[ ,.(price, depth)]
+DT[ , .(price, depth)]
     ```
 - Returning `data.table` with multiple columns.
     ```{r, eval = FALSE}
@@ -208,8 +208,8 @@ DT[ ,c("price", "depth")]
 - If the column names are stored in a variable use
     ```{r, eval = FALSE}
 cols <- c("price", "depth")
-DT[ ,..cols]                # or
-DT[ ,cols, with = FALSE]
+DT[ , ..cols]                # or
+DT[ , cols, with = FALSE]
     ```
 
 ---
@@ -224,17 +224,17 @@ DT[ ,price_eur := price/0.91]
 - Add multiple variables
 ```{r}
 # Here, we need to quote at the left hand side: 
-DT[ ,c("x","y"):= .(log(price), price - mean(price))]
+DT[ , c("x","y") := .(log(price), price - mean(price))]
 ```
 
 - Remove one variable. 
 ```{r}
-DT[ ,price_eur := NULL]
+DT[ , price_eur := NULL]
 ```
 
-- Remove multiple variable. 
+- Remove multiple variables. 
 ```{r, eval = FALSE}
-DT[ ,c("x", "price_eur") := NULL]
+DT[ , c("x", "price_eur") := NULL]
 ```
 
 ---
@@ -243,13 +243,13 @@ DT[ ,c("x", "price_eur") := NULL]
 - Simple update
 
 ```{r}
-DT[price > 2500 , price := 2500]
+DT[price > 2500, price := 2500]
 ```
 
 - Updating multiple columns.
 
 ```{r}
-DT[price > 2500 ,c("price","depth") := .(log(price),  sqrt(depth))]
+DT[price > 2500, c("price","depth") := .(log(price), sqrt(depth))]
 ```
 
 
@@ -259,7 +259,7 @@ DT[price > 2500 ,c("price","depth") := .(log(price),  sqrt(depth))]
 `j` can be used to evaluate expressions. Columns can be accessed as if they were in the global environment (compare to `dplyr::summarise()`.  
 
 ```{r}
-DT[ ,mean(price)/sd(depth)]
+DT[ , mean(price) / sd(depth)]
 ```
 
 The results are simply returned as a value which can be assigned to some variable. 
@@ -267,7 +267,7 @@ The results are simply returned as a value which can be assigned to some variabl
 Several expressions can be used by putting them in a list. If a list is used, the result is returned as a `data.table`.
 
 ```{r}
-DT[ ,.(mean_price = mean(price),sd_depth = sd(depth))]
+DT[ , .(mean_price = mean(price), sd_depth = sd(depth))]
 ```
 
 
@@ -279,17 +279,17 @@ The `by` argument allows operations by group (compare to `dplyr::group_by()`).
 
 - Grouping by a single variable
 ```{r, eval = FALSE}
-DT[ ,.(mean_price = mean(price)), by = clarity]
+DT[ , .(mean_price = mean(price)), by = clarity]
 ```
 
 - Grouping by multiple variables.
 ```{r, eval = FALSE}
-DT[ ,.(mean_price = mean(price)), by = .(clarity, color)]
+DT[ , .(mean_price = mean(price)), by = .(clarity, color)]
 ```
 
 - Grouping by expressions.
 ```{r, eval = FALSE}
-DT[,mean(carat), by = list("is price bigger than 2300?" = price > 2300)]
+DT[ , mean(carat), by = list("is price bigger than 2300?" = price > 2300)]
 ```
 
 ---
@@ -297,12 +297,12 @@ DT[,mean(carat), by = list("is price bigger than 2300?" = price > 2300)]
 
 Additionally to grouping `keyby` runs `setkey()` on the by columns 	&rarr; results are sorted.
 ```{r, echo = FALSE, eval = TRUE}
-options(datatable.print.topn=5, datatable.print.nrows=5)
+options(datatable.print.topn = 5, datatable.print.nrows = 5)
 ```
  
 
 ```{r, eval = TRUE}
-DT[ ,mean(price) ,keyby = .(clarity,color)]
+DT[ , mean(price), keyby = .(clarity,color)]
 ```
 
 
@@ -325,7 +325,7 @@ We can however change `.SD` to only contain a subset of all columns using `.SDco
 
 ```{r}
 num_cols <- names(DT)[sapply(DT, is.numeric)] 
-DT[ ,lapply(.SD, mean), .SDcols = num_cols ]
+DT[ , lapply(.SD, mean), .SDcols = num_cols ]
 ```
 
 
@@ -373,7 +373,7 @@ merge(members, instruments, all=TRUE)[is.na(plays)]
 ```
 ---
 ### Joins: Overview
-
+<br>7
 ```{r, echo = FALSE}
 data.frame("Join type" = c("INNER", "LEFT", "RIGHT", "FULL", "ANTI"),
            "DT" = c("X[Y, nomatch=0]", "X[Y]", "Y[X]", "-", "-"),
