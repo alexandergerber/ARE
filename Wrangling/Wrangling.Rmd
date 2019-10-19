@@ -70,10 +70,10 @@ mtcars_tibble <- as_tibble(mtcars)
 
 - more consistent subsetting behaviour
     ```{r, echo = TRUE, eval = FALSE}
-mtcars[ ,1:2] # Return a data.frame
-mtcars[ ,1]   # Returns a vector 
-mtcars_tibble[ ,1:2] # Returns a tibble
-mtcars_tibble[ ,1]   # Returns a tibble
+mtcars[ ,1:2] # returns a data.frame
+mtcars[ ,1]   # returns a vector 
+mtcars_tibble[ ,1:2] # returns a tibble
+mtcars_tibble[ ,1]   # returns a tibble
     ```
 
 ---
@@ -255,15 +255,15 @@ select(iris, matches(".t."))
 select(iris, num_range("x", 1:5))
     ```
 
-- Select all columns from Sepal.Width to Petal.Width.
+---
+class: top, left
+## Helper Functions for `select()`
+
+- Select all columns from `Sepal.Width` to `Petal.Width`.
     ```{r, echo=TRUE, eval = FALSE}
 select(iris, Sepal.Width:Petal.Width)
     ```
 
-
----
-class: top, left
-## Helper Functions for `select()`
 - Select columns whose names are in a group of names.
     ```{r, echo=TRUE, eval = FALSE}
 select(iris, one_of(c("Species", "Genus")))
@@ -279,16 +279,6 @@ select(iris, starts_with("Sepal"))
 select(iris, Sepal.Length:Petal.Width)
     ```
 
-- Select all columns except Species. 
-    ```{r, echo=TRUE, eval = FALSE}
-select(iris, -Species)
-    ```
-
-- Select everything
-    ```{r, echo=TRUE, eval = FALSE}
-select(iris, everything())
-    ```
-
 ---
 ## Mutate
 
@@ -300,7 +290,7 @@ mutate(mtcars_tibble,
        )
 ```
 
-- Use `lag()` and `lead()` if you want to access values that are not in the same row (e.g. for time series data). 
+- Use `lag()` and `lead()` to access values that are not in the same row (e.g. for time series data). 
     ```{r, echo=TRUE, eval = FALSE}
     rw <- tibble(t = 1:10, y = cumsum(rnorm(10)))
     mutate(rw, increments =  y - lag(y, k = 1))
@@ -348,22 +338,22 @@ summarise(by_cyl, two_return_vaules(mpg))
 
 - the function can take multiple variable or fixed inputs.
     ```{r, echo = TRUE, eval = FALSE}
-two_input_vaules <- function(x, y) sum(x + y)
-summarise(by_cyl, two_input_vaules(hp, qsec))       # variable inputs
-summarise(by_cyl, two_input_vaules(hp, trim = 0.1)) # fixed input
+two_input_values <- function(x, y) sum(x + y)
+summarise(by_cyl, two_input_values(hp, qsec)) # variable inputs
+summarise(by_cyl, two_input_values(hp, 1))    # fixed input
     ```
 
 ---
 class: top, left
 ## Exercises
 
-1. Load the `nycflights13::flights` data set. Does it come formated as a tibble? 
+1. Load the `nycflights13::flights` data set. Does it come formatted as a tibble? 
 2. Find all flights that 
   - had an arrival delay of two or more hours.
   - flew to Houston (IAH or HOU).
   - were delayed by at least an hour, but made up over 30 minutes in flight.
   - departed between midnight and 6am. 
-3. Which flights travelled the longest? Which travelled the shortest?  
+3. Which flights took the longest? Which travelled the shortest?  
 4. Brainstorm as many ways as possible to select `dep_time`, `dep_delay`, `arr_time`, and `arr_delay`.
 5. Create a new variable `first_flight` which takes the value `TRUE` if it is the first flight of the day. 
 
@@ -382,7 +372,7 @@ filter(flights, day == 1)
 class: top, left
 ## Grouping
 
-To exploit the full potential of `summarise()` we need to pair it with `group_by()`. 
+To exploit the full potential of `summarise()` we pair it with `group_by()`. 
 
 ```{r, echo = TRUE, results='markup'}
 by_cyl <- group_by(mtcars_tibble, cyl)
@@ -407,7 +397,7 @@ transmute(by_cyl, centered_mpg = mpg - mean(mpg))
 # return only first 3 rows for each group
 slice(by_cyl, 1:3)  
 
-# counts the number of rows for each row
+# counts the number of rows for each group
 count(by_cyl)   
 
 # returns all groups with more than 10 rows
@@ -495,10 +485,10 @@ points(table(crime$DISTRICT)/sum(table(crime$DISTRICT)), col = alpha("red", 0.4)
 class: top, left
 ## Scoped Functions 
 
-Often operations on all or several columns at once should be done. In this case, the standard 
-functions are pedestrian. Most helpful are the scoped versions of  `summarise()` and `mutate()`.
+We often perform operations on all or several columns at once. In this case the standard 
+functions are pedestrian. Most helpful are the scoped versions of  `summarise()`, `mutate()` and `select()`.
 
-- Use `summarise_all()`, if you want to summarise every column.
+- Use `summarise_all()`to summarise every column.
     ```{r, eval = FALSE, echo = TRUE}
 mtcars_tibble %>% summarise_all(mean)
     ```
@@ -508,7 +498,7 @@ mtcars_tibble %>% summarise_all(mean)
 iris %>% summarise_if(is.numeric, mean)
     ```
 
--  Use `summarise_if()`, if you want to summarise some specific columns `summarise_at()`.
+-  Use `summarise_at()` to summarise selected columns.
     ```{r, eval = FALSE, echo = TRUE}
 iris %>% summarise_at(c("Sepal.Length", "Sepal.Width"), mean)
     ```
@@ -517,17 +507,18 @@ iris %>% summarise_at(c("Sepal.Length", "Sepal.Width"), mean)
 
 ---
 class: top, left
-## Advanced Subjects 
+## Advanced Topics 
 
-If `summarise()` is to limited, because it can only handle functions that have a single 
-return value one can use 
-  - `group_modify()` returns a grouped tibble. In that case .f must return a data frame.
-  - `group_map()` returns a list of results from calling .f on each group.
-  - `group_walk()` calls .f for side effects and returns the input .tbl, invisibly.
+If `summarise()` is too limited, because it can only handle functions that have a single 
+return value, use 
+  - `group_modify(.tbl, .f, ...)` to return a grouped tibble. In that case `.f` must return a data frame.
+  - `group_map(.tbl, .f, ...)` to returns a list of results from calling `.f` on each group.
+  - `group_walk(.tbl, .f, ...)` to call `.f` for side effects and returns the input `.tbl`, invisibly.
   
 Those functions are closely related to the functions in the `purrr` package which we 
-will talk about later. Here we will only give a short example of how they can be used. 
+will talk about later. Here we only give a short example of how they can be used. 
 
+.code80[
 ```{r, echo = TRUE, eval = FALSE}
 mtcars %>%
   group_by(cyl) %>% 
@@ -542,6 +533,7 @@ mtcars %>%
   group_by(cyl) %>% 
   group_walk(~ plot(mpg  ~ hp, data = . ))
 ```
+]
 
 ---
 class: top, left
@@ -553,8 +545,8 @@ Use dplyr on the Boston crime data to:
 1. Find out in which district the most incident where reported. 
 2. Create an ordered list of the top ten districts according to the number of drug violations. Start with the district with most drug violations. 
 3. What is the most dangerous hour of the week?
-4. Calculate for each district the proportion of motor vehicle accidents on all reported incidents. 
-5. Sort the data set chronological by year and month. Then take the first 10.000 observations and compute the proportion of incidents where a 
+4. Calculate for each district the proportion of motor vehicle accidents to all reported incidents. 
+5. Sort the data set chronologically by year and month. Then take the first 10.000 observations and compute the proportion of incidents where a 
 shooting was involved for each district. Now take a random sample of size 10.000. Is there a noteworthy difference?
 
 
@@ -570,7 +562,7 @@ band_instruments
 class: top, left
 ## Left Join
 
-A left join keeps all observations of the left table
+A left join keeps all observations from the left table, and matches records from the right table based on one (or multiple) columns (`by`).
 ```{r, echo = TRUE, results='markup'}
 band_members %>% left_join(band_instruments, by = "name")
 ```
@@ -578,7 +570,7 @@ band_members %>% left_join(band_instruments, by = "name")
 class: top, left
 ## Inner Join
 
-An inner join keeps only observations if there are matches in both tables
+An inner join matches rows from the left and the right table but only keeps the rows where both tables have matching rows in the `by` column.
 ```{r, echo = TRUE, results='markup'}
 band_members %>% inner_join(band_instruments, by = "name")
 ```
@@ -586,23 +578,24 @@ band_members %>% inner_join(band_instruments, by = "name")
 class: top, left
 ## Full Join
 
-A full (outer) join keeps all observations
+A full (outer) join matches rows from the left and the right table and keeps all observations
 ```{r, echo = TRUE, results='markup'}
-band_members %>% inner_join(band_instruments, by = "name")
+band_members %>% outer_join(band_instruments, by = "name")
 ```
 ---
 class: top, left
 ## Semi Join
 
 A semi-join keeps all observations of the left table where there are matching values in the right table.
-It keeps only tables from the left. 
+It keeps only columns from the left. 
 ```{r, echo = TRUE, results='markup'}
 band_members %>% semi_join(band_instruments, by = "name")
 ```
 ---
 class: top, left
-## Anti Join
-
+## Anti-Join
+A anti-join returns all rows from the first table where no matches are found in the second table.
+ 
 ```{r, echo = TRUE, results='markup'}
 band_members %>% anti_join(band_instruments, by = "name")
 ```
@@ -675,7 +668,7 @@ The function `gather()` takes as arguments
 
 - the column names which are actual values
 - `key`, the name of the newly created variable resulting from the column name
-- `value` the name of the newly created variable.
+- `value`, the name of the newly created variable.
 
 ```{r, echo = TRUE}
 table4a %>% 
@@ -694,11 +687,11 @@ tidyr::table3
 ---
 ## Separating 
 
-The function `sparate()` can split one column into multiple columns. 
+The function `separate()` splits one column into multiple columns. 
 As input it takes: 
 - `col`, the column to be separated
 - `into`, the names of the newly created columns
-- `sep`, a regular expression which tells the function where to split (by default any non-alphanumeric character ). 
+- `sep`, a regular expression which tells the function where to split (by default any non-alphanumeric character)
 - `convert`, a logical value which controls whether or not to run `run type.convert()` on the new columns.
 
 ```{r, echo = TRUE}
@@ -721,7 +714,7 @@ tidyr::table5
 The function `unite()` pastes multiple columns together. 
 As input it takes: 
 - `col`, the name of the new column
-- `...`. the columns to be pasted together
+- `...`, the columns to be pasted together
 - `sep`, the separator between values.
 
 ```{r, echo = TRUE}
@@ -732,7 +725,7 @@ table5 %>%
 ---
 ## Exercises
 1. Compute the rate for `table2`, and `table4a` + `table4b`.
-2. Recreate the plot given below using `table2` instead of `table1`. 
+2. Recreate the plot given by the code below using `table2` instead of `table1`. 
     ```{r, echo = TRUE, eval = FALSE}
 library(ggplot2)
 ggplot(table1, aes(year, cases)) + 
