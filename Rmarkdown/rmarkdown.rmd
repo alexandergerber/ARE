@@ -6,7 +6,7 @@ date: "5 November 2018"
 output:
   xaringan::moon_reader:
     css: ["default", "../assets/sydney-fonts.css", "../assets/sydney.css", "../assets/custom.css", "../assets/title_slides.css"]
-    self_contained: false # if true, fonts will be stored locally
+    self_contained: true # if true, fonts will be stored locally
     seal: false # show a title slide with YAML information
     includes:
       in_header: "../assets/mathjax-equation-numbers.html"
@@ -21,7 +21,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, warning=FALSE, message=FALSE)
+knitr::opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE)
 options(htmltools.dir.version = FALSE)
 def.chunk.hook  <- knitr::knit_hooks$get("chunk")
 ```
@@ -64,7 +64,7 @@ class: left, top
 ## Basic example
 .code70[
 
-```{r echo = FALSE, comment = "", size="tiny"}
+```{r echo=FALSE, comment = "", size="tiny"}
 cat(htmltools::includeText("diamond-sizes.Rmd"))
 ```
 
@@ -107,8 +107,8 @@ class: left, top
 ## The YAML header
 The YAML header contains settings passed to pandoc and the rendering functions.
 Here you can: 
-- provide information for the title page such as title, name, and date
 - specify the output format with optional output specific options 
+- provide information for the title page such as title, name, and date
 - include external files (e.g. `.css`) or additional packages for $\LaTeX$
 - define parameters. 
 
@@ -144,13 +144,23 @@ params:
 ---
 ```
 
+---
+class: left, top
+## Output Formats
+
+- [`html_notebook`](https://bookdown.org/yihui/rmarkdown/notebook.html)      - Interactive R Notebooks  
+- [`html_document`](https://bookdown.org/yihui/rmarkdown/html-document.html) - HTML document 
+- [`pdf_document`](https://bookdown.org/yihui/rmarkdown/pdf-document.html)   &nbsp; - PDF document
+- [`word_document`](https://bookdown.org/yihui/rmarkdown/word-document.html) - Microsoft Word document 
+
+Learn more about further output formats at [https://rmarkdown.rstudio.com](https://rmarkdown.rstudio.com/lesson-9.html).
 
 ---
 class: left, top
 ## Text Formatting
 
 - R Markdown is built on [Pandoc Markdown](https://rmarkdown.rstudio.com/authoring_pandoc_markdown.html%23raw-tex#pandoc_markdown), which in turn is a flavour of the markup language Markdown.  
-- The advantage of Markdown compared to other markup languages such as HTML and Latex is its simplicity.
+- The advantage of Markdown compared to other markup languages such as HTML and  $\LaTeX$ is its simplicity.
 
 ---
 
@@ -249,7 +259,7 @@ class: left, top
 
 .pull-left[ 
 
-- linebreaks  
+- Linebreaks  
     ```markdown
 First line  
 Second line
@@ -307,7 +317,7 @@ This is display style $$f(x)=\frac{1}{\sqrt{2\pi}}\exp{\left(-\frac{1}{2}x^2\rig
 class: left, top
 ## Math Expressions
 - Even more complex math environments such as `align` can be used 
-    ```{r echo = FALSE, comment = ""}
+    ```{r echo=FALSE, comment = ""}
 cat("
 \\begin{align}
 (a+b)^{3} &=(a+b)(a+b)^{2} \\\\
@@ -330,30 +340,28 @@ class: left, top
 ## Code Chunks
 
 .font90[
-
-- Press `Ctrl + Alt + I` to insert a new R code chunk.
-- You can write arbitrary R code in a code chunk (e.g. run a regression and produce a plot of the result).  
+- You can write arbitrary R code in a code chunk (e.g. run a regression and produce a plot of the result). 
+- The code, the result of the code or both can be included into the final document. 
 - In the top curly braces, chunk options can be set to control how the output is handled.
 
 Some useful options: 
   - `eval`(`TRUE`; logical): whether to evaluate the code chunk  
   - `echo`(`TRUE`; logical or numeric): whether to include R source code in the output file
   - `cache`(`FALSE`; logical): whether to cache a code chunk 
-  - `fig.height` and `fig.width`  control plot size in the final document
   - `warning` (`TRUE`; logical): whether to preserve warnings 
   - `message` (`TRUE`; logical): whether to preserve messages 
   - `include` (`TRUE`; logical): whether to include the chunk output in the final output document
   
 For a complete list, we refer to the `knitr` documentation: [Chunk options](https://yihui.name/knitr/options#code-evaluation).
 
+- Press `Ctrl + Alt + I` to insert a new R code chunk.
 ]
-
 ---
 class: left, top
 ## Code Chunks
 
 ````markdown
-`r ''````{r, echo = TRUE, cache = TRUE}
+`r ''````{r lin_reg, echo=TRUE, cache = TRUE}
 x <- runif(100)
 y <- 0.4 * x + rnorm(100)
 lm(y ~ x)
@@ -364,7 +372,7 @@ If you mainly use chunk options which are not the default, then it saves time to
 
 ````markdown
 `r ''````{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, warning=FALSE, message=FALSE)
+knitr::opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE)
 ```
 ````
 
@@ -375,7 +383,7 @@ class: left, top
 You can also use R in your running text. When something changes (e.g. the input data) the numbers in the text adjust accordingly as well. 
 
 ````markdown
-`r ''````{r, echo = FALSE}
+`r ''````{r, echo=FALSE}
 x <- 4
 y <- 38
 answer <- x + y
@@ -436,16 +444,34 @@ class: left, top
 `r ''````{r}
 result        <- data.frame(rbind(rep(12,4), rep(123, 4), rep(1,4)))
 names(result) <- c("Right", "Left", "Default", "Center")
-knitr::kable(result, align = c("r", "l", "l", "c"), format = "markdown")
+knitr::kable(result, align = c("r", "l", "l", "c"), format = "html")
 ```
 ````
 
 ```{r}
 result        <- data.frame(rbind(rep(12,4), rep(123, 4), rep(1,4)))
 names(result) <- c("Right", "Left", "Default", "Center")
-knitr::kable(result, align = c("r", "l", "l", "c"), format = "markdown")
+knitr::kable(result, align = c("r", "l", "l", "c"), format = "html")
 ```
 
+---
+class: left, top
+## `kableExtra`
+
+- The appearance of a table (not only produced by `knitr::kable()`) depends on the underlying `css` (in case of an HTML document) or the generated $\LaTeX{}$ code. 
+- `kableExtra` allows to format your `knitr::kable()` table without the use of `css` or $\LaTeX{}$
+
+````markdown
+`r ''````{r}
+library(magrittr)
+knitr::kable(result, 
+             align = c("r", "l", "l", "c"), 
+             format = "html") %>%  
+  kableExtra::kable_styling(bootstrap_options = "bordered")
+```
+````
+- We are using CSS to style our table. See the [kableExtra vignette](https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html)
+for examples examples. 
 
 ---
 class: left, top
@@ -455,7 +481,7 @@ class: left, top
 - If your code produces raw HTML or $\LaTeX{}$ e.g. for a table then you have to set `results='asis'`  in the  chunk options, otherwise it gets formatted and will not work as intended.
 
 ````markdown
-`r ''````{r, echo = FALSE, results='asis'}
+`r ''````{r, echo=FALSE, results='asis'}
 library(xtable)
 
 my_xtable <- xtable(result, align = c("r", "r", "l", "l", "c"))
@@ -463,7 +489,7 @@ print.xtable(my_xtable, type  = "html", include.rownames = FALSE)
 ```
 ````
 
-```{r, echo = FALSE, results='asis'}
+```{r, echo=FALSE, results='asis'}
 library(xtable)
 my_xtable <- xtable(result, align = c("r", "r", "l", "l", "c"))
 print.xtable(my_xtable, type  = "html", include.rownames = FALSE)
@@ -478,7 +504,7 @@ class: left, top
 .pull-left[
 <br>
 ````markdown
-`r ''````{r, results='asis', echo = TRUE}
+`r ''````{r, results='asis', echo=TRUE}
 
 linear_model <- lm(mpg ~ cyl + wt, 
       data = mtcars)
@@ -517,10 +543,33 @@ hist(rnorm(1000))
 hist(rnorm(1000))
 ```
 
+---
+class: left, top
+## Links and External Graphics
+
+- Links can be created as follows:
+
+```markdown
+[This is a link to the R Markdown book](https://bookdown.org/yihui/rmarkdown/)
+```
+
+- To include figures saved on your computer
+
+```markdown
+![Figure Description](path/to/figure.png)
+```
+
+- If you need more control over the appearence of the figure you can use
+
+````markdown
+`r ''````{r, out.width = "500px", fig.align='center'}
+knitr::include_graphics("path/to/figure.png")
+```
+````
 
 ---
 class: left, top
-## Using HTML and $\LaTeX{}
+## Using HTML and $\LaTeX{}$
 
 - If only R Markdown is used the document can be compiled without problems
 to all supported output formats. 
@@ -531,7 +580,7 @@ tools provided by HTML or $\LaTeX{}$.
 - If the output format is HTML, you can also use HTML instead of R Markdown 
   or mix both.
 
-- If the output format is PDF, the same can be said about Latex.
+- If the output format is PDF, the same can be said about $\LaTeX{}$
 
 
 ---
@@ -611,6 +660,9 @@ leaflet() %>% addTiles() %>%
 ---
 class: left, top
 ## Interactive documents
+
+- The `DT` package also allows us to include interactive tables. 
+
 ````markdown
 `r ''````{r}
 DT::datatable(
@@ -619,6 +671,7 @@ DT::datatable(
 )
 ```
 ````
+
 ```{r}
 DT::datatable(
   head(iris, 10),
@@ -626,6 +679,124 @@ DT::datatable(
 )
 ```
 
+
+---
+class: left, top
+## Hooks
+
+- You can define your own chunk options using hooks. This is a topic for you if you want to become 
+a professional `knitr` user. 
+
+#### Chunk Hooks 
+- A chunk hook is a function defining what should happen before or after a code chunk.
+.code70[
+```{r, echo=TRUE}
+# Template for a chunk hook
+knitr::knit_hooks$set(
+foo_hook = function(before, options, envir) {
+    if (before) {
+        ## code to be run before a chunk
+    } else {
+        ## code to be run after a chunk
+    }
+  })
+```
+]
+
+- Before the chunk is evaluated the function is called with `before == TRUE`  
+and after with `before == FALSE`.
+- `options` is a list with the current chunk options (optional). 
+- `envir` is the enviornment in which the the code chunk is evaluated (optional).
+
+---
+class: left, top
+## Chunk Hooks: Example
+
+- To reduce the margins of a plot with chunk option `small.mar = TRUE` put the following code chunk 
+at the top of your document. 
+
+````markdown
+`r ''````{r, eval = FALSE, echo=TRUE}
+knitr::knit_hooks$set(small.mar = function(before) {
+    if (before) par(mar = c(1, 1, 1, 1))  
+})
+```
+````
+- `small.mar` now can be used as other chunk options. 
+
+````markdown
+`r ''````{r, small.mar = TRUE}
+hist(rnorm)
+```
+````
+
+---
+class: left, top
+## Output Hooks
+
+- Output hooks are (render) functions that define how source code and its output is presented.
+- There are 8 output hooks to deal with differnt types of output: 
+  - `source`: the source code
+  - `output`: what would have been printed in an R terminal except warnings, messages and errors. 
+  - `warnings`: warnings from `warning()`
+  - `message`: messages from `message()`
+  - `error`: errors from `stop()`
+  - `plot`: graphics output
+  - `inline`: output of inline R code
+  - `chunk`: all the output of a chunk
+  - `document`: the output of the whole document 
+
+```{r, eval = FALSE}
+knitr::knit_hooks$set(small.mar = function(before) {
+    if (before) par(mar = c(1, 1, 1, 1))  
+})
+
+```
+
+- There is for each of the above a default which you can adjust to your needs. 
+
+---
+class: left, top
+## Output Hooks: Example
+
+- You can e.g. use a hook to consistantly style all your tables using `kableExtra`.  
+
+```{r, eval = FALSE, echo=TRUE}
+default_source_hook <- knit_hooks$get("source")
+knit_hooks$set(
+  source = function(x, options) {
+    if(is.null(options$table))
+      default_source_hook(x, options)
+    else {
+      eval(parse(text = x)) %>%
+        kable("html") %>%
+        kable_styling("hover", full_width = F)
+    }
+  }
+)
+```
+
+
+---
+class: left, top
+## The `here` package
+
+- `here::here()` is returning the path to the directory where your project file lives in. 
+
+Why is this useful? 
+
+- If an Rmarkdown file is compiled it sets the working directory to the folder where your `.rmd` file is stored.
+- Usually you do some interactive work before compiling. If you work in an project then the working directory 
+  for the interactive part is set to the path of your project file. 
+- If your project becomes more complex and you are using subdirectories the working directory set for compilation
+  and interactive work are not necessary the same. This is quite annoying.
+
+#### Solution
+
+- use `here::here()` when setting a path.
+    ```{r, eval = FALSE, echo=TRUE}
+load(here::here("Data", "my_dataset.rda"))
+    ```
 ---
 class: left, top
 ## Exercises
@@ -633,25 +804,30 @@ class: left, top
 1. Create an R Markdown document that is compiled to an HTML document. 
    The document should consist of two sections:
    
-    - Getting Data
+    - Crime Incidents Report Data
     - Explorative Data Analysis.
 
-2. Use the first section to read in the data available under 
-   [Boston crime](https://data.boston.gov/dataset/6220d948-eae2-4e4b-8723-2dc8e67722a3/resource/12cb3883-56f5-47de-afa5-3b1cf61b257b/download/tmppj4rb047.csv). Add some information about the source of the data and list all available columns. 
+2. Use the first section to read in the "Crime Incident Reports" available under 
+   [Boston crime](https://data.boston.gov/dataset/crime-incident-reports-august-2015-to-date-source-new-system). Add some information about the source of the data and list all available columns with a short description Hint: Take a look at the 
+table `RMS_Crime_Incident_Field_Explanation`. 
 
-3. Use the second section to summarize the data. You are free to do whatever you like but produce at least one table and one plot. 
 
-4. Optimize your code chunks so that the document doesn't load the data every time you compile. Also let us see what you did by making the code visible. 
+3. Optimize your code chunks so that the document doesn't load the data every time you compile. Also hide all your code chunks. 
+
+4. Use the second section to summarize the data. You are free to do whatever you like but produce at least one table and one graphic. 
 
 5. Create a PDF document containing what you did.
 
 6. Remember that nested ordered lists are not supported by Rmarkdown. Produce one nonetheless in your HTML and your PDF document. 
 
-7. Build some slides using the code you have written. 
+---
+class: left, top
+## Exercises
+<ol start="7"> 
+<li> Also build some slides using the code you have written. You are free to choose one among all available presentation formats. </li>
+<ol>
 
-
-
-```{r, echo = FALSE, eval = FALSE}
+```{r, echo=FALSE, eval = FALSE}
 library(data.table)
 library(leaflet)
 crime <- fread("https://data.boston.gov/dataset/6220d948-eae2-4e4b-8723-2dc8e67722a3/resource/12cb3883-56f5-47de-afa5-3b1cf61b257b/download/tmppj4rb047.csv")
@@ -666,6 +842,9 @@ leaflet() %>% addTiles() %>%
 
 ```
 
+<ol start="8"> 
+<li> Find out how to always use the current date in the YAML header.</li>
+</ol>
 
 
 
