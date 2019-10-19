@@ -20,6 +20,9 @@
   float:left;
 }
 
-
+a, a > code {
+    color: #0148A4;
+    text-decoration: none;
+}
 
 
