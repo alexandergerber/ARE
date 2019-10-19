@@ -1,2 +1,0 @@
-# Graphics
-https://flowingdata.com/2016/03/22/comparing-ggplot2-and-r-base-graphics/
