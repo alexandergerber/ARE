@@ -410,10 +410,10 @@ blockquote, .blockquote {
   margin-bottom: 0.2em;
   margin-left: 5px;
   margin-right: 5px;
-  border-left: solid 10px #0148A4;
-  border-top: solid 2px #0148A4;
-  border-bottom: solid 2px #0148A4;
-  border-right: solid 2px #0148A4;
+  border-left: solid 10px #e64626;
+  border-top: solid 2px #e64626;
+  border-bottom: solid 2px #e64626;
+  border-right: solid 2px #e64626;
   box-shadow: 0 0 6px rgba(0,0,0,0.5);
   /* background-color: #e64626; */
   color: #e64626;
