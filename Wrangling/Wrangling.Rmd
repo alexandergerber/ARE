@@ -5,7 +5,7 @@ author: "Alexander Gerber"
 date: "5 November 2018"
 output:
   xaringan::moon_reader:
-    css: ["default", "../assets/sydney-fonts.css", "../assets/sydney.css"]
+    css: ["default", "../assets/sydney-fonts.css", "../assets/sydney.css", "../assets/title_slides.css"]
     self_contained: true # if true, fonts will be stored locally
     seal: false # show a title slide with YAML information
     includes:
@@ -23,7 +23,7 @@ output:
 options(htmltools.dir.version = FALSE)
 knitr::opts_chunk$set(echo = FALSE, warning=FALSE, message=FALSE)
 ```
-class: title-slide center middle
+class: title-slide title-wrangling center middle
 
 # `r rmarkdown::metadata$title`
 ## `r rmarkdown::metadata$subtitle`
