@@ -6,7 +6,7 @@ date: "5 November 2018"
 output:
   xaringan::moon_reader:
     css: ["default", "../assets/sydney-fonts.css", "../assets/sydney.css", "../assets/title_slides.css"]
-    self_contained: false # if true, fonts will be stored locally
+    self_contained: true # if true, fonts will be stored locally
     seal: false # show a title slide with YAML information
     includes:
       in_header: "../assets/mathjax-equation-numbers.html"
@@ -98,10 +98,10 @@ We start by creating a Git repository from scratch:
 
 - Create a new directory e.g. on Windows `C:\myProject`. 
 - Use your terminal to navigate to that directory.
-```terminal
+    ```terminal
 c:
 cd myProject
-```
+    ```
 - Initialize a new git repository in this folder with 
 ```terminal
 git init
@@ -116,11 +116,10 @@ git init
 Git when you want to save (`commit`) a new status. 
 
 - Before we can `commit` anything we need to create some files. E.g., a `HelloGit.txt` file with the content
-
-```
+    ```
 Hello World!
 How are you?
-```
+    ```
 
 ---
 ## `git status`
@@ -193,7 +192,7 @@ git config --global core.editor notepad
 
 - If you don't want to give a long description than you can also use 
     ```terminal
-git commit - m "A short commit message"
+git commit -m "A short commit message"
     ```
     to commit the files in the staging area without opening an editor.  
 
