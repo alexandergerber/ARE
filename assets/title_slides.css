@@ -21,3 +21,15 @@
     background-position: 7% 10%, 90% 90%;
     background-size: 220px, 180px;
 }
+
+.title-oop {
+    background-image: url(../assets/ude_logo.png), url(../assets/oop.png);
+    background-position: 7% 10%, 90% 90%;
+    background-size: 220px, 180px;
+}
+
+.title-wrangling {
+    background-image: url(../assets/ude_logo.png), url(../assets/dplyr.png);
+    background-position: 7% 10%, 90% 90%;
+    background-size: 220px, 180px;
+}
