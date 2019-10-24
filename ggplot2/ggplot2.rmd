@@ -21,7 +21,7 @@ output:
 ---
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, warning=FALSE, message=FALSE, 
-                      fig.align = 'center', 
+                      fig.align = 'center', cache = TRUE,  
                       dpi = 250, fig.width=10, out.width='72%')
 options(htmltools.dir.version = FALSE)
 ```
@@ -240,7 +240,8 @@ class: left, top
 ## Geometric Objects and Statistic Transformations
 
 - Layers may be defined in terms of a geometric object (`geom_*`) or a statistical transformation (`stat_*`).
-- Each geometric object is associated with a default statistical transformation and vice versa.
+- Each geometric object is associated with a default statistical transformation and vice versa.  
+
      **Examples**: 
 
     - `geom_point()` has the identity function as statistical transformation.
@@ -255,7 +256,7 @@ class: left, top
 1. Use the `mtcars` data set and plot `mpg` vs. `hp`. Add a smoothing line to the plot. 
 2. Add for each number of cylinders a linear smoothing function to the plot.
 3. Find out how to remove the confidence interval. 
-4. Instead of a simple linear model use a quatratic function for smoothing.  
+4. Use a simple linear regression model and a qutratic regression model for smoothing.  
  
 
 
@@ -327,19 +328,9 @@ ggplot(data = diamonds, mapping = aes(carat, price)) +
 
 ---
 class: left, top
-## Faceting
-- Faceting generates multiple plots each showing a different subset of the data.
-
-```{r, echo = TRUE, eval = FALSE}
-ggplot(data = diamonds, mapping = aes(carat, price))  + 
-  geom_point() + 
-  facet_grid( ~ cut)
-```
-
----
-class: left, top
 ## Faceting using one variable
-```{r, echo = FALSE, eval = TRUE}
+- Faceting generates multiple plots each showing a different subset of the data.
+```{r, echo = TRUE, eval = TRUE, out.width='50%'}
 ggplot(data = diamonds, mapping = aes(carat, price))  + 
   geom_point() + 
   facet_grid( ~ cut)
@@ -348,11 +339,13 @@ ggplot(data = diamonds, mapping = aes(carat, price))  +
 ---
 class: left, top
 ## Faceting using two variables
-```{r, echo = FALSE, eval = TRUE}
+```{r, echo = TRUE, eval = TRUE, out.width='50%'}
 ggplot(data = diamonds, mapping = aes(carat, price))  + 
   geom_point() + 
   facet_grid(color  ~ cut)
 ```
+
+
 
 ---
 class: left, top
@@ -497,7 +490,7 @@ class: left, top
 
 ---
 <ol start="4">
-<li>Repreoduce the following plot with <TT>ggplot</TT>.</li>
+<li>Repreoduce the plot created by the following code with <TT>ggplot</TT>.</li>
 
 ```{r, echo = TRUE, eval = FALSE}
 plot(mtcars$mpg ~ mtcars$wt, xlab = "wt", ylab = "mpg", pch = 19, ylim = c(5, 35))
