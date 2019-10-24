@@ -195,13 +195,13 @@ Some examples:
      *italics* 
      **bold**
      This ~~is deleted text.~~
-     Some verbatim `lm(y ~ x)`.
+     Some code: `lm(y ~ x)`.
     ```
     
     *italics*  
     **bold**  
     This ~~is deleted text.~~  
-    Some verbatim `lm(y ~ x)`. 
+    Some code: `lm(y ~ x)`. 
 ]
 
 
@@ -368,7 +368,7 @@ lm(y ~ x)
 ```
 ````
 
-If you mainly use chunk options which are not the default, then it saves time to change the default for the document with ``knitr::opts_chunk$set()`.  
+If you mainly use chunk options which are not the default, then it saves time to change the default for the document with `knitr::opts_chunk$set()`.  
 
 ````markdown
 `r ''````{r setup, include=FALSE}
@@ -470,8 +470,8 @@ knitr::kable(result,
   kableExtra::kable_styling(bootstrap_options = "bordered")
 ```
 ````
-- We are using CSS to style our table. See the [kableExtra vignette](https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html)
-for examples examples. 
+- Have a look at the [kableExtra vignette](https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html)
+for examples. 
 
 ---
 class: left, top
@@ -553,7 +553,7 @@ class: left, top
 [This is a link to the R Markdown book](https://bookdown.org/yihui/rmarkdown/)
 ```
 
-- To include figures saved on your computer
+- To include figures saved on your computer use
 
 ```markdown
 ![Figure Description](path/to/figure.png)
@@ -682,7 +682,7 @@ DT::datatable(
 
 ---
 class: left, top
-## Hooks
+## Advanced Topics: Hooks
 
 - You can define your own chunk options using hooks. This is a topic for you if you want to become 
 a professional `knitr` user. 
@@ -803,49 +803,29 @@ class: left, top
 
 1. Create an R Markdown document that is compiled to an HTML document. 
    The document should consist of two sections:
-   
     - Crime Incidents Report Data
     - Explorative Data Analysis.
-
 2. Use the first section to read in the "Crime Incident Reports" available under 
    [Boston crime](https://data.boston.gov/dataset/crime-incident-reports-august-2015-to-date-source-new-system). Add some information about the source of the data and list all available columns with a short description Hint: Take a look at the 
 table `RMS_Crime_Incident_Field_Explanation`. 
 
+3. Optimize your code chunks so that the document doesn't load the data every time you compile. 
 
-3. Optimize your code chunks so that the document doesn't load the data every time you compile. Also hide all your code chunks. 
+4. Use the second section for an EDA. You are free to do whatever you like but produce at least one table and one graphic. 
 
-4. Use the second section to summarize the data. You are free to do whatever you like but produce at least one table and one graphic. 
+5. Hide all your code chunks by setting a global option. 
 
-5. Create a PDF document containing what you did.
-
-6. Remember that nested ordered lists are not supported by Rmarkdown. Produce one nonetheless in your HTML and your PDF document. 
+6. Create a PDF document containing what you did. For this $\LaTeX{}$ needs to be 
+   installed. 
 
 ---
 class: left, top
 ## Exercises
-<ol start="7"> 
+<ol start="6"> 
+<li>  Remember that nested ordered lists are not supported by Rmarkdown. Produce one nonetheless in your HTML and your PDF document. </li>
 <li> Also build some slides using the code you have written. You are free to choose one among all available presentation formats. </li>
-<ol>
-
-```{r, echo=FALSE, eval = FALSE}
-library(data.table)
-library(leaflet)
-crime <- fread("https://data.boston.gov/dataset/6220d948-eae2-4e4b-8723-2dc8e67722a3/resource/12cb3883-56f5-47de-afa5-3b1cf61b257b/download/tmppj4rb047.csv")
-
-id <- sample(1:nrow(crime), 100)
-
-leaflet() %>% addTiles() %>%
-  setView( -71.05874, 42.35699,zoom = 14) %>%
-  addMarkers(
-    crime$Long[id], crime$Lat[id], 
-  )
-
-```
-
-<ol start="8"> 
 <li> Find out how to always use the current date in the YAML header.</li>
 </ol>
-
 
 
 
